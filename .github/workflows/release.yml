@@ -1,0 +1,49 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+
+    - name: Setup Node
+      uses: actions/setup-node@v3
+      with:
+        node-version-file: "package.json"
+
+    - name: Setup pnpm
+      uses: pnpm/action-setup@v2
+
+    - name: Install Dependencies
+      run: pnpm install --frozen-lockfile
+
+    - name: Install Zapier
+      run: pnpm install-zapier
+
+    - name: Build Application
+      run: pnpm build
+
+    - name: Upload Application
+      env:
+        ZAPIER_DEPLOY_KEY: ${{ secrets.ZAPIER_DEPLOY_KEY }}
+      run: pnpm upload
+
+    - name: Promote Application
+      env:
+        ZAPIER_DEPLOY_KEY: ${{ secrets.ZAPIER_DEPLOY_KEY }}
+      run: pnpm promote
+
+    - name: Create Release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        version="$(./makefile.js version)"
+        gh release create "$version" --notes "$(pnpm notes)"
+        # Don't enclose the `attachments` command in quotes.
+        gh release upload "$version" $(./makefile.js attachments)

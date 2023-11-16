@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": true,
+    "allowJs": true,
+    "checkJs": true,
+    "target": "ES6",
+    "skipLibCheck": true
+  },
+  "include": [
+    "./app",
+    "./vendor",
+    "./index.d.js",
+    "./index.js"
+  ]
+}
