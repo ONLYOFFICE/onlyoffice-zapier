@@ -101,6 +101,43 @@ const roomCreated = {
   }
 }
 
+const roomCreate = {
+  key: "roomCreate",
+  noun: "Rooms",
+  display: {
+    label: "Create Room",
+    description: "Create a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Title",
+        key: "title",
+        required: true,
+        default: "Test room"
+      },
+      {
+        label: "Type",
+        key: "type",
+        required: true,
+        choices: { 'CustomRoom': 'Custom room', 'EditingRooms': 'Editing rooms' },
+        default: "CustomRoom"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
+     * @returns {Promise<RoomData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      return await files.createRoom(bundle.inputData)
+    },
+    sample: samples.room
+  }
+}
+
 /**
  * @typedef {Object} RegularFile
  * @property {number} folderId
@@ -127,6 +164,12 @@ const roomCreated = {
  * @typedef {Object} RoomData
  * @property {number} id
  * @property {string} title
+ */
+
+/**
+ * @typedef {Object} RoomOptions
+ * @property {string} title
+ * @property {string} type
  */
 
 class FilesService extends Service {
@@ -161,11 +204,23 @@ class FilesService extends Service {
   listRooms() {
     return this.client.request("GET", "/files/rooms")
   }
+  
+  /**
+   * ```http
+   * POST /files/rooms
+   * ```
+  * @param {RoomOptions} data
+   * @returns {Promise<RoomData>}
+   */
+  createRoom(data) {
+    return this.client.request("POST", "/files/rooms", data)
+  }
 }
 
 module.exports = {
   createFile,
   createFileInMyDocuments,
   roomCreated,
+  roomCreate,
   FilesService
 }

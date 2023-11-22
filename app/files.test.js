@@ -9,7 +9,7 @@ const { suite } = require("uvu")
 const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
-const { createFile, createFileInMyDocuments, roomCreated } = require("./files.js")
+const { createFile, createFileInMyDocuments, roomCreated, roomCreate } = require("./files.js")
 
 const tester = createAppTester(App)
 
@@ -66,6 +66,25 @@ Files("creates a file in the My Documents", async (context) => {
   }
   const result = await tester(perform, bundle)
   not.equal(result.folderId, 0)
+})
+
+Files("create a room", async (context) => {
+  const { perform } = roomCreate.operation
+  /** @type {RoomOptions} */
+  const inputData = {
+    title: "Test room",
+    type: "CustomRoom"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const room = await tester(perform, bundle)
+  if (!room) {
+    unreachable("TODO")
+    return
+  }
+  equal(bundle.inputData.title, room.title)
 })
 
 Files.run()
