@@ -39,7 +39,60 @@ class Client {
       throw Error("TODO")
     }
 
+    if (data.response.hasOwnProperty('finished')) {
+      const request = this.request.bind(this, method, path, body) 
+      const progress = new Progress(request)
+      progress.id = data.response.id
+      progress.operation = data.response.operation
+      progress.progress = data.response.progress
+      progress.error = data.response.error
+      progress.processed = data.response.processed
+      progress.finished = data.response.finished
+      return progress
+    }
+
     return data.response
+  }
+}
+
+class Progress {
+  /**
+   * @param {() => Promise<Progress>} request
+   */
+  constructor(request) {
+    this.request = request
+    this.id = ""
+    this.operation = 0
+    this.progress = 0
+    this.error = ""
+    this.processed = ""
+    this.finished = false
+  }
+
+  /**
+   * @param {number} delay
+   * @param {number} limit
+   * @returns {Promise<Progress>}
+   */
+  async finish(delay = 100, limit = 20) {
+    if (this.finished || limit <= 0) {
+      return this
+    }
+
+    const result = await this.next()
+    if (result.finished) {
+      return result
+    }
+
+    await new Promise(resolve => setTimeout(resolve, delay))
+    return this.finish(delay, limit - 1)
+  }
+
+  /**
+   * @returns {Promise<Progress>}
+   */
+  next() {
+    return this.request()
   }
 }
 
@@ -52,4 +105,4 @@ class Service {
   }
 }
 
-module.exports = { Client, Service }
+module.exports = { Client, Service, Progress }
