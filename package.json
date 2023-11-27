@@ -5,18 +5,18 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "all": "./makefile.js all",
-    "attachments": "./makefile.js attachments",
-    "build": "./makefile.js build",
+    "all": "node ./makefile.js all",
+    "attachments": "node ./makefile.js attachments",
+    "build": "node ./makefile.js build",
     "check": "tsc",
-    "install-zapier": "./makefile.js install-zapier",
+    "install-zapier": "node ./makefile.js install-zapier",
     "lint": "echo \"warn: eslint isn't configured\"",
-    "notes": "./makefile.js notes",
-    "promote": "./makefile.js promote",
-    "setup-env": "./makefile.js setup-env",
+    "notes": "node ./makefile.js notes",
+    "promote": "node ./makefile.js promote",
+    "setup-env": "node ./makefile.js setup-env",
     "test": "uvu app ^.*\\.test\\.js$",
-    "tt": "./makefile.js tt",
-    "upload": "./makefile.js upload"
+    "tt": "node ./makefile.js tt",
+    "upload": "node ./makefile.js upload"
   },
   "dependencies": {
     "normalize-url": "6.1.0",
