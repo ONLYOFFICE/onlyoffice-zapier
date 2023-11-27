@@ -25,6 +25,7 @@
   "devDependencies": {
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
+    "nock": "^13.3.8",
     "sade": "^1.8.1",
     "typescript": "^5.2.2",
     "uvu": "^0.5.6"
