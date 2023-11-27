@@ -38,7 +38,7 @@ function exec(command) {
  */
 function question(line, message) {
   return new Promise(resolve => {
-    line.question(message, resolve);
+    line.question(message, resolve)
   })
 }
 
