@@ -33,4 +33,14 @@ const folder = {
   }
 }
 
-module.exports = { room, file, folder }
+/** @type {ProgressData} */
+const progress = {
+  id: "00000000-1111-2222-3333-444444444444",
+  operation: 0,
+  progress: 0,
+  error: "",
+  processed: "0",
+  finished: false
+}
+
+module.exports = { room, file, folder, progress }
