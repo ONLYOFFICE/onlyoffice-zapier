@@ -10,7 +10,7 @@
     "build": "node ./makefile.js build",
     "check": "tsc",
     "install-zapier": "node ./makefile.js install-zapier",
-    "lint": "echo \"warn: eslint isn't configured\"",
+    "lint": "eslint .",
     "notes": "node ./makefile.js notes",
     "promote": "node ./makefile.js promote",
     "setup-env": "node ./makefile.js setup-env",
@@ -23,6 +23,7 @@
     "zapier-platform-core": "15.5.0"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin-js": "^1.4.1",
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
     "nock": "^13.3.8",

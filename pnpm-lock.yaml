@@ -13,6 +13,9 @@ dependencies:
     version: 15.5.0
 
 devDependencies:
+  '@stylistic/eslint-plugin-js':
+    specifier: ^1.4.1
+    version: 1.4.1(eslint@8.53.0)
   esbuild:
     specifier: ^0.19.5
     version: 0.19.5
@@ -313,6 +316,20 @@ packages:
     dependencies:
       '@nodelib/fs.scandir': 2.1.5
       fastq: 1.15.0
+    dev: true
+
+  /@stylistic/eslint-plugin-js@1.4.1(eslint@8.53.0):
+    resolution: {integrity: sha512-WXHPEVw5PB7OML7cLwHJDEcCyLiP7vzKeBbSwmpHLK0oh0JYkoJfTg2hEdFuQT5rQxFy3KzCy9R1mZ0wgLjKrA==}
+    engines: {node: ^16.0.0 || >=18.0.0}
+    peerDependencies:
+      eslint: '>=8.40.0'
+    dependencies:
+      acorn: 8.11.2
+      escape-string-regexp: 4.0.0
+      eslint: 8.53.0
+      eslint-visitor-keys: 3.4.3
+      espree: 9.6.1
+      graphemer: 1.4.0
     dev: true
 
   /@types/node@20.9.0:
