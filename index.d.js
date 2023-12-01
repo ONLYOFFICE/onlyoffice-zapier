@@ -12,5 +12,6 @@
  * @typedef {import("./app/files.js").FileData} FileData
  * @typedef {import("./app/files.js").RegularFile} RegularFile
  * @typedef {import("./app/files.js").RoomData} RoomData
+ * @typedef {import("./app/client.js").Filters} Filters
  * @typedef {import("./app/people.js").User} User
  */
