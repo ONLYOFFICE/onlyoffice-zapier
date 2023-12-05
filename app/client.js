@@ -16,10 +16,11 @@ class Client {
   }
 
   /**
+   * @template T
    * @param {HttpMethod} method
    * @param {string} path
    * @param {HttpRequestOptions["body"]} body
-   * @returns {Promise<any>}
+   * @returns {Promise<T>}
    */
   async request(method, path, body = {}) {
     // Here, we don't use the URL constructor to join URL parts because we
