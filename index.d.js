@@ -14,3 +14,5 @@
  * @typedef {import("./app/files.js").RoomData} RoomData
  * @typedef {import("./app/people.js").User} User
  */
+
+module.exports = {}
