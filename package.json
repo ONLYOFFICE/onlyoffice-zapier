@@ -19,6 +19,8 @@
     "upload": "node ./makefile.js upload"
   },
   "dependencies": {
+    "axios": "^1.6.2",
+    "form-data": "^4.0.0",
     "normalize-url": "6.1.0",
     "zapier-platform-core": "15.5.0"
   },

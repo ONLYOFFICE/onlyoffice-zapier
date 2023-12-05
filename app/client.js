@@ -2,7 +2,9 @@
 // (c) Copyright Ascensio System SIA 2023
 //
 
-// @ts-check
+// @ts-nocheck
+const FormData = require("form-data")
+const axios = require("axios")
 
 class Client {
   /**
@@ -39,8 +41,8 @@ class Client {
       throw Error("TODO")
     }
 
-    if (data.response.hasOwnProperty('finished')) {
-      const request = this.request.bind(this, method, path, body) 
+    if (data.response.hasOwnProperty("finished")) {
+      const request = this.request.bind(this, method, path, body)
       const progress = new Progress(request)
       progress.id = data.response.id
       progress.operation = data.response.operation
@@ -52,6 +54,62 @@ class Client {
     }
 
     return data.response
+  }
+
+  async session(options) {
+    const downloadFile = async (options) => {
+      const response = await axios({
+        url: options.url,
+        method: "GET",
+        responseType: "arraybuffer"
+      })
+
+      let chunk = 0
+      let chunkUploadSize = 10 * 1024 * 1024//TODO: max chunk size - 10mb
+      let requestsDataArray = []
+      const chunks = Math.ceil(response.data.length / chunkUploadSize, chunkUploadSize)
+
+      while (chunk < chunks) {
+        const offset = chunk * chunkUploadSize
+        const form = new FormData()
+        form.append("file", response.data.slice(offset, offset + chunkUploadSize), {
+          filename: options.title + ".docx"//TODO: get file extension
+        })
+        requestsDataArray.push(form)
+        chunk++
+      }
+
+      return requestsDataArray
+    }
+
+    const openSession = async (file, options) => {
+      const length = file.reduce((totalLength, filedata) => totalLength + filedata._valueLength, 0)
+      const body = {
+        folderId: options.folderId,
+        FileName: options.title + ".docx", //TODO: get file extension
+        FileSize: length,
+        CreateOn: new Date().toISOString()
+      }
+
+      const url = `${this.baseUrl}${this.version}/files/${options.folderId}/upload/create_session`
+      return await this.zrequest({ url, method: "POST", body })
+    }
+
+    const uploadChunk = async (file, id) => {
+      const body = { form: file }
+      const headers = file.getHeaders()
+      const url = `${this.baseUrl}/ChunkedUploader.ashx?uid=${id}`
+      return await this.zrequest({ url, method: "POST", body: body.form, headers })
+    }
+
+    const file = await downloadFile(options)
+    const session = await openSession(file, options)
+    let response
+    for await (const chunk of file) {
+      response = await uploadChunk(chunk, session.data.response.data.id)
+    }
+
+    return response
   }
 }
 

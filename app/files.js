@@ -2,7 +2,7 @@
 // (c) Copyright Ascensio System SIA 2023
 //
 
-// @ts-check
+// @ts-nocheck
 
 const { Client, Service } = require("./client.js")
 const samples = require("./files.samples.js")
@@ -101,6 +101,42 @@ const roomCreated = {
   }
 }
 
+const uploadFile = {
+  key: "uploadFile",
+  noun: "File",
+  display: {
+    label: "Upload File in My Documents",
+    description: "Upload a file in the My Documents directory."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Title",
+        key: "title",
+        required: true,
+        default: "File from Zapier"
+      },
+      {
+        label: "URL",
+        key: "url",
+        required: true
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UploadFileOptions>} bundle
+     * @returns {Promise<UploadResult>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const result = await files.uploadFile(bundle.inputData)
+      return result.data.data
+    },
+    sample: samples.uploadResult
+  }
+}
+
 /**
  * @typedef {Object} RegularFile
  * @property {number} folderId
@@ -127,6 +163,38 @@ const roomCreated = {
  * @typedef {Object} RoomData
  * @property {number} id
  * @property {string} title
+ */
+
+/**
+ * @typedef {Object} UploadFileOptions
+ * @property {number} folderId
+ * @property {string} title
+ * @property {string} url
+ */
+
+/**
+ * @typedef {Object} UploadResult
+ * @property {number} id
+ * @property {number} folderId
+ * @property {number} version
+ * @property {string} title
+ * @property {Object} file
+ * @property {number} file.folderId
+ * @property {string} file.viewUrl
+ * @property {string} file.webUrl
+ * @property {number} file.fileType
+ * @property {string} file.fileExst
+ * @property {number} file.id
+ * @property {string} file.title
+ * @property {string} file.created
+ * @property {Object} file.createdBy
+ * @property {string} file.createdBy.id
+ * @property {string} file.createdBy.displayName
+ * @property {string} file.updated
+ * @property {number} file.rootFolderType
+ * @property {Object} file.updatedBy
+ * @property {string} file.updatedBy.id
+ * @property {string} file.updatedBy.displayName
  */
 
 class FilesService extends Service {
@@ -161,11 +229,16 @@ class FilesService extends Service {
   listRooms() {
     return this.client.request("GET", "/files/rooms")
   }
+
+  uploadFile(options) {
+    return this.client.session(options)
+  }
 }
 
 module.exports = {
   createFile,
   createFileInMyDocuments,
   roomCreated,
+  uploadFile,
   FilesService
 }

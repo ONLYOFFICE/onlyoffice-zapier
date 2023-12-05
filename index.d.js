@@ -12,5 +12,7 @@
  * @typedef {import("./app/files.js").FileData} FileData
  * @typedef {import("./app/files.js").RegularFile} RegularFile
  * @typedef {import("./app/files.js").RoomData} RoomData
+ * @typedef {import("./app/files.js").UploadFileOptions} UploadFileOptions
+ * @typedef {import("./app/files.js").UploadResult} UploadResult
  * @typedef {import("./app/people.js").User} User
  */
