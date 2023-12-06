@@ -174,15 +174,6 @@ app
   })
 
 app
-  .command("attachments")
-  .describe("Print a list of attachments for the release action")
-  .action(() => {
-    const build = join(dist, "build/build.zip")
-    const source = join(dist, "build/source.zip")
-    stdout.write(`${build} ${source}`)
-  })
-
-app
   .command("build")
   .describe("Build the app")
   .action(async () => {
@@ -207,18 +198,22 @@ app
   })
 
 app
-  .command("notes")
-  .describe("Print the current version notes for the release action")
-  .action(async () => {
-    const notes = await generateNotes(root)
-    stdout.write(notes)
-  })
-
-app
   .command("promote")
   .describe("Promote the current version of the app")
   .action(() => {
     exec(`zapier promote ${pack.version} --yes`)
+  })
+
+app
+  .command("release")
+  .describe("Release the current version of the app")
+  .action(async () => {
+    const notes = await generateNotes(root)
+    exec(`gh release create "${pack.version}" --notes "${notes}"`)
+
+    const build = join(dist, "build/build.zip")
+    const source = join(dist, "build/source.zip")
+    exec(`gh release upload "${pack.version}" "${build}" "${source}"`)
   })
 
 app
@@ -272,14 +267,6 @@ app
 
     chdir(dist)
     exec("zapier upload")
-  })
-
-app
-  .command("version")
-  .describe("Print the current version of the app without noises")
-  .version(pack.version)
-  .action(() => {
-    stdout.write(pack.version)
   })
 
 app.parse(argv)
