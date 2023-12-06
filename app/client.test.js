@@ -14,6 +14,36 @@ test("has the actual version", () => {
   equal(client.version, "/api/2.0")
 })
 
+test("url generate a valid URL with filters", () => {
+  // @ts-ignore
+  const client = new Client("https://example.com/", () => {})
+
+  /** @type {Filters} */
+  const filters = {
+    count: 1,
+    sortBy: "DateAndTime",
+    sortOrder: "descending",
+    startIndex: 0,
+    filterBy: "userName",
+    filterOp: "startsWith",
+    filterValue: "John"
+  }
+  const url = client.url("/files", filters)
+
+  equal(
+    url,
+    "https://example.com/api/2.0/files?count=1&sortBy=DateAndTime&sortOrder=descending&startIndex=0&filterBy=userName&filterOp=startsWith&filterValue=John"
+  )
+})
+
+test("url generate a valid URL without filters", () => {
+  // @ts-ignore
+  const client = new Client("https://example.com/", () => {})
+  const url = client.url("/files")
+
+  equal(url, "https://example.com/api/2.0/files")
+})
+
 test("progress initializes with the endpoint", async () => {
   async function endpoint() {
     return {

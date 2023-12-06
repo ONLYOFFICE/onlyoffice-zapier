@@ -196,7 +196,8 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   createFile(file) {
-    return this.client.request("POST", `/files/${file.folderId}/file`, file)
+    const url = this.client.url(`/files/${file.folderId}/file`)
+    return this.client.request("POST", url, file)
   }
 
   /**
@@ -207,7 +208,8 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   createFileInMyDocuments(file) {
-    return this.client.request("POST", "/files/@my/file", file)
+    const url = this.client.url("/files/@my/file")
+    return this.client.request("POST", url, file)
   }
 
   /**
@@ -217,7 +219,8 @@ class FilesService extends Service {
    * @returns {Promise<RoomsList>}
    */
   listRooms() {
-    return this.client.request("GET", "/files/rooms")
+    const url = this.client.url("/files/rooms")
+    return this.client.request("GET", url)
   }
 
   /**

@@ -4,6 +4,17 @@
 
 // @ts-check
 
+/**
+   * @typedef {Object} Filters
+   * @property {number=} count
+   * @property {number=} startIndex
+   * @property {string=} sortBy
+   * @property {string=} sortOrder
+   * @property {string=} filterBy
+   * @property {string=} filterOp
+   * @property {string=} filterValue
+   */
+
 class Client {
   /**
    * @param {string} baseUrl
@@ -16,18 +27,40 @@ class Client {
   }
 
   /**
+   * @param {string} path
+   * @param {Filters} filters
+   * @returns {string}
+   */
+  url(path, filters = {}) {
+    // Here, we don't use the URL constructor to join URL parts because we
+    // assume that the base URL is already normalized and it's safe to simply
+    // append a string to it. Additionally, we require that the path starts with
+    // a backslash, so this should be safe as well.
+    const url = new URL(`${this.version}${path}`, this.baseUrl)
+    const search = new URLSearchParams()
+
+    Object.entries(filters).forEach(([
+      key,
+      value
+    ]) => {
+      if (value !== undefined) {
+        search.append(key, String(value))
+      }
+    })
+
+    url.search = search.toString()
+
+    return url.toString()
+  }
+
+  /**
    * @template T
    * @param {HttpMethod} method
    * @param {string} path
    * @param {HttpRequestOptions["body"]} body
    * @returns {Promise<T>}
    */
-  async request(method, path, body = {}) {
-    // Here, we don't use the URL constructor to join URL parts because we
-    // assume that the base URL is already normalized and it's safe to simply
-    // append a string to it. Additionally, we require that the path starts with
-    // a backslash, so this should be safe as well.
-    const url = `${this.baseUrl}${this.version}${path}`
+  async request(method, url, body = {}) {
     const response = await this.zrequest({ url, method, body })
 
     const { data } = response
