@@ -55,12 +55,11 @@ class Client {
 
   /**
    * @param {HttpMethod} method
-   * @param {string} path
+   * @param {string} url
    * @param {HttpRequestOptions["body"]} body
    * @returns {Promise<any>}
    */
-  async request(method, path, body = {}) {
-    const url = `${this.baseUrl}${this.version}${path}`
+  async request(method, url, body = {}) {
     const response = await this.zrequest({ url, method, body })
 
     const { data } = response
@@ -74,7 +73,7 @@ class Client {
     }
 
     if (data.response.hasOwnProperty('finished')) {
-      const request = this.request.bind(this, method, path, body)
+      const request = this.request.bind(this, method, url, body)
       const progress = new Progress(request)
       progress.id = data.response.id
       progress.operation = data.response.operation
