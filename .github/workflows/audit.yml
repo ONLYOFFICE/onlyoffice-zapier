@@ -36,7 +36,7 @@ jobs:
 
     - name: Run Tests
       env:
-        DOC_SPACE_BASE_URL: ${{ secrets.DOC_SPACE_BASE_URL }}
-        DOC_SPACE_USERNAME: ${{ secrets.DOC_SPACE_USERNAME }}
+        DOC_SPACE_BASE_URL: ${{ env.DOC_SPACE_BASE_URL }}
+        DOC_SPACE_USERNAME: ${{ env.DOC_SPACE_USERNAME }}
         DOC_SPACE_PASSWORD: ${{ secrets.DOC_SPACE_PASSWORD }}
       run: pnpm tt
