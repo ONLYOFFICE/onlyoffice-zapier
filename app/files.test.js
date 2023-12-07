@@ -9,7 +9,14 @@ const { suite } = require("uvu")
 const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
-const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom } = require("./files.js")
+const {
+  createFile,
+  createFileInMyDocuments,
+  roomCreated,
+  createFolder,
+  archiveRoom,
+  roomArchived
+} = require("./files.js")
 
 const tester = createAppTester(App)
 
@@ -96,6 +103,20 @@ Files("archive the room", async (context) => {
   }
   const result = await tester(perform, bundle)
   equal(result.finished, true)
+})
+
+Files("triggers when a room is archived", async (context) => {
+  const { perform } = roomArchived.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const folders = await tester(perform, bundle)
+  const room = folders[0]
+  if (!room) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(room.id, 0)
 })
 
 Files.run()

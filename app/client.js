@@ -13,6 +13,7 @@
    * @property {string=} filterBy
    * @property {string=} filterOp
    * @property {string=} filterValue
+   * @property {string=} searchArea
    */
 
 class Client {
