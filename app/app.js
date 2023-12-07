@@ -6,7 +6,7 @@
 
 const { version: platformVersion } = require("zapier-platform-core")
 const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
-const { createFile, createFileInMyDocuments, roomCreated, createFolder } = require("./files.js")
+const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom } = require("./files.js")
 const { version } = require("../package.json")
 
 const App = {
@@ -22,7 +22,8 @@ const App = {
   creates: {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
-    [createFolder.key]: createFolder
+    [createFolder.key]: createFolder,
+    [archiveRoom.key]: archiveRoom
   }
 }
 

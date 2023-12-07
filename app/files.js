@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, Service } = require("./client.js")
+const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
 const createFile = {
@@ -137,6 +137,37 @@ const createFolder = {
   }
 }
 
+const archiveRoom = {
+  key: "archiveRoom",
+  noun: "Room",
+  display: {
+    label: "Archive Room",
+    description: "Archive a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "id",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.folderId"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomData>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData)
+      return await progress.complete()
+    },
+    sample: samples.progress
+  }
+}
+
 /**
  * @typedef {Object} RegularFile
  * @property {number} folderId
@@ -187,6 +218,16 @@ const createFolder = {
  * @property {string} updatedBy.displayName
  */
 
+/**
+ * @typedef {Object} ProgressData
+ * @property {string} id
+ * @property {number} operation
+ * @property {number} progress
+ * @property {string} error
+ * @property {string} processed
+ * @property {boolean} finished
+ */
+
 class FilesService extends Service {
   /**
    * ```http
@@ -233,6 +274,17 @@ class FilesService extends Service {
   createFolder(data) {
     return this.client.request("POST", `/files/folder/${data.folderId}`, data)
   }
+
+  /**
+   * ```http
+   * PUT /files/rooms
+   * ```
+   * @param {RoomData} data
+   * @returns {Promise<ProgressData>}
+   */
+  archiveRoom(data) {
+    return this.client.request("PUT", `/files/rooms/${data.id}/archive`)
+  }
 }
 
 module.exports = {
@@ -240,5 +292,6 @@ module.exports = {
   createFileInMyDocuments,
   roomCreated,
   createFolder,
+  archiveRoom,
   FilesService
 }
