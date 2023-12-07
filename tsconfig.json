@@ -7,7 +7,7 @@
     "noEmit": true,
     "allowJs": true,
     "checkJs": true,
-    "target": "ES6",
+    "target": "es2022",
     "skipLibCheck": true
   },
   "include": [

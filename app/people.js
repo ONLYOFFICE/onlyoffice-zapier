@@ -20,7 +20,8 @@ class PeopleService extends Service {
    * @returns {Promise<User>}
    */
   async self() {
-    return await this.client.request("GET", "/people/@self")
+    const url = this.client.url("/people/@self")
+    return await this.client.request("GET", url)
   }
 }
 

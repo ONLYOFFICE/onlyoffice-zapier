@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, Service } = require("./client.js")
+const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
 const createFile = {
@@ -101,6 +101,73 @@ const roomCreated = {
   }
 }
 
+const createFolder = {
+  key: "createFolder",
+  noun: "File",
+  display: {
+    label: "Create Folder",
+    description: "Create a folder."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Folder",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "Title",
+        key: "title",
+        required: true,
+        default: "Created Folder"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
+     * @returns {Promise<FolderData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      return await files.createFolder(bundle.inputData)
+    },
+    sample: samples.folder
+  }
+}
+
+const archiveRoom = {
+  key: "archiveRoom",
+  noun: "Room",
+  display: {
+    label: "Archive Room",
+    description: "Archive a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "id",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.folderId"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomData>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData)
+      return await progress.complete()
+    },
+    sample: samples.progress
+  }
+}
+
 const roomCreate = {
   key: "roomCreate",
   noun: "Rooms",
@@ -167,6 +234,38 @@ const roomCreate = {
  */
 
 /**
+ * @typedef {Object} FolderOptions
+ * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} FolderData
+ * @property {number} parentId
+ * @property {number} id
+ * @property {string} title
+ * @property {string} created
+ * @property {Object} createdBy
+ * @property {string} createdBy.id
+ * @property {string} createdBy.displayName
+ * @property {string} updated
+ * @property {number} rootFolderType
+ * @property {Object} updatedBy
+ * @property {string} updatedBy.id
+ * @property {string} updatedBy.displayName
+ */
+
+/**
+ * @typedef {Object} ProgressData
+ * @property {string} id
+ * @property {number} operation
+ * @property {number} progress
+ * @property {string} error
+ * @property {string} processed
+ * @property {boolean} finished
+ */
+
+/**
  * @typedef {Object} RoomOptions
  * @property {string} title
  * @property {string} type
@@ -181,7 +280,8 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   createFile(file) {
-    return this.client.request("POST", `/files/${file.folderId}/file`, file)
+    const url = this.client.url(`/files/${file.folderId}/file`)
+    return this.client.request("POST", url, file)
   }
 
   /**
@@ -192,7 +292,8 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   createFileInMyDocuments(file) {
-    return this.client.request("POST", "/files/@my/file", file)
+    const url = this.client.url("/files/@my/file")
+    return this.client.request("POST", url, file)
   }
 
   /**
@@ -202,18 +303,43 @@ class FilesService extends Service {
    * @returns {Promise<RoomsList>}
    */
   listRooms() {
-    return this.client.request("GET", "/files/rooms")
+    const url = this.client.url("/files/rooms")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/folder/{{folderId}}
+   * ```
+   * @param {FolderOptions} data
+   * @returns {Promise<FolderData>}
+   */
+  createFolder(data) {
+    return this.client.request("POST", `/files/folder/${data.folderId}`, data)
+  }
+
+  /**
+   * ```http
+   * PUT /files/rooms
+   * ```
+   * @param {RoomData} data
+   * @returns {Promise<ProgressData>}
+   */
+  archiveRoom(data) {
+    return this.client.request("PUT", `/files/rooms/${data.id}/archive`)
   }
   
+
   /**
    * ```http
    * POST /files/rooms
    * ```
-  * @param {RoomOptions} data
+   * @param {RoomOptions} data
    * @returns {Promise<RoomData>}
    */
   createRoom(data) {
-    return this.client.request("POST", "/files/rooms", data)
+    const url = this.client.url("/files/rooms")
+    return this.client.request("POST", url, data)
   }
 }
 
@@ -221,6 +347,8 @@ module.exports = {
   createFile,
   createFileInMyDocuments,
   roomCreated,
+  createFolder,
+  archiveRoom,
   roomCreate,
   FilesService
 }

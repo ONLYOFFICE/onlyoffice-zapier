@@ -5,26 +5,27 @@
   "type": "commonjs",
   "main": "index.js",
   "scripts": {
-    "all": "./makefile.js all",
-    "attachments": "./makefile.js attachments",
-    "build": "./makefile.js build",
+    "all": "node ./makefile.js all",
+    "build": "node ./makefile.js build",
     "check": "tsc",
-    "install-zapier": "./makefile.js install-zapier",
-    "lint": "echo \"warn: eslint isn't configured\"",
-    "notes": "./makefile.js notes",
-    "promote": "./makefile.js promote",
-    "setup-env": "./makefile.js setup-env",
+    "install-zapier": "node ./makefile.js install-zapier",
+    "lint": "eslint .",
+    "promote": "node ./makefile.js promote",
+    "release": "node ./makefile.js release",
+    "setup-env": "node ./makefile.js setup-env",
     "test": "uvu app ^.*\\.test\\.js$",
-    "tt": "./makefile.js tt",
-    "upload": "./makefile.js upload"
+    "tt": "node ./makefile.js tt",
+    "upload": "node ./makefile.js upload"
   },
   "dependencies": {
     "normalize-url": "6.1.0",
     "zapier-platform-core": "15.5.0"
   },
   "devDependencies": {
+    "@stylistic/eslint-plugin-js": "^1.4.1",
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
+    "nock": "^13.3.8",
     "sade": "^1.8.1",
     "typescript": "^5.2.2",
     "uvu": "^0.5.6"

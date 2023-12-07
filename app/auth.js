@@ -141,7 +141,8 @@ class AuthenticationService extends Service {
       UserName: data.username,
       Password: data.password
     }
-    return this.client.request("POST", "/authentication", payload)
+    const url = this.client.url("/authentication")
+    return this.client.request("POST", url, payload)
   }
 
   /**
@@ -151,7 +152,8 @@ class AuthenticationService extends Service {
    * @returns {Promise<AuthenticationStatus>}
    */
   check() {
-    return this.client.request("GET", "/authentication")
+    const url = this.client.url("/authentication")
+    return this.client.request("GET", url)
   }
 }
 
