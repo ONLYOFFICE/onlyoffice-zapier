@@ -9,7 +9,7 @@ const { suite } = require("uvu")
 const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
-const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom } = require("./files.js")
+const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom, accessRoom } = require("./files.js")
 
 const tester = createAppTester(App)
 
@@ -81,6 +81,21 @@ Files("create a folder", async (context) => {
   }
   const result = await tester(perform, bundle)
   not.equal(result.id, 0)
+})
+
+Files("returns the links of a room", async (context) => {
+  const { perform } = accessRoom.operation
+  /** @type {RoomData} */
+  const inputData = {
+    id: context.inputData.folderId,
+    title: "TODO"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  not.equal(result.sharedTo.shareLink, null)
 })
 
 Files("archive the room", async (context) => {

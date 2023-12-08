@@ -43,4 +43,25 @@ const progress = {
   finished: false
 }
 
-module.exports = { room, file, folder, progress }
+/** @type {SharedTo} */
+const sharedTo = {
+  id: "00000000-1111-2222-3333-444444444444",
+  title: "Access link",
+  shareLink: "https://example.onlyoffice.io/s/link_to_room",
+  linkType: 1,
+  denyDownload: false,
+  isExpired: false,
+  primary: true,
+  requestToken: "TOKEN"
+}
+
+/** @type {Link} */
+const link = {
+  access: 2,
+  sharedTo,
+  isLocked: false,
+  isOwner: false,
+  canEditAccess: false
+}
+
+module.exports = { room, file, folder, progress, link, sharedTo }
