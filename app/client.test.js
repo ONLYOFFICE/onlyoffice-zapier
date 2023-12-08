@@ -49,7 +49,7 @@ test("progress initializes with the endpoint", async () => {
     return {
       error: "",
       progress: 0,
-      percents: 0,
+      percents: 0
     }
   }
 
@@ -71,7 +71,7 @@ test("progress initializes with the endpoint and it's options", async () => {
     return {
       error: "",
       a,
-      b,
+      b
     }
   }
 
