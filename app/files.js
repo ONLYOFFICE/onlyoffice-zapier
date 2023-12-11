@@ -277,6 +277,34 @@ const fileCreated = {
   }
 }
 
+const roomArchived = {
+  key: "roomArchived",
+  noun: "Rooms",
+  display: {
+    label: "Room Archived",
+    description: "Triggers when a room is archived."
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        searchArea: "Archive",
+        sortBy: "DateAndTime",
+        sortOrder: "descending"
+      }
+      const rooms = await files.listRooms(filters)
+      return rooms.folders
+    },
+    sample: samples.folder
+  }
+}
+
 /**
  * @typedef {Object} RegularFile
  * @property {number} folderId
@@ -403,10 +431,11 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms
    * ```
+   * @param {Filters=} filters
    * @returns {Promise<RoomsList>}
    */
-  listRooms() {
-    const url = this.client.url("/files/rooms")
+  listRooms(filters) {
+    const url = this.client.url("/files/rooms", filters)
     return this.client.request("GET", url)
   }
 
@@ -483,5 +512,6 @@ module.exports = {
   roomCreate,
   folderCreated,
   fileCreated,
+  roomArchived,
   FilesService
 }

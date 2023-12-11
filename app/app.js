@@ -14,7 +14,8 @@ const {
   archiveRoom,
   roomCreate,
   folderCreated,
-  fileCreated
+  fileCreated,
+  roomArchived
 } = require("./files.js")
 const { version } = require("../package.json")
 
@@ -28,7 +29,8 @@ const App = {
   triggers: {
     [roomCreated.key]: roomCreated,
     [folderCreated.key]: folderCreated,
-    [fileCreated.key]: fileCreated
+    [fileCreated.key]: fileCreated,
+    [roomArchived.key]: roomArchived
   },
   creates: {
     [createFile.key]: createFile,
