@@ -315,7 +315,8 @@ class FilesService extends Service {
    * @returns {Promise<FolderData>}
    */
   createFolder(data) {
-    return this.client.request("POST", `/files/folder/${data.folderId}`, data)
+    const url = `/files/folder/${data.folderId}`
+    return this.client.request("POST", url, data)
   }
 
   /**
@@ -326,7 +327,8 @@ class FilesService extends Service {
    * @returns {Promise<ProgressData>}
    */
   archiveRoom(data) {
-    return this.client.request("PUT", `/files/rooms/${data.id}/archive`)
+    const url = `/files/rooms/${data.id}/archive`
+    return this.client.request("PUT", url)
   }
   
 
