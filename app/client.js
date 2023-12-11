@@ -56,7 +56,7 @@ class Client {
   /**
    * @template T
    * @param {HttpMethod} method
-   * @param {string} path
+   * @param {string} url
    * @param {HttpRequestOptions["body"]} body
    * @returns {Promise<T>}
    */
