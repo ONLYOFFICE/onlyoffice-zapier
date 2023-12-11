@@ -17,7 +17,8 @@ const {
   createFolder,
   archiveRoom,
   roomCreate,
-  folderCreated
+  folderCreated,
+  fileCreated
 } = require("./files.js")
 const pack = require("../package.json")
 
@@ -77,6 +78,11 @@ test("has the `archiveRoom` creation", () => {
 
 test("has the `folderCreated` trigger", () => {
   const has = App.triggers[folderCreated.key] === folderCreated
+  equal(has, true)
+})
+
+test("has the `fileCreated` trigger", () => {
+  const has = App.triggers[fileCreated.key] === fileCreated
   equal(has, true)
 })
 
