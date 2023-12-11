@@ -23,7 +23,7 @@ module.exports = [
     rules: {
       "@stylistic/array-bracket-newline": [
         "warn",
-        { "multiline": true, "minItems": null }
+        "consistent"
       ],
       "@stylistic/array-bracket-spacing": [
         "warn",
@@ -105,7 +105,7 @@ module.exports = [
       "@stylistic/max-len": [
         "warn",
         {
-          "code": 120
+          "code": 120, "ignoreComments": true, "ignoreUrls": true
         }
       ],
       "@stylistic/multiline-ternary": [
@@ -171,7 +171,12 @@ module.exports = [
       "@stylistic/eol-last": [
         "warn",
         "always"
-      ]
+      ],
+      "eqeqeq": [
+        "warn",
+        "always"
+      ],
+      "prefer-const": "warn"
     }
   }
 ]
