@@ -205,6 +205,42 @@ const roomCreate = {
   }
 }
 
+const folderCreated = {
+  key: "folderCreated",
+  noun: "Folders",
+  display: {
+    label: "Folder Created",
+    description: "Triggers when a folder is created."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.title"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FileData>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        filterType: "FoldersOnly"
+      }
+      const folders = await files.listFolders(bundle.inputData.folderId, filters)
+      return folders.folders
+    },
+    sample: samples.folder
+  }
+}
+
 /**
  * @typedef {Object} RegularFile
  * @property {number} folderId
@@ -237,6 +273,11 @@ const roomCreate = {
  * @typedef {Object} FolderOptions
  * @property {number} folderId
  * @property {string} title
+ */
+
+/**
+ * @typedef {Object} FoldersList
+ * @property {FolderData[]} folders
  */
 
 /**
@@ -343,6 +384,19 @@ class FilesService extends Service {
     const url = this.client.url("/files/rooms")
     return this.client.request("POST", url, data)
   }
+
+  /**
+   * ```http
+   * GET /files/rooms/{{id}}
+   * ```
+   * @param {number} id
+   * @param {Filters} filters
+   * @returns {Promise<FoldersList>}
+   */
+  listFolders(id, filters) {
+    const url = this.client.url(`/files/${id}`, filters)
+    return this.client.request("GET", url)
+  }
 }
 
 module.exports = {
@@ -352,5 +406,6 @@ module.exports = {
   createFolder,
   archiveRoom,
   roomCreate,
+  folderCreated,
   FilesService
 }
