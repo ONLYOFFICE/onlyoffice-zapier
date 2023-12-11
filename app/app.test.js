@@ -10,7 +10,7 @@ const { equal } = require("uvu/assert")
 const { test } = require("uvu")
 const { App } = require("./app.js")
 const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
-const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom } = require("./files.js")
+const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom, roomCreate } = require("./files.js")
 const pack = require("../package.json")
 
 test("has the actual version", () => {
@@ -49,6 +49,11 @@ test("has the `createFile` creation", () => {
 
 test("has the `createFileInMyDocuments` creation", () => {
   const has = App.creates[createFileInMyDocuments.key] == createFileInMyDocuments
+  equal(has, true)
+})
+
+test("has the `roomCreate` creation", () => {
+  const has = App.creates[roomCreate.key] == roomCreate
   equal(has, true)
 })
 
