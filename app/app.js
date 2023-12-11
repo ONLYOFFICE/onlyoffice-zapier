@@ -12,6 +12,9 @@ const {
   roomCreated,
   createFolder,
   archiveRoom,
+  roomCreate,
+  folderCreated,
+  fileCreated,
   roomArchived
 } = require("./files.js")
 const { version } = require("../package.json")
@@ -25,11 +28,14 @@ const App = {
   ],
   triggers: {
     [roomCreated.key]: roomCreated,
+    [folderCreated.key]: folderCreated,
+    [fileCreated.key]: fileCreated,
     [roomArchived.key]: roomArchived
   },
   creates: {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
+    [roomCreate.key]: roomCreate,
     [createFolder.key]: createFolder,
     [archiveRoom.key]: archiveRoom
   }

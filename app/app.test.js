@@ -16,6 +16,9 @@ const {
   roomCreated,
   createFolder,
   archiveRoom,
+  roomCreate,
+  folderCreated,
+  fileCreated,
   roomArchived
 } = require("./files.js")
 const pack = require("../package.json")
@@ -36,7 +39,7 @@ test("has the actual platform version", async () => {
 })
 
 test("has session authentication", () => {
-  const hasHandler = App.authentication == sessionAuth
+  const hasHandler = App.authentication === sessionAuth
   const hasHooks = beforeSessionAuthRequest.every((handler) => (
     App.beforeRequest.includes(handler)
   ))
@@ -45,27 +48,42 @@ test("has session authentication", () => {
 })
 
 test("has the `roomCreated` trigger", () => {
-  const has = App.triggers[roomCreated.key] == roomCreated
+  const has = App.triggers[roomCreated.key] === roomCreated
   equal(has, true)
 })
 
 test("has the `createFile` creation", () => {
-  const has = App.creates[createFile.key] == createFile
+  const has = App.creates[createFile.key] === createFile
   equal(has, true)
 })
 
 test("has the `createFileInMyDocuments` creation", () => {
-  const has = App.creates[createFileInMyDocuments.key] == createFileInMyDocuments
+  const has = App.creates[createFileInMyDocuments.key] === createFileInMyDocuments
+  equal(has, true)
+})
+
+test("has the `roomCreate` creation", () => {
+  const has = App.creates[roomCreate.key] == roomCreate
   equal(has, true)
 })
 
 test("has the `createFolder` creation", () => {
-  const has = App.creates[createFolder.key] == createFolder
+  const has = App.creates[createFolder.key] === createFolder
   equal(has, true)
 })
 
 test("has the `archiveRoom` creation", () => {
-  const has = App.creates[archiveRoom.key] == archiveRoom
+  const has = App.creates[archiveRoom.key] === archiveRoom
+  equal(has, true)
+})
+
+test("has the `folderCreated` trigger", () => {
+  const has = App.triggers[folderCreated.key] === folderCreated
+  equal(has, true)
+})
+
+test("has the `fileCreated` trigger", () => {
+  const has = App.triggers[fileCreated.key] === fileCreated
   equal(has, true)
 })
 
