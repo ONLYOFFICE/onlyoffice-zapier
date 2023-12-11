@@ -16,7 +16,8 @@ const {
   createFolder,
   archiveRoom,
   roomCreate,
-  folderCreated
+  folderCreated,
+  fileCreated
 } = require("./files.js")
 
 const tester = createAppTester(App)
@@ -142,6 +143,26 @@ Files("triggers when a folder is created", async (context) => {
     return
   }
   not.equal(folder.id, 0)
+})
+
+Files("triggers when a file is created", async (context) => {
+  const { perform } = fileCreated.operation
+  /** @type {Folder} */
+  const inputData = {
+    folderId: context.inputData.folderId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const file = await tester(perform, bundle)
+  const newFile = file[0]
+  if (!newFile) {
+    unreachable("TODO")
+    return
+  }
+
+  not.equal(newFile.id, 0)
 })
 
 Files.run()

@@ -19,4 +19,5 @@
  * @typedef {import("./app/files.js").FolderData} FolderData
  * @typedef {import("./app/files.js").ProgressData} ProgressData
  * @typedef {import("./app/people.js").User} User
+ * @typedef {import("./app/files.js").Folder} Folder
  */
