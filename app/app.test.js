@@ -22,6 +22,7 @@ const {
   roomArchived,
   accessRoom
 } = require("./files.js")
+const { userAdded } = require("./people.js")
 const pack = require("../package.json")
 
 test("has the actual version", () => {
@@ -95,6 +96,11 @@ test("has the `roomArchived` trigger", () => {
 
 test("has the `accessRoom` creation", () => {
   const has = App.creates[accessRoom.key] === accessRoom
+  equal(has, true)
+})
+
+test("has the `userAdded` trigger", () => {
+  const has = App.triggers[userAdded.key] === userAdded
   equal(has, true)
 })
 

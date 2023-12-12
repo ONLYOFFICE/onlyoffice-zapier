@@ -18,6 +18,7 @@ const {
   roomArchived,
   accessRoom
 } = require("./files.js")
+const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
 
 const App = {
@@ -29,6 +30,7 @@ const App = {
   ],
   triggers: {
     [roomCreated.key]: roomCreated,
+    [userAdded.key]: userAdded,
     [folderCreated.key]: folderCreated,
     [fileCreated.key]: fileCreated,
     [roomArchived.key]: roomArchived
