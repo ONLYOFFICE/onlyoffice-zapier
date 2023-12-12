@@ -10,6 +10,7 @@
  * @typedef {import("./app/auth.js").SessionAuthenticationUnapprovedData} SessionAuthenticationUnapprovedData
  * @typedef {import("./app/client.js").InternalProgress} InternalProgress
  * @typedef {import("./app/client.js").Filters} Filters
+ * @typedef {import("./app/files.js").ActionBy} ActionBy
  * @typedef {import("./app/files.js").FileData} FileData
  * @typedef {import("./app/files.js").FileOptions} FileOptions
  * @typedef {import("./app/files.js").FolderData} FolderData

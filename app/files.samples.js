@@ -4,6 +4,13 @@
 
 // @ts-check
 
+/** @type {ActionBy} */
+const actionBy = {
+  id: "11111111-2222-3333-4444-555555555555",
+  displayName: "John Doe",
+  profileUrl: "https://johndoe.onlyoffice.io/accounts/view/john.doe"
+}
+
 /** @type {RoomData} */
 const room = {
   id: 1,
@@ -21,16 +28,10 @@ const file = {
   rootFolderId: 1,
   title: "README.docx",
   created: "2023-01-01T12:00:00.0000000+03:00",
-  createdBy: {
-    id: "11111111-2222-3333-4444-555555555555",
-    displayName: "John Doe"
-  },
+  createdBy: actionBy,
   updated: "2023-01-01T12:00:00.0000000+03:00",
   rootFolderType: 14,
-  updatedBy: {
-    id: "11111111-2222-3333-4444-555555555555",
-    displayName: "John Doe"
-  }
+  updatedBy: actionBy
 }
 
 /** @type {FolderData} */
@@ -39,16 +40,10 @@ const folder = {
   id: 2,
   title: "Test Folder",
   created: "2023-01-01T13:00:00.0000000+03:00",
-  createdBy: {
-    id: "11111111-2222-3333-4444-555555555555",
-    displayName: "John Doe"
-  },
+  createdBy: actionBy,
   updated: "2023-01-01T13:00:00.0000000+03:00",
   rootFolderType: 14,
-  updatedBy: {
-    id: "11111111-2222-3333-4444-555555555555",
-    displayName: "John Doe"
-  }
+  updatedBy: actionBy
 }
 
 /** @type {ProgressData} */

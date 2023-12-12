@@ -8,6 +8,13 @@ const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
 /**
+ * @typedef {Object} ActionBy
+ * @property {string} id
+ * @property {string} displayName
+ * @property {string} profileUrl
+ */
+
+/**
  * @typedef {Object} FileData
  * @property {number} folderId
  * @property {string} viewUrl
@@ -18,14 +25,10 @@ const samples = require("./files.samples.js")
  * @property {number} rootFolderId
  * @property {string} title
  * @property {string} created
- * @property {Object} createdBy
- * @property {string} createdBy.id
- * @property {string} createdBy.displayName
+ * @property {ActionBy} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {Object} updatedBy
- * @property {string} updatedBy.id
- * @property {string} updatedBy.displayName
+ * @property {ActionBy} updatedBy
  */
 
 /**
@@ -45,14 +48,10 @@ const samples = require("./files.samples.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {Object} createdBy
- * @property {string} createdBy.id
- * @property {string} createdBy.displayName
+ * @property {ActionBy} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {Object} updatedBy
- * @property {string} updatedBy.id
- * @property {string} updatedBy.displayName
+ * @property {ActionBy} updatedBy
  */
 
 /**
