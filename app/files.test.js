@@ -96,7 +96,7 @@ Files("create a folder", async (context) => {
 
 Files("returns the links of a room", async (context) => {
   const { perform } = accessRoom.operation
-  /** @type {RoomData} */
+  /** @type {RoomOptions} */
   const inputData = {
     id: 25579,
     title: "TODO"
@@ -111,7 +111,7 @@ Files("returns the links of a room", async (context) => {
 
 Files("archive the room", async (context) => {
   const { perform } = archiveRoom.operation
-  /** @type {RoomData} */
+  /** @type {RoomOptions} */
   const inputData = {
     id: context.inputData.folderId,
     title: "TODO"

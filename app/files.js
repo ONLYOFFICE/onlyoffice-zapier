@@ -86,14 +86,26 @@ const samples = require("./files.samples.js")
 
 /**
  * @typedef {Object} RoomData
+ * @property {number} parentId
+ * @property {number} filesCount
+ * @property {number} foldersCount
+ * @property {number} new
+ * @property {number} roomType
  * @property {number} id
+ * @property {number} rootFolderId
  * @property {string} title
+ * @property {string} created
+ * @property {ActionBy} createdBy
+ * @property {string} updated
+ * @property {number} rootFolderType
+ * @property {ActionBy} updatedBy
  */
 
 /**
  * @typedef {Object} RoomOptions
+ * @property {number=} id
  * @property {string} title
- * @property {string} type
+ * @property {string=} type
  */
 
 /**
@@ -257,7 +269,7 @@ const archiveRoom = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomData>} bundle
+     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
      * @returns {Promise<ProgressData>}
      */
     async perform(z, bundle) {
@@ -425,7 +437,7 @@ const accessRoom = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomData>} bundle
+     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
      * @returns {Promise<Link>}
      */
     async perform(z, bundle) {
@@ -491,7 +503,7 @@ class FilesService extends Service {
    * ```http
    * PUT /files/rooms
    * ```
-   * @param {RoomData} data
+   * @param {RoomOptions} data
    * @returns {Promise<ProgressData>}
    */
   archiveRoom(data) {
@@ -542,7 +554,7 @@ class FilesService extends Service {
    * ```http
    * GET api/2.0/files/rooms/{{id}}/links
    * ```
-   * @param {RoomData} data
+   * @param {RoomOptions} data
    * @returns {Promise<Link[]>}
    */
   accessRoom(data) {

@@ -73,8 +73,19 @@ const progress = {
 
 /** @type {RoomData} */
 const room = {
-  id: 1,
-  title: "My Room"
+  id: 2,
+  title: "My Room",
+  parentId: 1,
+  filesCount: 1,
+  foldersCount: 1,
+  new: 0,
+  roomType: 5,
+  rootFolderId: 1,
+  created: "2023-01-01T13:00:00.0000000+03:00",
+  createdBy: actionBy,
+  updated: "2023-01-01T13:00:00.0000000+03:00",
+  rootFolderType: 14,
+  updatedBy: actionBy
 }
 
 module.exports = { file, folder, link, progress, room }
