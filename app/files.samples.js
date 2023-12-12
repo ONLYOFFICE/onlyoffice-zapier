@@ -11,12 +11,6 @@ const actionBy = {
   profileUrl: "https://johndoe.onlyoffice.io/accounts/view/john.doe"
 }
 
-/** @type {RoomData} */
-const room = {
-  id: 1,
-  title: "My Room"
-}
-
 /** @type {FileData} */
 const file = {
   folderId: 3,
@@ -46,16 +40,6 @@ const folder = {
   updatedBy: actionBy
 }
 
-/** @type {ProgressData} */
-const progress = {
-  id: "00000000-1111-2222-3333-444444444444",
-  operation: 0,
-  progress: 0,
-  error: "",
-  processed: "0",
-  finished: false
-}
-
 /** @type {SharedTo} */
 const sharedTo = {
   id: "00000000-1111-2222-3333-444444444444",
@@ -77,4 +61,20 @@ const link = {
   canEditAccess: false
 }
 
-module.exports = { room, file, folder, progress, link, sharedTo }
+/** @type {ProgressData} */
+const progress = {
+  id: "00000000-1111-2222-3333-444444444444",
+  operation: 0,
+  progress: 0,
+  error: "",
+  processed: "0",
+  finished: false
+}
+
+/** @type {RoomData} */
+const room = {
+  id: 1,
+  title: "My Room"
+}
+
+module.exports = { file, folder, link, progress, room }
