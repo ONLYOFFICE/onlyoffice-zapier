@@ -13,6 +13,8 @@
    * @property {string=} filterBy
    * @property {string=} filterOp
    * @property {string=} filterValue
+   * @property {string=} filterType
+   * @property {string=} searchArea
    */
 
 class Client {
@@ -56,7 +58,7 @@ class Client {
   /**
    * @template T
    * @param {HttpMethod} method
-   * @param {string} path
+   * @param {string} url
    * @param {HttpRequestOptions["body"]} body
    * @returns {Promise<T>}
    */

@@ -12,7 +12,25 @@ const room = {
 
 /** @type {FileData} */
 const file = {
-  folderId: 1
+  folderId: 3,
+  viewUrl: "https://example.onlyoffice.io/filehandler.ashx?action=download&fileid=2",
+  webUrl: "https://example.onlyoffice.io/doceditor?fileid=2&version=1",
+  fileType: 7,
+  fileExst: ".docx",
+  id: 2,
+  rootFolderId: 1,
+  title: "README.docx",
+  created: "2023-01-01T12:00:00.0000000+03:00",
+  createdBy: {
+    id: "11111111-2222-3333-4444-555555555555",
+    displayName: "John Doe"
+  },
+  updated: "2023-01-01T12:00:00.0000000+03:00",
+  rootFolderType: 14,
+  updatedBy: {
+    id: "11111111-2222-3333-4444-555555555555",
+    displayName: "John Doe"
+  }
 }
 
 /** @type {FolderData} */

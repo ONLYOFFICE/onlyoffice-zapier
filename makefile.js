@@ -1,13 +1,16 @@
 #!/usr/bin/env node
 
 // @ts-check
+/**
+ * @typedef {import("node:readline").Interface} Interface
+ */
 
 const { execSync } = require("node:child_process")
 const { log, warn, error } = require("node:console")
 const { writeFile, readFile, rm, copyFile } = require("node:fs/promises")
 const { existsSync } = require("node:fs")
 const { join } = require("node:path")
-const { Interface, createInterface } = require("node:readline")
+const { createInterface } = require("node:readline")
 const { argv, chdir, env, exit, stdin, stdout } = require("node:process")
 const { build } = require("esbuild")
 const sade = require("sade")
@@ -224,9 +227,11 @@ app
       input: stdin,
       output: stdout
     })
+    /* eslint-disable @stylistic/max-len */
     const DOC_SPACE_BASE_URL = await question(line, "The base URL of DocSpace for testing purposes (DOC_SPACE_BASE_URL): ")
     const DOC_SPACE_USERNAME = await question(line, "The username of DocSpace user for testing purposes (DOC_SPACE_USERNAME): ")
     const DOC_SPACE_PASSWORD = await question(line, "The password of DocSpace user for testing purposes (DOC_SPACE_PASSWORD): ")
+    /* eslint-enable @stylistic/max-len */
     line.close()
     const file = join(root, ".env")
     const content =
@@ -254,7 +259,7 @@ app
       /** @type {Version[]} */
       const versions = JSON.parse(rawVersions)
       const current = versions.find((version) => (
-        version.Version == pack.version
+        version.Version === pack.version
       ))
       if (current) {
         warn(`warn: the app version ${pack.version} has already been uploaded`)

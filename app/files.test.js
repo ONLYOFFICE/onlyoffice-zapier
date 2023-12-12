@@ -9,7 +9,18 @@ const { suite } = require("uvu")
 const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
-const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom, accessRoom } = require("./files.js")
+const {
+  createFile,
+  createFileInMyDocuments,
+  roomCreated,
+  createFolder,
+  archiveRoom,
+  roomCreate,
+  folderCreated,
+  fileCreated,
+  roomArchived,
+  accessRoom
+} = require("./files.js")
 
 const tester = createAppTester(App)
 
@@ -87,7 +98,7 @@ Files("returns the links of a room", async (context) => {
   const { perform } = accessRoom.operation
   /** @type {RoomData} */
   const inputData = {
-    id: context.inputData.folderId,
+    id: 25579,
     title: "TODO"
   }
   const bundle = {
@@ -111,6 +122,78 @@ Files("archive the room", async (context) => {
   }
   const result = await tester(perform, bundle)
   equal(result.finished, true)
+})
+
+Files("create a room", async (context) => {
+  const { perform } = roomCreate.operation
+  /** @type {RoomOptions} */
+  const inputData = {
+    title: "Test room",
+    type: "CustomRoom"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const room = await tester(perform, bundle)
+  if (!room) {
+    unreachable("TODO")
+    return
+  }
+  equal(bundle.inputData.title, room.title)
+})
+
+Files("triggers when a folder is created", async (context) => {
+  const { perform } = folderCreated.operation
+  const inputData = {
+    folderId: context.inputData.folderId,
+    title: "Test Folder"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const folders = await tester(perform, bundle)
+  const folder = folders[0]
+  if (!folder) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(folder.id, 0)
+})
+
+Files("triggers when a file is created", async (context) => {
+  const { perform } = fileCreated.operation
+  /** @type {Folder} */
+  const inputData = {
+    folderId: context.inputData.folderId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const file = await tester(perform, bundle)
+  const newFile = file[0]
+  if (!newFile) {
+    unreachable("TODO")
+    return
+  }
+
+  not.equal(newFile.id, 0)
+})
+
+Files("triggers when a room is archived", async (context) => {
+  const { perform } = roomArchived.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const folders = await tester(perform, bundle)
+  const room = folders[0]
+  if (!room) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(room.id, 0)
 })
 
 Files.run()
