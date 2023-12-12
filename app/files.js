@@ -565,15 +565,15 @@ class FilesService extends Service {
 }
 
 module.exports = {
+  accessRoom,
+  archiveRoom,
   createFile,
   createFileInMyDocuments,
-  roomCreated,
   createFolder,
-  archiveRoom,
-  roomCreate,
-  folderCreated,
   fileCreated,
+  folderCreated,
   roomArchived,
-  accessRoom,
+  roomCreate,
+  roomCreated,
   FilesService
 }
