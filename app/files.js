@@ -275,8 +275,7 @@ const accessRoom = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const link = await files.accessRoom(bundle.inputData)
-      return link[0]
+      return await files.accessRoom(bundle.inputData)
     },
     sample: samples.link
   }
@@ -458,10 +457,10 @@ class FilesService extends Service {
    * GET api/2.0/files/rooms/{{id}}/links
    * ```
    * @param {RoomOptions} data
-   * @returns {Promise<Link[]>}
+   * @returns {Promise<Link>}
    */
   accessRoom(data) {
-    const url = this.client.url(`/files/rooms/${data.id}/links`)
+    const url = this.client.url(`/files/rooms/${data.id}/link`)
     return this.client.request("GET", url)
   }
 
