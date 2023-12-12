@@ -126,6 +126,193 @@ const samples = require("./files.samples.js")
  * @property {string} requestToken
  */
 
+// Triggers
+const fileCreated = {
+  key: "fileCreated",
+  noun: "File",
+  display: {
+    label: "File Created",
+    description: "Triggers when a file is created."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Folder",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.title"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        filterType: "FilesOnly"
+      }
+      const filesList = await files.listFiles(bundle.inputData.folderId, filters)
+      return filesList.files
+    },
+    sample: samples.file
+  }
+}
+
+const folderCreated = {
+  key: "folderCreated",
+  noun: "Folders",
+  display: {
+    label: "Folder Created",
+    description: "Triggers when a folder is created."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.title"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        filterType: "FoldersOnly"
+      }
+      const folders = await files.listFolders(bundle.inputData.folderId, filters)
+      return folders.folders
+    },
+    sample: samples.folder
+  }
+}
+
+const roomCreated = {
+  key: "roomCreated",
+  noun: "Rooms",
+  display: {
+    label: "Room Created",
+    description: "Triggers when a room is created."
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const rooms = await files.listRooms()
+      return rooms.folders
+    },
+    sample: samples.room
+  }
+}
+
+const roomArchived = {
+  key: "roomArchived",
+  noun: "Rooms",
+  display: {
+    label: "Room Archived",
+    description: "Triggers when a room is archived."
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        searchArea: "Archive",
+        sortBy: "DateAndTime",
+        sortOrder: "descending"
+      }
+      const rooms = await files.listRooms(filters)
+      return rooms.folders
+    },
+    sample: samples.folder
+  }
+}
+
+// Actions
+const accessRoom = {
+  key: "accessRoom",
+  noun: "Room",
+  display: {
+    label: "Access Room",
+    description: "Returns the links of a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "id",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.folderId"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
+     * @returns {Promise<Link>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const link = await files.accessRoom(bundle.inputData)
+      return link[0]
+    },
+    sample: samples.link
+  }
+}
+
+const archiveRoom = {
+  key: "archiveRoom",
+  noun: "Room",
+  display: {
+    label: "Archive Room",
+    description: "Archive a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "id",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.folderId"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData)
+      return await progress.complete()
+    },
+    sample: samples.progress
+  }
+}
+
 const createFile = {
   key: "createFile",
   noun: "File",
@@ -192,29 +379,6 @@ const createFileInMyDocuments = {
   }
 }
 
-const roomCreated = {
-  key: "roomCreated",
-  noun: "Rooms",
-  display: {
-    label: "Room Created",
-    description: "Triggers when a room is created."
-  },
-  operation: {
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData>} bundle
-     * @returns {Promise<RoomData[]>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const rooms = await files.listRooms()
-      return rooms.folders
-    },
-    sample: samples.room
-  }
-}
-
 const createFolder = {
   key: "createFolder",
   noun: "File",
@@ -248,37 +412,6 @@ const createFolder = {
       return await files.createFolder(bundle.inputData)
     },
     sample: samples.folder
-  }
-}
-
-const archiveRoom = {
-  key: "archiveRoom",
-  noun: "Room",
-  display: {
-    label: "Archive Room",
-    description: "Archive a room."
-  },
-  operation: {
-    inputFields: [
-      {
-        label: "id",
-        key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.folderId"
-      }
-    ],
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
-     * @returns {Promise<ProgressData>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData)
-      return await progress.complete()
-    },
-    sample: samples.progress
   }
 }
 
@@ -316,137 +449,6 @@ const roomCreate = {
       return await files.createRoom(bundle.inputData)
     },
     sample: samples.room
-  }
-}
-
-const folderCreated = {
-  key: "folderCreated",
-  noun: "Folders",
-  display: {
-    label: "Folder Created",
-    description: "Triggers when a folder is created."
-  },
-  operation: {
-    inputFields: [
-      {
-        label: "Room",
-        key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.title"
-      }
-    ],
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
-     * @returns {Promise<FolderData[]>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const filters = {
-        sortBy: "DateAndTime",
-        sortOrder: "descending",
-        filterType: "FoldersOnly"
-      }
-      const folders = await files.listFolders(bundle.inputData.folderId, filters)
-      return folders.folders
-    },
-    sample: samples.folder
-  }
-}
-
-const fileCreated = {
-  key: "fileCreated",
-  noun: "File",
-  display: {
-    label: "File Created",
-    description: "Triggers when a file is created."
-  },
-  operation: {
-    inputFields: [
-      {
-        label: "Folder",
-        key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.title"
-      }
-    ],
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
-     * @returns {Promise<FileData[]>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const filters = {
-        sortBy: "DateAndTime",
-        sortOrder: "descending",
-        filterType: "FilesOnly"
-      }
-      const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-      return filesList.files
-    },
-    sample: samples.file
-  }
-}
-
-const roomArchived = {
-  key: "roomArchived",
-  noun: "Rooms",
-  display: {
-    label: "Room Archived",
-    description: "Triggers when a room is archived."
-  },
-  operation: {
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData>} bundle
-     * @returns {Promise<RoomData[]>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const filters = {
-        searchArea: "Archive",
-        sortBy: "DateAndTime",
-        sortOrder: "descending"
-      }
-      const rooms = await files.listRooms(filters)
-      return rooms.folders
-    },
-    sample: samples.folder
-  }
-}
-
-const accessRoom = {
-  key: "accessRoom",
-  noun: "Room",
-  display: {
-    label: "Access Room",
-    description: "Returns the links of a room."
-  },
-  operation: {
-    inputFields: [
-      {
-        label: "id",
-        key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.folderId"
-      }
-    ],
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
-     * @returns {Promise<Link>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const link = await files.accessRoom(bundle.inputData)
-      return link[0]
-    },
-    sample: samples.link
   }
 }
 
