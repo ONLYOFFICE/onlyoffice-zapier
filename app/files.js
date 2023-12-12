@@ -8,12 +8,6 @@ const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
 /**
- * @typedef {Object} FileOptions
- * @property {number=} folderId
- * @property {string} title
- */
-
-/**
  * @typedef {Object} FileData
  * @property {number} folderId
  * @property {string} viewUrl
@@ -35,26 +29,14 @@ const samples = require("./files.samples.js")
  */
 
 /**
- * @typedef {Object} RoomsList
- * @property {RoomData[]} folders
- * @property {RoomData} current
- */
-
-/**
- * @typedef {Object} RoomData
- * @property {number} id
+ * @typedef {Object} FileOptions
+ * @property {number=} folderId
  * @property {string} title
  */
 
 /**
- * @typedef {Object} FolderOptions
- * @property {number} folderId
- * @property {string=} title
- */
-
-/**
- * @typedef {Object} FoldersList
- * @property {FolderData[]} folders
+ * @typedef {Object} FilesList
+ * @property {FileData[]} files
  */
 
 /**
@@ -74,6 +56,26 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} FolderOptions
+ * @property {number} folderId
+ * @property {string=} title
+ */
+
+/**
+ * @typedef {Object} FoldersList
+ * @property {FolderData[]} folders
+ */
+
+/**
+ * @typedef {Object} Link
+ * @property {number} access
+ * @property {SharedTo} sharedTo
+ * @property {boolean} isLocked
+ * @property {boolean} isOwner
+ * @property {boolean} canEditAccess
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} operation
@@ -84,24 +86,21 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} RoomData
+ * @property {number} id
+ * @property {string} title
+ */
+
+/**
  * @typedef {Object} RoomOptions
  * @property {string} title
  * @property {string} type
  */
 
 /**
- * @typedef {Object} FilesList
- * @property {FileData[]} files
- */
-
-/**
- * @typedef {Object} Link
- * @property {number} access
- * @property {SharedTo} sharedTo
- * @property {boolean} isLocked
- * @property {boolean} isOwner
- * @property {boolean} canEditAccess
-}
+ * @typedef {Object} RoomsList
+ * @property {RoomData[]} folders
+ * @property {RoomData} current
  */
 
 /**
