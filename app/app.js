@@ -6,7 +6,18 @@
 
 const { version: platformVersion } = require("zapier-platform-core")
 const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
-const { createFile, createFileInMyDocuments, roomCreated, createFolder, archiveRoom } = require("./files.js")
+const {
+  createFile,
+  createFileInMyDocuments,
+  roomCreated,
+  createFolder,
+  archiveRoom,
+  roomCreate,
+  folderCreated,
+  fileCreated,
+  roomArchived,
+  accessRoom
+} = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
 
@@ -19,13 +30,18 @@ const App = {
   ],
   triggers: {
     [roomCreated.key]: roomCreated,
-    [userAdded.key]: userAdded
+    [userAdded.key]: userAdded,
+    [folderCreated.key]: folderCreated,
+    [fileCreated.key]: fileCreated,
+    [roomArchived.key]: roomArchived
   },
   creates: {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
+    [roomCreate.key]: roomCreate,
     [createFolder.key]: createFolder,
-    [archiveRoom.key]: archiveRoom
+    [archiveRoom.key]: archiveRoom,
+    [accessRoom.key]: accessRoom
   }
 }
 
