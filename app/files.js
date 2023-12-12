@@ -7,6 +7,130 @@
 const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
+/**
+ * @typedef {Object} CreateFileInMyDocumentsFields
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} RegularFile
+ * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} FileData
+ * @property {number} folderId
+ * @property {string} viewUrl
+ * @property {string} webUrl
+ * @property {number} fileType
+ * @property {string} fileExst
+ * @property {number} id
+ * @property {number} rootFolderId
+ * @property {string} title
+ * @property {string} created
+ * @property {Object} createdBy
+ * @property {string} createdBy.id
+ * @property {string} createdBy.displayName
+ * @property {string} updated
+ * @property {number} rootFolderType
+ * @property {Object} updatedBy
+ * @property {string} updatedBy.id
+ * @property {string} updatedBy.displayName
+ */
+
+/**
+ * @typedef {Object} MyDocumentsFile
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} RoomsList
+ * @property {RoomData[]} folders
+ * @property {RoomData} current
+ */
+
+/**
+ * @typedef {Object} RoomData
+ * @property {number} id
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} FolderOptions
+ * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} FoldersList
+ * @property {FolderData[]} folders
+ */
+
+/**
+ * @typedef {Object} FolderData
+ * @property {number} parentId
+ * @property {number} id
+ * @property {string} title
+ * @property {string} created
+ * @property {Object} createdBy
+ * @property {string} createdBy.id
+ * @property {string} createdBy.displayName
+ * @property {string} updated
+ * @property {number} rootFolderType
+ * @property {Object} updatedBy
+ * @property {string} updatedBy.id
+ * @property {string} updatedBy.displayName
+ */
+
+/**
+ * @typedef {Object} ProgressData
+ * @property {string} id
+ * @property {number} operation
+ * @property {number} progress
+ * @property {string} error
+ * @property {string} processed
+ * @property {boolean} finished
+ */
+
+/**
+ * @typedef {Object} RoomOptions
+ * @property {string} title
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object} Folder
+ * @property {number} folderId
+ */
+
+/**
+ * @typedef {Object} FilesList
+ * @property {FileData[]} files
+ */
+
+/**
+ * @typedef {Object} Link
+ * @property {number} access
+ * @property {SharedTo} sharedTo
+ * @property {boolean} isLocked
+ * @property {boolean} isOwner
+ * @property {boolean} canEditAccess
+}
+ */
+
+/**
+ * @typedef {Object} SharedTo
+ * @property {string} id
+ * @property {string} title
+ * @property {string} shareLink
+ * @property {number} linkType
+ * @property {boolean} denyDownload
+ * @property {boolean} isExpired
+ * @property {boolean} primary
+ * @property {string} requestToken
+ */
+
 const createFile = {
   key: "createFile",
   noun: "File",
@@ -42,11 +166,6 @@ const createFile = {
     sample: samples.file
   }
 }
-
-/**
- * @typedef {Object} CreateFileInMyDocumentsFields
- * @property {string} title
- */
 
 const createFileInMyDocuments = {
   key: "createFileInMyDocuments",
@@ -335,125 +454,6 @@ const accessRoom = {
     sample: samples.link
   }
 }
-
-/**
- * @typedef {Object} RegularFile
- * @property {number} folderId
- * @property {string} title
- */
-
-/**
- * @typedef {Object} FileData
- * @property {number} folderId
- * @property {string} viewUrl
- * @property {string} webUrl
- * @property {number} fileType
- * @property {string} fileExst
- * @property {number} id
- * @property {number} rootFolderId
- * @property {string} title
- * @property {string} created
- * @property {Object} createdBy
- * @property {string} createdBy.id
- * @property {string} createdBy.displayName
- * @property {string} updated
- * @property {number} rootFolderType
- * @property {Object} updatedBy
- * @property {string} updatedBy.id
- * @property {string} updatedBy.displayName
- */
-
-/**
- * @typedef {Object} MyDocumentsFile
- * @property {string} title
- */
-
-/**
- * @typedef {Object} RoomsList
- * @property {RoomData[]} folders
- * @property {RoomData} current
- */
-
-/**
- * @typedef {Object} RoomData
- * @property {number} id
- * @property {string} title
- */
-
-/**
- * @typedef {Object} FolderOptions
- * @property {number} folderId
- * @property {string} title
- */
-
-/**
- * @typedef {Object} FoldersList
- * @property {FolderData[]} folders
- */
-
-/**
- * @typedef {Object} FolderData
- * @property {number} parentId
- * @property {number} id
- * @property {string} title
- * @property {string} created
- * @property {Object} createdBy
- * @property {string} createdBy.id
- * @property {string} createdBy.displayName
- * @property {string} updated
- * @property {number} rootFolderType
- * @property {Object} updatedBy
- * @property {string} updatedBy.id
- * @property {string} updatedBy.displayName
- */
-
-/**
- * @typedef {Object} ProgressData
- * @property {string} id
- * @property {number} operation
- * @property {number} progress
- * @property {string} error
- * @property {string} processed
- * @property {boolean} finished
- */
-
-/**
- * @typedef {Object} RoomOptions
- * @property {string} title
- * @property {string} type
- */
-
-/**
- * @typedef {Object} Folder
- * @property {number} folderId
- */
-
-/**
- * @typedef {Object} FilesList
- * @property {FileData[]} files
- */
-
-/**
- * @typedef {Object} Link
- * @property {number} access
- * @property {SharedTo} sharedTo
- * @property {boolean} isLocked
- * @property {boolean} isOwner
- * @property {boolean} canEditAccess
-}
- */
-
-/**
- * @typedef {Object} SharedTo
- * @property {string} id
- * @property {string} title
- * @property {string} shareLink
- * @property {number} linkType
- * @property {boolean} denyDownload
- * @property {boolean} isExpired
- * @property {boolean} primary
- * @property {string} requestToken
- */
 
 class FilesService extends Service {
   /**
