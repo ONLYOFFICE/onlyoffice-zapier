@@ -305,6 +305,37 @@ const roomArchived = {
   }
 }
 
+const accessRoom = {
+  key: "accessRoom",
+  noun: "Room",
+  display: {
+    label: "Access Room",
+    description: "Returns the links of a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "id",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.folderId"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomData>} bundle
+     * @returns {Promise<Link>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const link = await files.accessRoom(bundle.inputData)
+      return link[0]
+    },
+    sample: samples.link
+  }
+}
+
 /**
  * @typedef {Object} RegularFile
  * @property {number} folderId
@@ -400,6 +431,28 @@ const roomArchived = {
 /**
  * @typedef {Object} FilesList
  * @property {FileData[]} files
+ */
+
+/**
+ * @typedef {Object} Link
+ * @property {number} access
+ * @property {SharedTo} sharedTo
+ * @property {boolean} isLocked
+ * @property {boolean} isOwner
+ * @property {boolean} canEditAccess
+}
+ */
+
+/**
+ * @typedef {Object} SharedTo
+ * @property {string} id
+ * @property {string} title
+ * @property {string} shareLink
+ * @property {number} linkType
+ * @property {boolean} denyDownload
+ * @property {boolean} isExpired
+ * @property {boolean} primary
+ * @property {string} requestToken
  */
 
 class FilesService extends Service {
@@ -501,6 +554,18 @@ class FilesService extends Service {
     const url = this.client.url(`/files/${folderId}`, filters)
     return this.client.request("GET", url)
   }
+
+  /**
+   * ```http
+   * GET api/2.0/files/rooms/{{id}}/links
+   * ```
+   * @param {RoomData} data
+   * @returns {Promise<Link[]>}
+   */
+  accessRoom(data) {
+    const url = this.client.url(`/files/rooms/${data.id}/links`)
+    return this.client.request("GET", url)
+  }
 }
 
 module.exports = {
@@ -513,5 +578,6 @@ module.exports = {
   folderCreated,
   fileCreated,
   roomArchived,
+  accessRoom,
   FilesService
 }

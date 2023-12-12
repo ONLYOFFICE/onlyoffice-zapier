@@ -18,7 +18,8 @@ const {
   roomCreate,
   folderCreated,
   fileCreated,
-  roomArchived
+  roomArchived,
+  accessRoom
 } = require("./files.js")
 
 const tester = createAppTester(App)
@@ -91,6 +92,21 @@ Files("create a folder", async (context) => {
   }
   const result = await tester(perform, bundle)
   not.equal(result.id, 0)
+})
+
+Files("returns the links of a room", async (context) => {
+  const { perform } = accessRoom.operation
+  /** @type {RoomData} */
+  const inputData = {
+    id: 25579,
+    title: "TODO"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  not.equal(result.sharedTo.shareLink, null)
 })
 
 Files("archive the room", async (context) => {

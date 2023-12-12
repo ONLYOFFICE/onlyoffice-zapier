@@ -15,7 +15,8 @@ const {
   roomCreate,
   folderCreated,
   fileCreated,
-  roomArchived
+  roomArchived,
+  accessRoom
 } = require("./files.js")
 const { version } = require("../package.json")
 
@@ -37,7 +38,8 @@ const App = {
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [roomCreate.key]: roomCreate,
     [createFolder.key]: createFolder,
-    [archiveRoom.key]: archiveRoom
+    [archiveRoom.key]: archiveRoom,
+    [accessRoom.key]: accessRoom
   }
 }
 

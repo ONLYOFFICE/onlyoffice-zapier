@@ -18,6 +18,8 @@
  * @typedef {import("./app/files.js").FolderOptions} FolderOptions
  * @typedef {import("./app/files.js").FolderData} FolderData
  * @typedef {import("./app/files.js").ProgressData} ProgressData
+ * @typedef {import("./app/files.js").Link} Link
+ * @typedef {import("./app/files.js").SharedTo} SharedTo
  * @typedef {import("./app/people.js").User} User
  * @typedef {import("./app/files.js").Folder} Folder
  */
