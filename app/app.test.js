@@ -11,16 +11,16 @@ const { test } = require("uvu")
 const { App } = require("./app.js")
 const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
 const {
+  accessRoom,
+  archiveRoom,
   createFile,
   createFileInMyDocuments,
-  roomCreated,
   createFolder,
-  archiveRoom,
-  roomCreate,
-  folderCreated,
   fileCreated,
+  folderCreated,
   roomArchived,
-  accessRoom
+  roomCreate,
+  roomCreated
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const pack = require("../package.json")
@@ -49,8 +49,40 @@ test("has session authentication", () => {
   equal(hasHooks, true)
 })
 
+// Triggers
+test("has the `fileCreated` trigger", () => {
+  const has = App.triggers[fileCreated.key] === fileCreated
+  equal(has, true)
+})
+
+test("has the `folderCreated` trigger", () => {
+  const has = App.triggers[folderCreated.key] === folderCreated
+  equal(has, true)
+})
+
+test("has the `roomArchived` trigger", () => {
+  const has = App.triggers[roomArchived.key] === roomArchived
+  equal(has, true)
+})
+
 test("has the `roomCreated` trigger", () => {
   const has = App.triggers[roomCreated.key] === roomCreated
+  equal(has, true)
+})
+
+test("has the `userAdded` trigger", () => {
+  const has = App.triggers[userAdded.key] === userAdded
+  equal(has, true)
+})
+
+// Actions
+test("has the `accessRoom` creation", () => {
+  const has = App.creates[accessRoom.key] === accessRoom
+  equal(has, true)
+})
+
+test("has the `archiveRoom` creation", () => {
+  const has = App.creates[archiveRoom.key] === archiveRoom
   equal(has, true)
 })
 
@@ -64,43 +96,13 @@ test("has the `createFileInMyDocuments` creation", () => {
   equal(has, true)
 })
 
-test("has the `roomCreate` creation", () => {
-  const has = App.creates[roomCreate.key] == roomCreate
-  equal(has, true)
-})
-
 test("has the `createFolder` creation", () => {
   const has = App.creates[createFolder.key] === createFolder
   equal(has, true)
 })
 
-test("has the `archiveRoom` creation", () => {
-  const has = App.creates[archiveRoom.key] === archiveRoom
-  equal(has, true)
-})
-
-test("has the `folderCreated` trigger", () => {
-  const has = App.triggers[folderCreated.key] === folderCreated
-  equal(has, true)
-})
-
-test("has the `fileCreated` trigger", () => {
-  const has = App.triggers[fileCreated.key] === fileCreated
-  equal(has, true)
-})
-
-test("has the `roomArchived` trigger", () => {
-  const has = App.triggers[roomArchived.key] === roomArchived
-  equal(has, true)
-})
-
-test("has the `accessRoom` creation", () => {
-  const has = App.creates[accessRoom.key] === accessRoom
-  equal(has, true)
-})
-
-test("has the `userAdded` trigger", () => {
-  const has = App.triggers[userAdded.key] === userAdded
+test("has the `roomCreate` creation", () => {
+  const has = App.creates[roomCreate.key] === roomCreate
   equal(has, true)
 })
 

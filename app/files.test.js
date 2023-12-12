@@ -10,16 +10,16 @@ const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
 const {
+  accessRoom,
+  archiveRoom,
   createFile,
   createFileInMyDocuments,
-  roomCreated,
   createFolder,
-  archiveRoom,
-  roomCreate,
-  folderCreated,
   fileCreated,
+  folderCreated,
   roomArchived,
-  accessRoom
+  roomCreate,
+  roomCreated
 } = require("./files.js")
 
 const tester = createAppTester(App)
@@ -52,7 +52,7 @@ Files("triggers when a room is created", async (context) => {
 
 Files("creates a file", async (context) => {
   const { perform } = createFile.operation
-  /** @type {RegularFile} */
+  /** @type {FileOptions} */
   const inputData = {
     folderId: context.inputData.folderId,
     title: "README"
@@ -67,7 +67,7 @@ Files("creates a file", async (context) => {
 
 Files("creates a file in the My Documents", async (context) => {
   const { perform } = createFileInMyDocuments.operation
-  /** @type {CreateFileInMyDocumentsFields} */
+  /** @type {FileOptions} */
   const inputData = {
     title: "README"
   }
@@ -96,7 +96,7 @@ Files("create a folder", async (context) => {
 
 Files("returns the links of a room", async (context) => {
   const { perform } = accessRoom.operation
-  /** @type {RoomData} */
+  /** @type {RoomOptions} */
   const inputData = {
     id: 25579,
     title: "TODO"
@@ -111,7 +111,7 @@ Files("returns the links of a room", async (context) => {
 
 Files("archive the room", async (context) => {
   const { perform } = archiveRoom.operation
-  /** @type {RoomData} */
+  /** @type {RoomOptions} */
   const inputData = {
     id: context.inputData.folderId,
     title: "TODO"
@@ -164,7 +164,7 @@ Files("triggers when a folder is created", async (context) => {
 
 Files("triggers when a file is created", async (context) => {
   const { perform } = fileCreated.operation
-  /** @type {Folder} */
+  /** @type {FolderOptions} */
   const inputData = {
     folderId: context.inputData.folderId
   }
