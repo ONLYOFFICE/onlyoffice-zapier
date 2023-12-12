@@ -17,6 +17,7 @@ const {
   createFileInMyDocuments,
   createFolder,
   fileCreated,
+  fileDeleted,
   folderCreated,
   roomArchived,
   roomCreate,
@@ -52,6 +53,11 @@ test("has session authentication", () => {
 // Triggers
 test("has the `fileCreated` trigger", () => {
   const has = App.triggers[fileCreated.key] === fileCreated
+  equal(has, true)
+})
+
+test("has the `fileDeleted` trigger", () => {
+  const has = App.triggers[fileDeleted.key] === fileDeleted
   equal(has, true)
 })
 

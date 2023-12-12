@@ -13,6 +13,7 @@ const {
   createFileInMyDocuments,
   createFolder,
   fileCreated,
+  fileDeleted,
   folderCreated,
   roomArchived,
   roomCreate,
@@ -30,6 +31,7 @@ const App = {
   ],
   triggers: {
     [fileCreated.key]: fileCreated,
+    [fileDeleted.key]: fileDeleted,
     [folderCreated.key]: folderCreated,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
