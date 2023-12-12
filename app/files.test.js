@@ -98,7 +98,7 @@ Files("returns the links of a room", async (context) => {
   const { perform } = accessRoom.operation
   /** @type {RoomOptions} */
   const inputData = {
-    id: 25579,
+    id: context.inputData.folderId,
     title: "TODO"
   }
   const bundle = {
