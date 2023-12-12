@@ -164,7 +164,7 @@ Files("triggers when a folder is created", async (context) => {
 
 Files("triggers when a file is created", async (context) => {
   const { perform } = fileCreated.operation
-  /** @type {Folder} */
+  /** @type {FolderOptions} */
   const inputData = {
     folderId: context.inputData.folderId
   }

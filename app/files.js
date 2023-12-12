@@ -49,7 +49,7 @@ const samples = require("./files.samples.js")
 /**
  * @typedef {Object} FolderOptions
  * @property {number} folderId
- * @property {string} title
+ * @property {string=} title
  */
 
 /**
@@ -87,11 +87,6 @@ const samples = require("./files.samples.js")
  * @typedef {Object} RoomOptions
  * @property {string} title
  * @property {string} type
- */
-
-/**
- * @typedef {Object} Folder
- * @property {number} folderId
  */
 
 /**
@@ -368,7 +363,7 @@ const fileCreated = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, Folder>} bundle
+     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
      * @returns {Promise<FileData[]>}
      */
     async perform(z, bundle) {

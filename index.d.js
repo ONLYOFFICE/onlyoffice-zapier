@@ -20,5 +20,4 @@
  * @typedef {import("./app/files.js").Link} Link
  * @typedef {import("./app/files.js").SharedTo} SharedTo
  * @typedef {import("./app/people.js").User} User
- * @typedef {import("./app/files.js").Folder} Folder
  */
