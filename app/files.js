@@ -434,7 +434,7 @@ const roomCreate = {
         label: "Type",
         key: "type",
         required: true,
-        choices: { 'CustomRoom': 'Custom room', 'EditingRooms': 'Editing rooms' },
+        choices: { "CustomRoom": "Custom room", "EditingRooms": "Editing rooms" },
         default: "CustomRoom"
       }
     ],

@@ -102,7 +102,7 @@ test("has the `createFolder` creation", () => {
 })
 
 test("has the `roomCreate` creation", () => {
-  const has = App.creates[roomCreate.key] == roomCreate
+  const has = App.creates[roomCreate.key] === roomCreate
   equal(has, true)
 })
 
