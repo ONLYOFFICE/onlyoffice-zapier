@@ -8,13 +8,8 @@ const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
 /**
- * @typedef {Object} CreateFileInMyDocumentsFields
- * @property {string} title
- */
-
-/**
- * @typedef {Object} RegularFile
- * @property {number} folderId
+ * @typedef {Object} FileOptions
+ * @property {number=} folderId
  * @property {string} title
  */
 
@@ -37,11 +32,6 @@ const samples = require("./files.samples.js")
  * @property {Object} updatedBy
  * @property {string} updatedBy.id
  * @property {string} updatedBy.displayName
- */
-
-/**
- * @typedef {Object} MyDocumentsFile
- * @property {string} title
  */
 
 /**
@@ -155,7 +145,7 @@ const createFile = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RegularFile>} bundle
+     * @param {Bundle<SessionAuthenticationData, FileOptions>} bundle
      * @returns {Promise<FileData>}
      */
     perform(z, bundle) {
@@ -185,7 +175,7 @@ const createFileInMyDocuments = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, CreateFileInMyDocumentsFields>} bundle
+     * @param {Bundle<SessionAuthenticationData, FileOptions>} bundle
      * @returns {Promise<FileData>}
      */
     perform(z, bundle) {
@@ -460,7 +450,7 @@ class FilesService extends Service {
    * ```http
    * POST /files/{{folderId}}/file
    * ```
-   * @param {RegularFile} file
+   * @param {FileOptions} file
    * @returns {Promise<FileData>}
    */
   createFile(file) {
@@ -472,7 +462,7 @@ class FilesService extends Service {
    * ```http
    * POST /files/@my/file
    * ```
-   * @param {MyDocumentsFile} file
+   * @param {FileOptions} file
    * @returns {Promise<FileData>}
    */
   createFileInMyDocuments(file) {

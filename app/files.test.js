@@ -52,7 +52,7 @@ Files("triggers when a room is created", async (context) => {
 
 Files("creates a file", async (context) => {
   const { perform } = createFile.operation
-  /** @type {RegularFile} */
+  /** @type {FileOptions} */
   const inputData = {
     folderId: context.inputData.folderId,
     title: "README"
@@ -67,7 +67,7 @@ Files("creates a file", async (context) => {
 
 Files("creates a file in the My Documents", async (context) => {
   const { perform } = createFileInMyDocuments.operation
-  /** @type {CreateFileInMyDocumentsFields} */
+  /** @type {FileOptions} */
   const inputData = {
     title: "README"
   }
