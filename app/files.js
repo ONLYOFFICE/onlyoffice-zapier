@@ -455,6 +455,30 @@ const roomCreate = {
 class FilesService extends Service {
   /**
    * ```http
+   * GET api/2.0/files/rooms/{{id}}/links
+   * ```
+   * @param {RoomOptions} data
+   * @returns {Promise<Link[]>}
+   */
+  accessRoom(data) {
+    const url = this.client.url(`/files/rooms/${data.id}/links`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * PUT /files/rooms
+   * ```
+   * @param {RoomOptions} data
+   * @returns {Promise<ProgressData>}
+   */
+  archiveRoom(data) {
+    const url = this.client.url(`/files/rooms/${data.id}/archive`)
+    return this.client.request("PUT", url)
+  }
+
+  /**
+   * ```http
    * POST /files/{{folderId}}/file
    * ```
    * @param {FileOptions} file
@@ -479,18 +503,6 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * GET /files/rooms
-   * ```
-   * @param {Filters=} filters
-   * @returns {Promise<RoomsList>}
-   */
-  listRooms(filters) {
-    const url = this.client.url("/files/rooms", filters)
-    return this.client.request("GET", url)
-  }
-
-  /**
-   * ```http
    * POST /files/folder/{{folderId}}
    * ```
    * @param {FolderOptions} data
@@ -503,19 +515,6 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * PUT /files/rooms
-   * ```
-   * @param {RoomOptions} data
-   * @returns {Promise<ProgressData>}
-   */
-  archiveRoom(data) {
-    const url = this.client.url(`/files/rooms/${data.id}/archive`)
-    return this.client.request("PUT", url)
-  }
-
-
-  /**
-   * ```http
    * POST /files/rooms
    * ```
    * @param {RoomOptions} data
@@ -524,19 +523,6 @@ class FilesService extends Service {
   createRoom(data) {
     const url = this.client.url("/files/rooms")
     return this.client.request("POST", url, data)
-  }
-
-  /**
-   * ```http
-   * GET /files/rooms/{{id}}
-   * ```
-   * @param {number} id
-   * @param {Filters} filters
-   * @returns {Promise<FoldersList>}
-   */
-  listFolders(id, filters) {
-    const url = this.client.url(`/files/${id}`, filters)
-    return this.client.request("GET", url)
   }
 
   /**
@@ -554,13 +540,26 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * GET api/2.0/files/rooms/{{id}}/links
+   * GET /files/rooms/{{id}}
    * ```
-   * @param {RoomOptions} data
-   * @returns {Promise<Link[]>}
+   * @param {number} id
+   * @param {Filters} filters
+   * @returns {Promise<FoldersList>}
    */
-  accessRoom(data) {
-    const url = this.client.url(`/files/rooms/${data.id}/links`)
+  listFolders(id, filters) {
+    const url = this.client.url(`/files/${id}`, filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/rooms
+   * ```
+   * @param {Filters=} filters
+   * @returns {Promise<RoomsList>}
+   */
+  listRooms(filters) {
+    const url = this.client.url("/files/rooms", filters)
     return this.client.request("GET", url)
   }
 }
