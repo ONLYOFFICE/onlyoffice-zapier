@@ -251,36 +251,6 @@ const roomArchived = {
 }
 
 // Actions
-const accessRoom = {
-  key: "accessRoom",
-  noun: "Room",
-  display: {
-    label: "Access Room",
-    description: "Returns the links of a room."
-  },
-  operation: {
-    inputFields: [
-      {
-        label: "id",
-        key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.folderId"
-      }
-    ],
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
-     * @returns {Promise<Link>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      return await files.accessRoom(bundle.inputData)
-    },
-    sample: samples.link
-  }
-}
-
 const archiveRoom = {
   key: "archiveRoom",
   noun: "Room",
@@ -414,6 +384,36 @@ const createFolder = {
   }
 }
 
+const externalLink = {
+  key: "externalLink",
+  noun: "Room",
+  display: {
+    label: "External Link",
+    description: "Returns the primary external link of a room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "id",
+        key: "folderId",
+        required: true,
+        dynamic: "roomCreated.id.folderId"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
+     * @returns {Promise<Link>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      return await files.externalLink(bundle.inputData)
+    },
+    sample: samples.link
+  }
+}
+
 const roomCreate = {
   key: "roomCreate",
   noun: "Rooms",
@@ -452,18 +452,6 @@ const roomCreate = {
 }
 
 class FilesService extends Service {
-  /**
-   * ```http
-   * GET api/2.0/files/rooms/{{id}}/links
-   * ```
-   * @param {RoomOptions} data
-   * @returns {Promise<Link>}
-   */
-  accessRoom(data) {
-    const url = this.client.url(`/files/rooms/${data.id}/link`)
-    return this.client.request("GET", url)
-  }
-
   /**
    * ```http
    * PUT /files/rooms
@@ -526,6 +514,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/rooms/{{id}}/link
+   * ```
+   * @param {RoomOptions} data
+   * @returns {Promise<Link>}
+   */
+  externalLink(data) {
+    const url = this.client.url(`/files/rooms/${data.id}/link`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/{{folderId}}
    * ```
    * @param {number} folderId
@@ -564,11 +564,11 @@ class FilesService extends Service {
 }
 
 module.exports = {
-  accessRoom,
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
+  externalLink,
   fileCreated,
   folderCreated,
   roomArchived,

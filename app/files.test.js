@@ -10,11 +10,11 @@ const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
 const {
-  accessRoom,
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
+  externalLink,
   fileCreated,
   folderCreated,
   roomArchived,
@@ -113,8 +113,8 @@ Files("create a folder", async (context) => {
   not.equal(result.id, 0)
 })
 
-Files("returns the links of a room", async (context) => {
-  const { perform } = accessRoom.operation
+Files("returns the link of a room", async (context) => {
+  const { perform } = externalLink.operation
   /** @type {RoomOptions} */
   const inputData = {
     id: context.inputData.folderId,
