@@ -163,6 +163,34 @@ const fileCreated = {
   }
 }
 
+const fileDeleted = {
+  key: "fileDeleted",
+  noun: "File",
+  display: {
+    label: "File Deleted",
+    description: "Triggers when a file is deleted."
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        filterType: "FilesOnly"
+      }
+      const trash = await files.listTrash(filters)
+      return trash.files
+    },
+    sample: samples.file
+  }
+}
+
 const folderCreated = {
   key: "folderCreated",
   noun: "Folders",
@@ -561,6 +589,18 @@ class FilesService extends Service {
     const url = this.client.url("/files/rooms", filters)
     return this.client.request("GET", url)
   }
+
+  /**
+   * ```http
+   * GET /files/@trash
+   * ```
+   * @param {Filters} filters
+   * @returns {Promise<FilesList>}
+   */
+  listTrash(filters) {
+    const url = this.client.url("/files/@trash", filters)
+    return this.client.request("GET", url)
+  }
 }
 
 module.exports = {
@@ -570,6 +610,7 @@ module.exports = {
   createFolder,
   externalLink,
   fileCreated,
+  fileDeleted,
   folderCreated,
   roomArchived,
   roomCreate,

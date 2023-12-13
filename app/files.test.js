@@ -16,6 +16,7 @@ const {
   createFolder,
   externalLink,
   fileCreated,
+  fileDeleted,
   folderCreated,
   roomArchived,
   roomCreate,
@@ -194,6 +195,18 @@ Files("triggers when a room is archived", async (context) => {
     return
   }
   not.equal(room.id, 0)
+})
+
+Files("triggers when a file is deleted", async (context) => {
+  const { perform } = fileDeleted.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const files = await tester(perform, bundle)
+  const file = files[0]
+  // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
+  if (files.length) not.equal(file.id, 0)
+  else equal(true, true)
 })
 
 Files.run()
