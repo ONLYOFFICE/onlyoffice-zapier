@@ -7,11 +7,11 @@
 const { version: platformVersion } = require("zapier-platform-core")
 const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
 const {
-  accessRoom,
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
+  externalLink,
   fileCreated,
   folderCreated,
   roomArchived,
@@ -36,11 +36,11 @@ const App = {
     [userAdded.key]: userAdded
   },
   creates: {
-    [accessRoom.key]: accessRoom,
     [archiveRoom.key]: archiveRoom,
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
+    [externalLink.key]: externalLink,
     [roomCreate.key]: roomCreate
   }
 }

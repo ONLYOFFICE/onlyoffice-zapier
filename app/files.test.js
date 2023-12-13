@@ -10,11 +10,11 @@ const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
 const {
-  accessRoom,
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
+  externalLink,
   fileCreated,
   folderCreated,
   roomArchived,
@@ -33,6 +33,25 @@ const Files = suite("files", {
 
 Files.before(async (context) => {
   await sessionAuthPerform(tester, context)
+})
+
+Files("create a room", async (context) => {
+  const { perform } = roomCreate.operation
+  /** @type {RoomOptions} */
+  const inputData = {
+    title: "Test room",
+    type: "CustomRoom"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const room = await tester(perform, bundle)
+  if (!room) {
+    unreachable("TODO")
+    return
+  }
+  equal(bundle.inputData.title, room.title)
 })
 
 Files("triggers when a room is created", async (context) => {
@@ -94,23 +113,8 @@ Files("create a folder", async (context) => {
   not.equal(result.id, 0)
 })
 
-Files("returns the links of a room", async (context) => {
-  const { perform } = accessRoom.operation
-  /** @type {RoomOptions} */
-  const inputData = {
-    id: 25579,
-    title: "TODO"
-  }
-  const bundle = {
-    authData: context.authData,
-    inputData
-  }
-  const result = await tester(perform, bundle)
-  not.equal(result.sharedTo.shareLink, null)
-})
-
-Files("archive the room", async (context) => {
-  const { perform } = archiveRoom.operation
+Files("returns the link of a room", async (context) => {
+  const { perform } = externalLink.operation
   /** @type {RoomOptions} */
   const inputData = {
     id: context.inputData.folderId,
@@ -121,26 +125,7 @@ Files("archive the room", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
-  equal(result.finished, true)
-})
-
-Files("create a room", async (context) => {
-  const { perform } = roomCreate.operation
-  /** @type {RoomOptions} */
-  const inputData = {
-    title: "Test room",
-    type: "CustomRoom"
-  }
-  const bundle = {
-    authData: context.authData,
-    inputData
-  }
-  const room = await tester(perform, bundle)
-  if (!room) {
-    unreachable("TODO")
-    return
-  }
-  equal(bundle.inputData.title, room.title)
+  not.equal(result.sharedTo.shareLink, null)
 })
 
 Files("triggers when a folder is created", async (context) => {
@@ -180,6 +165,21 @@ Files("triggers when a file is created", async (context) => {
   }
 
   not.equal(newFile.id, 0)
+})
+
+Files("archive the room", async (context) => {
+  const { perform } = archiveRoom.operation
+  /** @type {RoomOptions} */
+  const inputData = {
+    id: context.inputData.folderId,
+    title: "TODO"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.finished, true)
 })
 
 Files("triggers when a room is archived", async (context) => {

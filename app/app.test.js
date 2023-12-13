@@ -11,11 +11,11 @@ const { test } = require("uvu")
 const { App } = require("./app.js")
 const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
 const {
-  accessRoom,
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
+  externalLink,
   fileCreated,
   folderCreated,
   roomArchived,
@@ -76,11 +76,6 @@ test("has the `userAdded` trigger", () => {
 })
 
 // Actions
-test("has the `accessRoom` creation", () => {
-  const has = App.creates[accessRoom.key] === accessRoom
-  equal(has, true)
-})
-
 test("has the `archiveRoom` creation", () => {
   const has = App.creates[archiveRoom.key] === archiveRoom
   equal(has, true)
@@ -98,6 +93,11 @@ test("has the `createFileInMyDocuments` creation", () => {
 
 test("has the `createFolder` creation", () => {
   const has = App.creates[createFolder.key] === createFolder
+  equal(has, true)
+})
+
+test("has the `externalLink` creation", () => {
+  const has = App.creates[externalLink.key] === externalLink
   equal(has, true)
 })
 
