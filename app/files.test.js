@@ -28,7 +28,7 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    folderId: 0
+    id: 0
   }
 })
 
@@ -38,7 +38,7 @@ Files.before(async (context) => {
 
 Files("create a room", async (context) => {
   const { perform } = roomCreate.operation
-  /** @type {RoomOptions} */
+  /** @type {RoomCreateFields} */
   const inputData = {
     title: "Test room",
     type: "CustomRoom"
@@ -66,15 +66,15 @@ Files("triggers when a room is created", async (context) => {
     unreachable("TODO")
     return
   }
-  context.inputData.folderId = room.id
+  context.inputData.id = room.id
   not.equal(room.id, 0)
 })
 
 Files("creates a file", async (context) => {
   const { perform } = createFile.operation
-  /** @type {FileOptions} */
+  /** @type {CreateFileFields} */
   const inputData = {
-    folderId: context.inputData.folderId,
+    folderId: context.inputData.id,
     title: "README"
   }
   const bundle = {
@@ -87,7 +87,7 @@ Files("creates a file", async (context) => {
 
 Files("creates a file in the My Documents", async (context) => {
   const { perform } = createFileInMyDocuments.operation
-  /** @type {FileOptions} */
+  /** @type {CreateFileInMyDocumentsFields} */
   const inputData = {
     title: "README"
   }
@@ -96,14 +96,14 @@ Files("creates a file in the My Documents", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
-  not.equal(result.folderId, 0)
+  not.equal(result.id, 0)
 })
 
 Files("create a folder", async (context) => {
   const { perform } = createFolder.operation
-  /** @type {FolderOptions} */
+  /** @type {CreateFolderFields} */
   const inputData = {
-    folderId: context.inputData.folderId,
+    folderId: context.inputData.id,
     title: "Test Folder"
   }
   const bundle = {
@@ -114,12 +114,11 @@ Files("create a folder", async (context) => {
   not.equal(result.id, 0)
 })
 
-Files("returns the link of a room", async (context) => {
+Files("returns the links of a room", async (context) => {
   const { perform } = externalLink.operation
-  /** @type {RoomOptions} */
+  /** @type {ExternalLinkFields} */
   const inputData = {
-    id: context.inputData.folderId,
-    title: "TODO"
+    id: context.inputData.id
   }
   const bundle = {
     authData: context.authData,
@@ -131,9 +130,9 @@ Files("returns the link of a room", async (context) => {
 
 Files("triggers when a folder is created", async (context) => {
   const { perform } = folderCreated.operation
+  /** @type {FolderCreatedFields} */
   const inputData = {
-    folderId: context.inputData.folderId,
-    title: "Test Folder"
+    id: context.inputData.id
   }
   const bundle = {
     authData: context.authData,
@@ -150,9 +149,9 @@ Files("triggers when a folder is created", async (context) => {
 
 Files("triggers when a file is created", async (context) => {
   const { perform } = fileCreated.operation
-  /** @type {FolderOptions} */
+  /** @type {FileCreatedFields} */
   const inputData = {
-    folderId: context.inputData.folderId
+    folderId: context.inputData.id
   }
   const bundle = {
     authData: context.authData,
@@ -168,12 +167,23 @@ Files("triggers when a file is created", async (context) => {
   not.equal(newFile.id, 0)
 })
 
+Files("triggers when a file is deleted", async (context) => {
+  const { perform } = fileDeleted.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const files = await tester(perform, bundle)
+  const file = files[0]
+  // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
+  if (files.length) not.equal(file.id, 0)
+  else equal(true, true)
+})
+
 Files("archive the room", async (context) => {
   const { perform } = archiveRoom.operation
-  /** @type {RoomOptions} */
+  /** @type {ArchiveRoomFields} */
   const inputData = {
-    id: context.inputData.folderId,
-    title: "TODO"
+    id: context.inputData.id
   }
   const bundle = {
     authData: context.authData,
@@ -195,18 +205,6 @@ Files("triggers when a room is archived", async (context) => {
     return
   }
   not.equal(room.id, 0)
-})
-
-Files("triggers when a file is deleted", async (context) => {
-  const { perform } = fileDeleted.operation
-  const bundle = {
-    authData: context.authData
-  }
-  const files = await tester(perform, bundle)
-  const file = files[0]
-  // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
-  if (files.length) not.equal(file.id, 0)
-  else equal(true, true)
 })
 
 Files.run()
