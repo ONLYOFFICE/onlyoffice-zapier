@@ -25,6 +25,7 @@
     "@stylistic/eslint-plugin-js": "^1.4.1",
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
+    "globals": "^13.24.0",
     "nock": "^13.3.8",
     "sade": "^1.8.1",
     "typescript": "^5.2.2",
