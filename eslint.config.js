@@ -1,6 +1,6 @@
 const eslint = require("@eslint/js")
-const globals = require("globals")
 const stylistic = require("@stylistic/eslint-plugin-js")
+const globals = require("globals")
 
 module.exports = [
   eslint.configs.recommended,
