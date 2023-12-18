@@ -15,6 +15,7 @@ const {
   fileCreated,
   fileDeleted,
   folderCreated,
+  folderDeleted,
   roomArchived,
   roomCreate,
   roomCreated
@@ -33,6 +34,7 @@ const App = {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
     [folderCreated.key]: folderCreated,
+    [folderDeleted.key]: folderDeleted,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
     [userAdded.key]: userAdded
