@@ -9,20 +9,71 @@ const samples = require("./files.samples.js")
 
 /**
  * @typedef {Object} ActionBy
- * @property {string} id
  * @property {string} displayName
+ * @property {string} id
  * @property {string} profileUrl
  */
 
 /**
+ * @typedef {Object} ArchiveRoomFields
+ * @property {number} id
+ */
+
+/**
+ * @typedef {Object} CreateFileBody
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} CreateFileFields
+ * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} CreateFileInMyDocumentsFields
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} CreateFolderBody
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} CreateFolderFields
+ * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} ExternalLinkData
+ * @property {number} access
+ * @property {boolean} canEditAccess
+ * @property {boolean} isLocked
+ * @property {boolean} isOwner
+ * @property {SharedTo} sharedTo
+ */
+
+/**
+ * @typedef {Object} ExternalLinkFields
+ * @property {number} id
+ */
+
+/**
+ * @typedef {Object} FileCreatedFields
+ * @property {number} folderId
+ */
+
+/**
  * @typedef {Object} FileData
+ * @property {number} rootFolderId
  * @property {number} folderId
  * @property {string} viewUrl
  * @property {string} webUrl
  * @property {number} fileType
  * @property {string} fileExst
  * @property {number} id
- * @property {number} rootFolderId
  * @property {string} title
  * @property {string} created
  * @property {ActionBy} createdBy
@@ -32,14 +83,13 @@ const samples = require("./files.samples.js")
  */
 
 /**
- * @typedef {Object} FileOptions
- * @property {number=} folderId
- * @property {string} title
+ * @typedef {Object} FilesList
+ * @property {FileData[]} files
  */
 
 /**
- * @typedef {Object} FilesList
- * @property {FileData[]} files
+ * @typedef {Object} FolderCreatedFields
+ * @property {number} id
  */
 
 /**
@@ -55,23 +105,8 @@ const samples = require("./files.samples.js")
  */
 
 /**
- * @typedef {Object} FolderOptions
- * @property {number} folderId
- * @property {string=} title
- */
-
-/**
  * @typedef {Object} FoldersList
  * @property {FolderData[]} folders
- */
-
-/**
- * @typedef {Object} Link
- * @property {number} access
- * @property {SharedTo} sharedTo
- * @property {boolean} isLocked
- * @property {boolean} isOwner
- * @property {boolean} canEditAccess
  */
 
 /**
@@ -85,14 +120,20 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} RoomCreateFields
+ * @property {string} title
+ * @property {string} type
+ */
+
+/**
  * @typedef {Object} RoomData
+ * @property {number} rootFolderId
  * @property {number} parentId
  * @property {number} filesCount
  * @property {number} foldersCount
  * @property {number} new
  * @property {number} roomType
  * @property {number} id
- * @property {number} rootFolderId
  * @property {string} title
  * @property {string} created
  * @property {ActionBy} createdBy
@@ -102,16 +143,9 @@ const samples = require("./files.samples.js")
  */
 
 /**
- * @typedef {Object} RoomOptions
- * @property {number=} id
- * @property {string} title
- * @property {string=} type
- */
-
-/**
  * @typedef {Object} RoomsList
- * @property {RoomData[]} folders
  * @property {RoomData} current
+ * @property {RoomData[]} folders
  */
 
 /**
@@ -145,7 +179,7 @@ const fileCreated = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, FileCreatedFields>} bundle
      * @returns {Promise<FileData[]>}
      */
     async perform(z, bundle) {
@@ -202,14 +236,14 @@ const folderCreated = {
     inputFields: [
       {
         label: "Room",
-        key: "folderId",
+        key: "id",
         required: true,
         dynamic: "roomCreated.id.title"
       }
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, FolderCreatedFields>} bundle
      * @returns {Promise<FolderData[]>}
      */
     async perform(z, bundle) {
@@ -220,7 +254,7 @@ const folderCreated = {
         sortOrder: "descending",
         filterType: "FoldersOnly"
       }
-      const folders = await files.listFolders(bundle.inputData.folderId, filters)
+      const folders = await files.listFolders(bundle.inputData.id, filters)
       return folders.folders
     },
     sample: samples.folder
@@ -289,21 +323,21 @@ const archiveRoom = {
   operation: {
     inputFields: [
       {
-        label: "id",
-        key: "folderId",
+        label: "Room",
+        key: "id",
         required: true,
-        dynamic: "roomCreated.id.folderId"
+        dynamic: "roomCreated.id.title"
       }
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, ArchiveRoomFields>} bundle
      * @returns {Promise<ProgressData>}
      */
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData)
+      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData.id)
       return await progress.complete()
     },
     sample: samples.progress
@@ -334,13 +368,16 @@ const createFile = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FileOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, CreateFileFields>} bundle
      * @returns {Promise<FileData>}
      */
     perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return files.createFile(bundle.inputData)
+      const body = {
+        title: bundle.inputData.title
+      }
+      return files.createFile(bundle.inputData.folderId, body)
     },
     sample: samples.file
   }
@@ -364,7 +401,7 @@ const createFileInMyDocuments = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FileOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, CreateFileInMyDocumentsFields>} bundle
      * @returns {Promise<FileData>}
      */
     perform(z, bundle) {
@@ -400,13 +437,16 @@ const createFolder = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, FolderOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, CreateFolderFields>} bundle
      * @returns {Promise<FolderData>}
      */
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return await files.createFolder(bundle.inputData)
+      const body = {
+        title: bundle.inputData.title
+      }
+      return await files.createFolder(bundle.inputData.folderId, body)
     },
     sample: samples.folder
   }
@@ -422,23 +462,23 @@ const externalLink = {
   operation: {
     inputFields: [
       {
-        label: "id",
-        key: "folderId",
+        label: "Room",
+        key: "id",
         required: true,
-        dynamic: "roomCreated.id.folderId"
+        dynamic: "roomCreated.id.title"
       }
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
-     * @returns {Promise<Link>}
+     * @param {Bundle<SessionAuthenticationData, ExternalLinkFields>} bundle
+     * @returns {Promise<ExternalLinkData>}
      */
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return await files.externalLink(bundle.inputData)
+      return await files.externalLink(bundle.inputData.id)
     },
-    sample: samples.link
+    sample: samples.externalLink
   }
 }
 
@@ -467,7 +507,7 @@ const roomCreate = {
     ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData, RoomOptions>} bundle
+     * @param {Bundle<SessionAuthenticationData, RoomCreateFields>} bundle
      * @returns {Promise<RoomData>}
      */
     async perform(z, bundle) {
@@ -482,13 +522,13 @@ const roomCreate = {
 class FilesService extends Service {
   /**
    * ```http
-   * PUT /files/rooms
+   * PUT /files/rooms/{{id}}/archive
    * ```
-   * @param {RoomOptions} data
+   * @param {number} id
    * @returns {Promise<ProgressData>}
    */
-  archiveRoom(data) {
-    const url = this.client.url(`/files/rooms/${data.id}/archive`)
+  archiveRoom(id) {
+    const url = this.client.url(`/files/rooms/${id}/archive`)
     return this.client.request("PUT", url)
   }
 
@@ -496,59 +536,61 @@ class FilesService extends Service {
    * ```http
    * POST /files/{{folderId}}/file
    * ```
-   * @param {FileOptions} file
+   * @param {number } folderId
+   * @param {CreateFileBody} body
    * @returns {Promise<FileData>}
    */
-  createFile(file) {
-    const url = this.client.url(`/files/${file.folderId}/file`)
-    return this.client.request("POST", url, file)
+  createFile(folderId, body) {
+    const url = this.client.url(`/files/${folderId}/file`)
+    return this.client.request("POST", url, body)
   }
 
   /**
    * ```http
    * POST /files/@my/file
    * ```
-   * @param {FileOptions} file
+   * @param {CreateFileInMyDocumentsFields} body
    * @returns {Promise<FileData>}
    */
-  createFileInMyDocuments(file) {
+  createFileInMyDocuments(body) {
     const url = this.client.url("/files/@my/file")
-    return this.client.request("POST", url, file)
+    return this.client.request("POST", url, body)
   }
 
   /**
    * ```http
    * POST /files/folder/{{folderId}}
    * ```
-   * @param {FolderOptions} data
+   * @param {number} folderId
+   * @param {CreateFolderBody} body
    * @returns {Promise<FolderData>}
    */
-  createFolder(data) {
-    const url = this.client.url(`/files/folder/${data.folderId}`)
-    return this.client.request("POST", url, data)
+  createFolder(folderId, body) {
+    const url = this.client.url(`/files/folder/${folderId}`)
+    return this.client.request("POST", url, body)
   }
 
   /**
    * ```http
    * POST /files/rooms
    * ```
-   * @param {RoomOptions} data
+   * @param {RoomCreateFields} body
    * @returns {Promise<RoomData>}
    */
-  createRoom(data) {
+  createRoom(body) {
     const url = this.client.url("/files/rooms")
-    return this.client.request("POST", url, data)
+    return this.client.request("POST", url, body)
   }
 
   /**
    * ```http
    * GET /files/rooms/{{id}}/link
    * ```
-   * @param {RoomOptions} data
-   * @returns {Promise<Link>}
+   * @param {number} id
+   * @returns {Promise<ExternalLinkData>}
    */
-  externalLink(data) {
-    const url = this.client.url(`/files/rooms/${data.id}/link`)
+  externalLink(id) {
+    const url = this.client.url(`/files/rooms/${id}/link`)
     return this.client.request("GET", url)
   }
 

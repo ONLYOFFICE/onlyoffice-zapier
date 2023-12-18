@@ -52,8 +52,8 @@ const sharedTo = {
   requestToken: "TOKEN"
 }
 
-/** @type {Link} */
-const link = {
+/** @type {ExternalLinkData} */
+const externalLink = {
   access: 2,
   sharedTo,
   isLocked: false,
@@ -88,4 +88,4 @@ const room = {
   updatedBy: actionBy
 }
 
-module.exports = { file, folder, link, progress, room }
+module.exports = { file, folder, externalLink, progress, room }
