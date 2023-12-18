@@ -193,6 +193,13 @@ app
   })
 
 app
+  .command("install-lefthook")
+  .describe("Install Lefthook locally using pnpm")
+  .action(() => {
+    exec("pnpm lefthook install")
+  })
+
+app
   .command("install-zapier")
   .describe("Install Zapier CLI globally using pnpm")
   .action(() => {
