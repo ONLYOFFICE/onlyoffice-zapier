@@ -25,5 +25,6 @@
  * @typedef {import("./app/files.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./app/files.js").RoomData} RoomData
  * @typedef {import("./app/files.js").SharedTo} SharedTo
+ * @typedef {import("./app/files.js").UserJoinedFields} UserJoinedFields
  * @typedef {import("./app/people.js").User} User
  */

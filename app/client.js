@@ -13,7 +13,7 @@
    * @property {string=} filterBy
    * @property {string=} filterOp
    * @property {string=} filterValue
-   * @property {string=} filterType
+   * @property {string|number=} filterType
    * @property {string=} searchArea
    */
 
