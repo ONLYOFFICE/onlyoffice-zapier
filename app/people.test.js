@@ -4,12 +4,12 @@
 
 // @ts-check
 
-const { not, unreachable } = require("uvu/assert")
+const { equal, not, unreachable } = require("uvu/assert")
 const { suite } = require("uvu")
 const { createAppTester } = require("zapier-platform-core")
 const { App } = require("./app.js")
 const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
-const { userAdded } = require("./people.js")
+const { inviteUser, userAdded } = require("./people.js")
 
 const tester = createAppTester(App)
 
@@ -23,6 +23,26 @@ const People = suite("people", {
 People.before(async (context) => {
   await sessionAuthPerform(tester, context)
 })
+
+People("invited a user", async (context) => {
+  const { perform } = inviteUser.operation
+  /** @type {InviteUserFields} */
+  const inputData = {
+    email: "whatever@onlyoffice.io",
+    type: "2"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const user = await tester(perform, bundle)
+  if (!user) {
+    unreachable("TODO")
+    return
+  }
+  equal(user.displayName, bundle.inputData.email)
+})
+
 
 People("triggers when a user is added", async (context) => {
   const { perform } = userAdded.operation

@@ -10,7 +10,6 @@
  * @typedef {import("./app/auth.js").SessionAuthenticationUnapprovedData} SessionAuthenticationUnapprovedData
  * @typedef {import("./app/client.js").InternalProgress} InternalProgress
  * @typedef {import("./app/client.js").Filters} Filters
- * @typedef {import("./app/files.js").ActionBy} ActionBy
  * @typedef {import("./app/files.js").ArchiveRoomFields} ArchiveRoomFields
  * @typedef {import("./app/files.js").CreateFileFields} CreateFileFields
  * @typedef {import("./app/files.js").CreateFileInMyDocumentsFields} CreateFileInMyDocumentsFields
@@ -25,5 +24,7 @@
  * @typedef {import("./app/files.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./app/files.js").RoomData} RoomData
  * @typedef {import("./app/files.js").SharedTo} SharedTo
+ * @typedef {import("./app/people.js").Account} Account
+ * @typedef {import("./app/people.js").InviteUserFields} InviteUserFields
  * @typedef {import("./app/people.js").User} User
  */
