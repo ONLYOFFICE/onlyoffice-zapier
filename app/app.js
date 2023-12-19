@@ -17,7 +17,9 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  shareRoles,
+  shareRoom
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
@@ -33,6 +35,7 @@ const App = {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
     [folderCreated.key]: folderCreated,
+    [shareRoles.key]: shareRoles,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
     [userAdded.key]: userAdded
@@ -42,6 +45,7 @@ const App = {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
+    [shareRoom.key]: shareRoom,
     [externalLink.key]: externalLink,
     [roomCreate.key]: roomCreate
   }

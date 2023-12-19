@@ -110,6 +110,12 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} Invitations
+ * @property {string} id
+ * @property {string} access
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} operation
@@ -117,6 +123,12 @@ const samples = require("./files.samples.js")
  * @property {string} error
  * @property {string} processed
  * @property {boolean} finished
+ */
+
+/**
+ * @typedef {Object} RoleData
+ * @property {number} id
+ * @property {string} name
  */
 
 /**
@@ -147,6 +159,57 @@ const samples = require("./files.samples.js")
  * @property {RoomData} current
  * @property {RoomData[]} folders
  */
+
+/**
+ * @typedef {Object} ShareBody
+ * @property {Invitations[]} invitations
+ * @property {boolean} notify
+ * @property {string} message
+ */
+
+/**
+* @typedef {Object} ShareData
+* @property {string} firstName
+* @property {string} lastName
+* @property {string} userName
+* @property {string} email
+* @property {number} status
+* @property {number} activationStatus
+* @property {boolean} isAdmin
+* @property {boolean} isRoomAdmin
+* @property {boolean} isLDAP
+* @property {boolean} isOwner
+* @property {boolean} isVisitor
+* @property {boolean} isCollaborator
+* @property {boolean} isSSO
+* @property {number} quotaLimit
+* @property {number} usedSpace
+* @property {string} id
+* @property {string} displayName
+* @property {string} profileUrl
+*/
+
+/**
+* @typedef {object} ShareList
+* @property {ShareMembers[]} members
+*/
+
+/**
+* @typedef {Object} ShareMembers
+* @property {ShareData} sharedTo
+*/
+
+/**
+ * @typedef {Object} ShareOptions
+ * @property {number} roomId
+ * @property {string} userId
+ * @property {string} access
+ */
+
+/**
+* @typedef {object} ShareRolesFields
+* @property {number} id
+*/
 
 /**
  * @typedef {Object} SharedTo
@@ -309,6 +372,42 @@ const roomArchived = {
       return rooms.folders
     },
     sample: samples.folder
+  }
+}
+
+const shareRoles = {
+  key: "shareRoles",
+  noun: "Room",
+  display: {
+    label: "Get Roles",
+    description: "Get roles for share by room id.",
+    hidden: true
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ShareRolesFields>} bundle
+     * @returns {Promise<RoleData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.roomInfo(bundle.inputData.id)
+
+      if (room.roomType === 5) {
+        return [
+          { id: 2, name: "Viewer" },
+          { id: 10, name: "Editor" }
+        ]
+      } else if (room.roomType === 6) {
+        return [
+          { id: 9, name: "Room admin" },
+          { id: 11, name: "Power user" }
+        ]
+      }
+      return []
+    },
+    sample: samples.role
   }
 }
 
@@ -519,6 +618,60 @@ const roomCreate = {
   }
 }
 
+const shareRoom = {
+  key: "shareRoom",
+  noun: "Room",
+  display: {
+    label: "Share Room",
+    description: "Share a room with a user."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "roomId",
+        required: true,
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "User",
+        key: "userId",
+        required: true,
+        dynamic: "userAdded.id.displayName"
+      },
+      {
+        label: "Role",
+        key: "access",
+        required: true,
+        dynamic: "shareRoles.id.name"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ShareOptions>} bundle
+     * @returns {Promise<ShareData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      /** @type {ShareBody} */
+      const body = {
+        invitations: [{
+          access: bundle.inputData.access,
+          id: bundle.inputData.userId
+        }],
+        notify: true, // Default value from DocSpace
+        message: "Invitation message" // Default value from DocSpace
+      }
+      const response = await files.inviteUser(bundle.inputData.roomId, body)
+      if (response.members.length <= 0) throw new z.errors.HaltedError("Failed to invite user")
+      return response.members[0].sharedTo
+    },
+    sample: samples.share
+  }
+}
+
 class FilesService extends Service {
   /**
    * ```http
@@ -596,6 +749,19 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/rooms/{{id}}/share
+   * ```
+   * @param {number} id
+   * @param {ShareBody} data
+   * @returns {Promise<ShareList>}
+   */
+  inviteUser(id, data) {
+    const url = this.client.url(`/files/rooms/${id}/share`)
+    return this.client.request("PUT", url, data)
+  }
+
+  /**
+   * ```http
    * GET /files/{{folderId}}
    * ```
    * @param {number} folderId
@@ -643,6 +809,18 @@ class FilesService extends Service {
     const url = this.client.url("/files/@trash", filters)
     return this.client.request("GET", url)
   }
+
+  /**
+   * ```http
+   * GET /files/rooms/{{folderId}}
+   * ```
+   * @param {number} folderId
+   * @returns {Promise<RoomData>}
+   */
+  roomInfo(folderId) {
+    const url = this.client.url(`/files/rooms/${folderId}`)
+    return this.client.request("GET", url)
+  }
 }
 
 module.exports = {
@@ -657,5 +835,7 @@ module.exports = {
   roomArchived,
   roomCreate,
   roomCreated,
+  shareRoles,
+  shareRoom,
   FilesService
 }
