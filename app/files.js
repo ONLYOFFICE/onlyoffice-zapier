@@ -160,6 +160,25 @@ const samples = require("./files.samples.js")
  * @property {string} requestToken
  */
 
+/**
+ * @typedef {Object} UserData
+ * @property {number} access
+ * @property {boolean} canEditAccess
+ * @property {boolean} isLocked
+ * @property {boolean} isOwner
+ * @property {User} sharedTo
+ */
+
+/**
+ * @typedef {Object} UserJoinedFields
+ * @property {number} id
+ * @property {boolean} active
+ */
+
+/**
+ * @typedef {UserData[]} UsersList
+ */
+
 // Triggers
 const fileCreated = {
   key: "fileCreated",
@@ -309,6 +328,58 @@ const roomArchived = {
       return rooms.folders
     },
     sample: samples.folder
+  }
+}
+
+const userInvited = {
+  key: "userInvited",
+  noun: "User",
+  display: {
+    label: "User Joined",
+    description: "Triggers when a user invited to Room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "active",
+        key: "active",
+        type: "boolean",
+        helpText: "Return only those who are active"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UserJoinedFields>} bundle
+     * @returns {Promise<User[]>}
+     */
+    async perform(z, bundle) {
+      /**
+       * @param {UsersList} data
+       * @param {boolean} activationStatus
+       * @returns {User[]}
+       */
+      const usersByList = function (data, activationStatus) {
+        return data
+          .filter(item => activationStatus ? item.sharedTo.activationStatus === 1 : true)
+          .map(item => item.sharedTo)
+      }
+
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        filterType: 0 // Only users
+      }
+      const usersList = await files.listUsers(bundle.inputData.id, filters)
+      const users = usersByList(usersList, bundle.inputData.active)
+      return users
+    },
+    sample: samples.user
   }
 }
 
@@ -643,6 +714,19 @@ class FilesService extends Service {
     const url = this.client.url("/files/@trash", filters)
     return this.client.request("GET", url)
   }
+
+  /**
+   * ```http
+   * GET /files/rooms/{id}/share
+   * ```
+   * @param {number} id
+   * @param {Filters} filters
+   * @returns {Promise<UsersList>}
+   */
+  listUsers(id, filters) {
+    const url = this.client.url(`/files/rooms/${id}/share`, filters)
+    return this.client.request("GET", url)
+  }
 }
 
 module.exports = {
@@ -657,5 +741,6 @@ module.exports = {
   roomArchived,
   roomCreate,
   roomCreated,
+  userInvited,
   FilesService
 }

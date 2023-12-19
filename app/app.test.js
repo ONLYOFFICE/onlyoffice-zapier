@@ -21,7 +21,8 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  userInvited
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const pack = require("../package.json")
@@ -78,6 +79,11 @@ test("has the `roomCreated` trigger", () => {
 
 test("has the `userAdded` trigger", () => {
   const has = App.triggers[userAdded.key] === userAdded
+  equal(has, true)
+})
+
+test("has the `userInvited` trigger", () => {
+  const has = App.triggers[userInvited.key] === userInvited
   equal(has, true)
 })
 

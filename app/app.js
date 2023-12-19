@@ -17,7 +17,8 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  userInvited
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
@@ -35,7 +36,8 @@ const App = {
     [folderCreated.key]: folderCreated,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
-    [userAdded.key]: userAdded
+    [userAdded.key]: userAdded,
+    [userInvited.key]: userInvited
   },
   creates: {
     [archiveRoom.key]: archiveRoom,
