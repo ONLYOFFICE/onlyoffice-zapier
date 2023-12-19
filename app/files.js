@@ -102,6 +102,12 @@ const samples = require("./files.samples.js")
  * @property {string} updated
  * @property {number} rootFolderType
  * @property {ActionBy} updatedBy
+ * @property {number=} originRoomId
+ */
+
+/**
+ * @typedef {Object} FolderDeletedFields
+ * @property {number} id
  */
 
 /**
@@ -158,6 +164,12 @@ const samples = require("./files.samples.js")
  * @property {boolean} isExpired
  * @property {boolean} primary
  * @property {string} requestToken
+ */
+
+/**
+ * @typedef {Object} TrashList
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
  */
 
 // Triggers
@@ -256,6 +268,43 @@ const folderCreated = {
       }
       const folders = await files.listFolders(bundle.inputData.id, filters)
       return folders.folders
+    },
+    sample: samples.folder
+  }
+}
+
+const folderDeleted = {
+  key: "folderDeleted",
+  noun: "Folders",
+  display: {
+    label: "Folder Deleted",
+    description: "Triggers when a folder is deleted."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        dynamic: "roomCreated.id.title",
+        helpText: "Trigger after deleted from a specific room"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderDeletedFields>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        filterType: "FoldersOnly"
+      }
+      const trash = await files.listTrash(filters)
+      if (bundle.inputData.id) return trash.folders.filter(item => item.originRoomId === bundle.inputData.id)
+      return trash.folders
     },
     sample: samples.folder
   }
@@ -637,7 +686,7 @@ class FilesService extends Service {
    * GET /files/@trash
    * ```
    * @param {Filters} filters
-   * @returns {Promise<FilesList>}
+   * @returns {Promise<TrashList>}
    */
   listTrash(filters) {
     const url = this.client.url("/files/@trash", filters)
@@ -654,6 +703,7 @@ module.exports = {
   fileCreated,
   fileDeleted,
   folderCreated,
+  folderDeleted,
   roomArchived,
   roomCreate,
   roomCreated,

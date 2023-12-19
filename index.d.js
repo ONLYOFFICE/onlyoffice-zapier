@@ -21,6 +21,7 @@
  * @typedef {import("./app/files.js").FileData} FileData
  * @typedef {import("./app/files.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./app/files.js").FolderData} FolderData
+ * @typedef {import("./app/files.js").FolderDeletedFields} FolderDeletedFields
  * @typedef {import("./app/files.js").ProgressData} ProgressData
  * @typedef {import("./app/files.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./app/files.js").RoomData} RoomData
