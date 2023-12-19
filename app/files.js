@@ -8,13 +8,6 @@ const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
 
 /**
- * @typedef {Object} ActionBy
- * @property {string} displayName
- * @property {string} id
- * @property {string} profileUrl
- */
-
-/**
  * @typedef {Object} ArchiveRoomFields
  * @property {number} id
  */
@@ -76,10 +69,10 @@ const samples = require("./files.samples.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {ActionBy} createdBy
+ * @property {Account} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {ActionBy} updatedBy
+ * @property {Account} updatedBy
  */
 
 /**
@@ -98,10 +91,10 @@ const samples = require("./files.samples.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {ActionBy} createdBy
+ * @property {Account} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {ActionBy} updatedBy
+ * @property {Account} updatedBy
  */
 
 /**
@@ -136,10 +129,10 @@ const samples = require("./files.samples.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {ActionBy} createdBy
+ * @property {Account} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {ActionBy} updatedBy
+ * @property {Account} updatedBy
  */
 
 /**

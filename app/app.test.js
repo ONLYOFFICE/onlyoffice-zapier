@@ -23,7 +23,7 @@ const {
   roomCreate,
   roomCreated
 } = require("./files.js")
-const { userAdded } = require("./people.js")
+const { inviteUser, userAdded } = require("./people.js")
 const pack = require("../package.json")
 
 test("has the actual version", () => {
@@ -104,6 +104,11 @@ test("has the `createFolder` creation", () => {
 
 test("has the `externalLink` creation", () => {
   const has = App.creates[externalLink.key] === externalLink
+  equal(has, true)
+})
+
+test("has the `inviteUser` creation", () => {
+  const has = App.creates[inviteUser.key] === inviteUser
   equal(has, true)
 })
 

@@ -19,7 +19,7 @@ const {
   roomCreate,
   roomCreated
 } = require("./files.js")
-const { userAdded } = require("./people.js")
+const { inviteUser, userAdded } = require("./people.js")
 const { version } = require("../package.json")
 
 const App = {
@@ -43,6 +43,7 @@ const App = {
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
     [externalLink.key]: externalLink,
+    [inviteUser.key]: inviteUser,
     [roomCreate.key]: roomCreate
   }
 }
