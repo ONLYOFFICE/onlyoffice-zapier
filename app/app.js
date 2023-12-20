@@ -17,7 +17,8 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  uploadFile
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
@@ -43,7 +44,8 @@ const App = {
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
     [externalLink.key]: externalLink,
-    [roomCreate.key]: roomCreate
+    [roomCreate.key]: roomCreate,
+    [uploadFile.key]: uploadFile
   }
 }
 

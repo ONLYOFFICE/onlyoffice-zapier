@@ -21,7 +21,8 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  uploadFile
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const pack = require("../package.json")
@@ -109,6 +110,11 @@ test("has the `externalLink` creation", () => {
 
 test("has the `roomCreate` creation", () => {
   const has = App.creates[roomCreate.key] === roomCreate
+  equal(has, true)
+})
+
+test("has the `uploadFile` creation", () => {
+  const has = App.creates[uploadFile.key] === uploadFile
   equal(has, true)
 })
 

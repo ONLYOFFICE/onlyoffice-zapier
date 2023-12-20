@@ -20,7 +20,8 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  uploadFile
 } = require("./files.js")
 
 const tester = createAppTester(App)
@@ -177,6 +178,21 @@ Files("triggers when a file is deleted", async (context) => {
   // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
   if (files.length) not.equal(file.id, 0)
   else equal(true, true)
+})
+
+Files("upload a file", async (context) => {
+  const { perform } = uploadFile.operation
+  /** @type {UploadFileFields} */
+  const inputData = {
+    folderId: context.inputData.id,
+    url: "https://d2nlctn12v279m.cloudfront.net/assets/docs/samples/demo.docx"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.uploaded, true)
 })
 
 Files("archive the room", async (context) => {

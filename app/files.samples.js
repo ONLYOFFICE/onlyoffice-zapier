@@ -88,4 +88,14 @@ const room = {
   updatedBy: actionBy
 }
 
-module.exports = { file, folder, externalLink, progress, room }
+/** @type {UploadFileData} */
+const upload = {
+  id: 3,
+  folderId: 1,
+  version: 1,
+  title: "sample.docx",
+  uploaded: true,
+  file
+}
+
+module.exports = { file, folder, externalLink, progress, room, upload }
