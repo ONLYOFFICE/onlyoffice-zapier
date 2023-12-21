@@ -14,6 +14,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFolder,
   externalLink,
   fileCreated,
   fileDeleted,
@@ -28,7 +29,8 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    id: 0
+    id: 0,
+    folderId: 0
   }
 })
 
@@ -110,8 +112,9 @@ Files("create a folder", async (context) => {
     authData: context.authData,
     inputData
   }
-  const result = await tester(perform, bundle)
-  not.equal(result.id, 0)
+  const folder = await tester(perform, bundle)
+  context.inputData.folderId = folder.id
+  not.equal(folder.id, 0)
 })
 
 Files("returns the links of a room", async (context) => {
@@ -177,6 +180,21 @@ Files("triggers when a file is deleted", async (context) => {
   // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
   if (files.length) not.equal(file.id, 0)
   else equal(true, true)
+})
+
+Files("delete a folder", async (context) => {
+  const { perform } = deleteFolder.operation
+  /** @type {DeleteFolderFields} */
+  const inputData = {
+    id: context.inputData.id,
+    folderId: context.inputData.folderId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.finished, true)
 })
 
 Files("archive the room", async (context) => {
