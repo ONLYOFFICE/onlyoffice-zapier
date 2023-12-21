@@ -101,7 +101,8 @@ async function loadEnvironment(directory) {
   const variables = [
     "DOC_SPACE_BASE_URL",
     "DOC_SPACE_USERNAME",
-    "DOC_SPACE_PASSWORD"
+    "DOC_SPACE_PASSWORD",
+    "ZAPIER_DEPLOY_KEY"
   ]
 
   const file = join(directory, ".env")
@@ -231,13 +232,15 @@ app
     const DOC_SPACE_BASE_URL = await question(line, "The base URL of DocSpace for testing purposes (DOC_SPACE_BASE_URL): ")
     const DOC_SPACE_USERNAME = await question(line, "The username of DocSpace user for testing purposes (DOC_SPACE_USERNAME): ")
     const DOC_SPACE_PASSWORD = await question(line, "The password of DocSpace user for testing purposes (DOC_SPACE_PASSWORD): ")
+    const ZAPIER_DEPLOY_KEY = await question(line, "The deploy key from developer.zapier.com for testing purposes (ZAPIER_DEPLOY_KEY): ")
     /* eslint-enable @stylistic/max-len */
     line.close()
     const file = join(root, ".env")
     const content =
       `DOC_SPACE_BASE_URL=${DOC_SPACE_BASE_URL}\n` +
       `DOC_SPACE_USERNAME=${DOC_SPACE_USERNAME}\n` +
-      `DOC_SPACE_PASSWORD=${DOC_SPACE_PASSWORD}`
+      `DOC_SPACE_PASSWORD=${DOC_SPACE_PASSWORD}\n` +
+      `ZAPIER_DEPLOY_KEY=${ZAPIER_DEPLOY_KEY}`
     await writeFile(file, content)
   })
 
