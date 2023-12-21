@@ -81,6 +81,7 @@ $ pnpm setup-env
 The base URL of DocSpace for testing purposes (DOC_SPACE_BASE_URL): ***
 The username of DocSpace user for testing purposes (DOC_SPACE_USERNAME): ***
 The password of DocSpace user for testing purposes (DOC_SPACE_PASSWORD): ***
+The deploy key from developer.zapier.com for testing purposes (ZAPIER_DEPLOY_KEY): ***
 ```
 
 ## Project Structure
