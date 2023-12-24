@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, Service, Progress } = require("./client.js")
+const { Client, Service, Progress, Upload } = require("./client.js")
 const samples = require("./files.samples.js")
 
 /**
@@ -158,6 +158,23 @@ const samples = require("./files.samples.js")
  * @property {boolean} isExpired
  * @property {boolean} primary
  * @property {string} requestToken
+ */
+
+/**
+ * @typedef {Object} UploadFileData
+ * @property {number} id
+ * @property {number} folderId
+ * @property {number} version
+ * @property {string} title
+ * @property {boolean} uploaded
+ * @property {FileData} file
+ */
+
+/**
+ * @typedef {Object} UploadFileFields
+ * @property {number=} id
+ * @property {number} folderId
+ * @property {string} url
  */
 
 // Triggers
@@ -519,6 +536,48 @@ const roomCreate = {
   }
 }
 
+const uploadFile = {
+  key: "uploadFile",
+  noun: "File",
+  display: {
+    label: "Upload File",
+    description: "Upload a file."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "Folder",
+        key: "folderId",
+        dynamic: "folderCreated.id.title"
+      },
+      {
+        label: "URL or File",
+        key: "url",
+        required: true,
+        helpText: "Download file via direct link or Hydrate File"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UploadFileFields>} bundle
+     * @returns {Promise<UploadFileData>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId && bundle.inputData.id) bundle.inputData.folderId = bundle.inputData.id
+      const upload = new Upload(bundle.authData.baseUrl, z)
+      return await upload.start(bundle.inputData)
+    },
+    sample: samples.upload
+  }
+}
+
 class FilesService extends Service {
   /**
    * ```http
@@ -657,5 +716,6 @@ module.exports = {
   roomArchived,
   roomCreate,
   roomCreated,
+  uploadFile,
   FilesService
 }
