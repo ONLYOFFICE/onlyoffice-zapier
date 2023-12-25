@@ -21,6 +21,7 @@ const {
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
+const { errorHandling } = require("./middleware.js")
 
 const App = {
   version,
@@ -44,7 +45,10 @@ const App = {
     [createFolder.key]: createFolder,
     [externalLink.key]: externalLink,
     [roomCreate.key]: roomCreate
-  }
+  },
+  afterResponse: [
+    errorHandling
+  ]
 }
 
 module.exports = { App }

@@ -64,17 +64,7 @@ class Client {
    */
   async request(method, url, body = {}) {
     const response = await this.zrequest({ url, method, body })
-
     const { data } = response
-    if (!data) {
-      throw Error("TODO")
-    }
-
-    const { status } = data
-    if (status !== 0) {
-      throw Error("TODO")
-    }
-
     return data.response
   }
 }
