@@ -14,10 +14,13 @@ const {
   externalLink,
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  searchFile,
+  searchFolder
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
@@ -32,10 +35,15 @@ const App = {
   triggers: {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
+    [filteredSections.key]: filteredSections,
     [folderCreated.key]: folderCreated,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
     [userAdded.key]: userAdded
+  },
+  searches: {
+    [searchFile.key]: searchFile,
+    [searchFolder.key]: searchFolder
   },
   creates: {
     [archiveRoom.key]: archiveRoom,

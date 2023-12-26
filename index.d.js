@@ -21,9 +21,11 @@
  * @typedef {import("./app/files.js").FileData} FileData
  * @typedef {import("./app/files.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./app/files.js").FolderData} FolderData
+ * @typedef {import("./app/files.js").PathParts} PathParts
  * @typedef {import("./app/files.js").ProgressData} ProgressData
  * @typedef {import("./app/files.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./app/files.js").RoomData} RoomData
+ * @typedef {import("./app/files.js").SearchFields} SearchFields
  * @typedef {import("./app/files.js").SharedTo} SharedTo
  * @typedef {import("./app/people.js").User} User
  */
