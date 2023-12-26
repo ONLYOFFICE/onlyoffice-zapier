@@ -110,6 +110,12 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} PathParts
+ * @property {number} id
+ * @property {string} title
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} operation
@@ -146,6 +152,24 @@ const samples = require("./files.samples.js")
  * @typedef {Object} RoomsList
  * @property {RoomData} current
  * @property {RoomData[]} folders
+ */
+
+/**
+ * @typedef {Object} SearchFields
+ * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} Section
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
+ * @property {FolderData} current
+ * @property {PathParts[]} pathParts
+ */
+
+/**
+ * @typedef {Section[]} SectionList
  */
 
 /**
@@ -222,6 +246,33 @@ const fileDeleted = {
       return trash.files
     },
     sample: samples.file
+  }
+}
+
+const filteredSections = {
+  key: "filteredSections",
+  noun: "Section",
+  display: {
+    label: "Filtered Sections",
+    description: "Returns all the sections.",
+    hidden: true
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderCreatedFields>} bundle
+     * @returns {Promise<PathParts[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const sections = await files.listSections()
+      return sections.map(section => ({
+        title: section.pathParts[0].title,
+        id: section.pathParts[0].id
+      }))
+    },
+    sample: samples.pathParts
   }
 }
 
@@ -307,6 +358,95 @@ const roomArchived = {
       }
       const rooms = await files.listRooms(filters)
       return rooms.folders
+    },
+    sample: samples.folder
+  }
+}
+
+// Searches
+const searchFile = {
+  key: "searchFile",
+  noun: "Files",
+  display: {
+    label: "Search File",
+    description: "Search a file."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Section",
+        key: "folderId",
+        required: true,
+        type: "integer",
+        dynamic: "filteredSections.id.title",
+        helpText: "Search section"
+      },
+      {
+        label: "Title",
+        key: "title",
+        required: true,
+        helpText: "File title or extension"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, SearchFields>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        withSubfolders: true
+      }
+      const filesList = await files.listFiles(bundle.inputData.folderId, filters)
+      return filesList.files.filter(file => file.title.includes(bundle.inputData.title))
+    },
+    sample: samples.file
+  }
+}
+
+const searchFolder = {
+  key: "searchFolder",
+  noun: "Folders",
+  display: {
+    label: "Search Folder",
+    description: "Search a folder."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Section",
+        key: "folderId",
+        required: true,
+        type: "integer",
+        dynamic: "filteredSections.id.title",
+        helpText: "Search section"
+      },
+      {
+        label: "Title",
+        key: "title",
+        required: true,
+        helpText: "Folder title"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, SearchFields>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        withSubfolders: true
+      }
+      const folderList = await files.listFolders(bundle.inputData.folderId, filters)
+      return folderList.folders.filter(folder => folder.title.includes(bundle.inputData.title))
     },
     sample: samples.folder
   }
@@ -609,7 +749,7 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * GET /files/rooms/{{id}}
+   * GET /files/{{id}}
    * ```
    * @param {number} id
    * @param {Filters} filters
@@ -634,6 +774,17 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/@root
+   * ```
+   * @returns {Promise<SectionList>}
+   */
+  listSections() {
+    const url = this.client.url("/files/@root")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/@trash
    * ```
    * @param {Filters} filters
@@ -653,9 +804,12 @@ module.exports = {
   externalLink,
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   roomArchived,
   roomCreate,
   roomCreated,
+  searchFile,
+  searchFolder,
   FilesService
 }

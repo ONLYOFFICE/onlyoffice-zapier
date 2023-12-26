@@ -61,6 +61,12 @@ const externalLink = {
   canEditAccess: false
 }
 
+/** @type {PathParts} */
+const pathParts = {
+  title: "Rooms",
+  id: 1
+}
+
 /** @type {ProgressData} */
 const progress = {
   id: "00000000-1111-2222-3333-444444444444",
@@ -88,4 +94,4 @@ const room = {
   updatedBy: actionBy
 }
 
-module.exports = { file, folder, externalLink, progress, room }
+module.exports = { file, folder, externalLink, pathParts, progress, room }

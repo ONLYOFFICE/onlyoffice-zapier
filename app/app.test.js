@@ -18,10 +18,13 @@ const {
   externalLink,
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  searchFile,
+  searchFolder
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const pack = require("../package.json")
@@ -61,6 +64,11 @@ test("has the `fileDeleted` trigger", () => {
   equal(has, true)
 })
 
+test("has the `filteredSections` trigger", () => {
+  const has = App.triggers[filteredSections.key] === filteredSections
+  equal(has, true)
+})
+
 test("has the `folderCreated` trigger", () => {
   const has = App.triggers[folderCreated.key] === folderCreated
   equal(has, true)
@@ -78,6 +86,17 @@ test("has the `roomCreated` trigger", () => {
 
 test("has the `userAdded` trigger", () => {
   const has = App.triggers[userAdded.key] === userAdded
+  equal(has, true)
+})
+
+// Searches
+test("has the `searchFile` search", () => {
+  const has = App.searches[searchFile.key] === searchFile
+  equal(has, true)
+})
+
+test("has the `searchFolder` search", () => {
+  const has = App.searches[searchFolder.key] === searchFolder
   equal(has, true)
 })
 
