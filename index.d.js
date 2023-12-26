@@ -27,3 +27,5 @@
  * @typedef {import("./app/files.js").SharedTo} SharedTo
  * @typedef {import("./app/people.js").User} User
  */
+
+module.exports = {}
