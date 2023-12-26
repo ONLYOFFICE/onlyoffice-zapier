@@ -20,7 +20,9 @@ const {
   folderCreated,
   roomArchived,
   roomCreate,
-  roomCreated
+  roomCreated,
+  shareRoles
+  //shareRoom,
 } = require("./files.js")
 
 const tester = createAppTester(App)
@@ -28,7 +30,8 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    id: 0
+    id: 0,
+    access: 0
   }
 })
 
@@ -178,6 +181,43 @@ Files("triggers when a file is deleted", async (context) => {
   if (files.length) not.equal(file.id, 0)
   else equal(true, true)
 })
+
+Files("hidden share roles trigger return roles", async (context) => {
+  const { perform } = shareRoles.operation
+  /** @type {{id: number}} */
+  const inputData = {
+    id: context.inputData.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const roles = await tester(perform, bundle)
+  const role = roles[0]
+  if (!role) {
+    unreachable("TODO")
+    return
+  }
+  context.inputData.access = role.id
+  not.equal(role.id, 0)
+})
+
+//TODO: Without an action to invite the user by email, there is no user id to test. The test works with hardcode value
+/*
+Files("share a room with a user", async (context) => {
+  const { perform } = shareRoom.operation
+  const inputData = {
+    id: context.inputData.folderId,
+    user: "",
+    access: context.inputData.access
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const members = await tester(perform, bundle)
+})
+*/
 
 Files("archive the room", async (context) => {
   const { perform } = archiveRoom.operation

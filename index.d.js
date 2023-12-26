@@ -23,7 +23,9 @@
  * @typedef {import("./app/files.js").FolderData} FolderData
  * @typedef {import("./app/files.js").ProgressData} ProgressData
  * @typedef {import("./app/files.js").RoomCreateFields} RoomCreateFields
+ * @typedef {import("./app/files.js").RoleData} RoleData
  * @typedef {import("./app/files.js").RoomData} RoomData
+ * @typedef {import("./app/files.js").ShareData} _ShareData
  * @typedef {import("./app/files.js").SharedTo} SharedTo
  * @typedef {import("./app/people.js").User} User
  */
