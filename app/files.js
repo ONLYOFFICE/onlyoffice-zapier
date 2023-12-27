@@ -47,6 +47,12 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} DeleteFolderFields
+ * @property {number} folderId
+ * @property {number} id
+ */
+
+/**
  * @typedef {Object} ExternalLinkData
  * @property {number} access
  * @property {boolean} canEditAccess
@@ -452,6 +458,45 @@ const createFolder = {
   }
 }
 
+const deleteFolder = {
+  key: "deleteFolder",
+  noun: "Folder",
+  display: {
+    label: "Delete Folder",
+    description: "Delete a folder."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        dynamic: "roomCreated.id.title",
+        altersDynamicFields: true
+      },
+      {
+        label: "Folder",
+        key: "folderId",
+        required: true,
+        dynamic: "folderCreated.id.title"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DeleteFolderFields>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const progress = new Progress(files.deleteFolder.bind(files), bundle.inputData.folderId)
+      const result = await progress.complete()
+      return result[0]
+    },
+    sample: samples.progress
+  }
+}
+
 const externalLink = {
   key: "externalLink",
   noun: "Room",
@@ -584,6 +629,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * DELETE /files/folder/{{folderId}}
+   * ```
+   * @param {number} folderId
+   * @returns {Promise<ProgressData[]>}
+   */
+  deleteFolder(folderId) {
+    const url = this.client.url(`/files/folder/${folderId}`)
+    return this.client.request("DELETE", url)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{id}}/link
    * ```
    * @param {number} id
@@ -650,6 +707,7 @@ module.exports = {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFolder,
   externalLink,
   fileCreated,
   fileDeleted,

@@ -11,6 +11,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFolder,
   externalLink,
   fileCreated,
   fileDeleted,
@@ -42,6 +43,7 @@ const App = {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
+    [deleteFolder.key]: deleteFolder,
     [externalLink.key]: externalLink,
     [roomCreate.key]: roomCreate
   }
