@@ -47,6 +47,19 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} DeleteFileFields
+ * @property {number} fileId
+ */
+
+/**
+ * @typedef {Object} DeleteFilesAndFoldersBody
+ * @property {number[]} folderIds
+ * @property {number[]} fileIds
+ * @property {boolean} deleteAfter
+ * @property {boolean} immediately
+ */
+
+/**
  * @typedef {Object} ExternalLinkData
  * @property {number} access
  * @property {boolean} canEditAccess
@@ -452,6 +465,41 @@ const createFolder = {
   }
 }
 
+const deleteFile = {
+  key: "deleteFile",
+  noun: "File",
+  display: {
+    label: "Delete File",
+    description: "Delete a file."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "File",
+        key: "fileId",
+        required: true
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DeleteFileFields>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const body = {
+        folderIds: [],
+        fileIds: [bundle.inputData.fileId],
+        deleteAfter: false,
+        immediately: false // Move to Trash folder
+      }
+      return await files.deleteFile(body) //TODO: awaiting fixes Progress
+    },
+    sample: samples.progress
+  }
+}
+
 const externalLink = {
   key: "externalLink",
   noun: "Room",
@@ -584,6 +632,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/fileops/delete
+   * ```
+   * @param {DeleteFilesAndFoldersBody} body
+   * @returns {Promise<>}
+   */
+  deleteFile(body) {
+    const url = this.client.url("/files/fileops/delete")
+    return this.client.request("PUT", url, body)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{id}}/link
    * ```
    * @param {number} id
@@ -650,6 +710,7 @@ module.exports = {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFile,
   externalLink,
   fileCreated,
   fileDeleted,

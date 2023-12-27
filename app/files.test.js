@@ -14,6 +14,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFile,
   externalLink,
   fileCreated,
   fileDeleted,
@@ -28,7 +29,8 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    id: 0
+    id: 0,
+    fileId: 0
   }
 })
 
@@ -81,8 +83,8 @@ Files("creates a file", async (context) => {
     authData: context.authData,
     inputData
   }
-  const result = await tester(perform, bundle)
-  equal(result.folderId, bundle.inputData.folderId)
+  const file = await tester(perform, bundle)
+  equal(file.folderId, bundle.inputData.folderId)
 })
 
 Files("creates a file in the My Documents", async (context) => {
@@ -95,8 +97,9 @@ Files("creates a file in the My Documents", async (context) => {
     authData: context.authData,
     inputData
   }
-  const result = await tester(perform, bundle)
-  not.equal(result.id, 0)
+  const file = await tester(perform, bundle)
+  context.inputData.fileId = file.id
+  not.equal(file.id, 0)
 })
 
 Files("create a folder", async (context) => {
@@ -163,8 +166,21 @@ Files("triggers when a file is created", async (context) => {
     unreachable("TODO")
     return
   }
-
   not.equal(newFile.id, 0)
+})
+
+Files("delete a file", async (context) => {
+  const { perform } = deleteFile.operation
+  /** @type {DeleteFileFields} */
+  const inputData = {
+    fileId: context.inputData.fileId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  not.equal(result.id, 0)
 })
 
 Files("triggers when a file is deleted", async (context) => {
