@@ -14,6 +14,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   fileCreated,
   fileDeleted,
@@ -28,7 +29,8 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    id: 0
+    id: 0,
+    fileId: 0
   }
 })
 
@@ -90,6 +92,21 @@ Files("creates a file in the My Documents", async (context) => {
   /** @type {CreateFileInMyDocumentsFields} */
   const inputData = {
     title: "README"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  context.inputData.fileId = result.id
+  not.equal(result.id, 0)
+})
+
+Files("downloads file", async (context) => {
+  const { perform } = downloadFile.operation
+  /** @type {DownloadFileFields} */
+  const inputData = {
+    fileId: context.inputData.fileId
   }
   const bundle = {
     authData: context.authData,

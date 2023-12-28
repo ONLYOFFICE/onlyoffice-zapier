@@ -15,6 +15,8 @@
  * @typedef {import("./app/files.js").CreateFileFields} CreateFileFields
  * @typedef {import("./app/files.js").CreateFileInMyDocumentsFields} CreateFileInMyDocumentsFields
  * @typedef {import("./app/files.js").CreateFolderFields} CreateFolderFields
+ * @typedef {import("./app/files.js").DownloadFileData} DownloadFileData
+ * @typedef {import("./app/files.js").DownloadFileFields} DownloadFileFields
  * @typedef {import("./app/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("./app/files.js").ExternalLinkFields} ExternalLinkFields
  * @typedef {import("./app/files.js").FileCreatedFields} FileCreatedFields

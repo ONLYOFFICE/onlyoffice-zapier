@@ -6,6 +6,7 @@
 
 const { Client, Service, Progress } = require("./client.js")
 const samples = require("./files.samples.js")
+const { stashFile } = require("./hydrators.js")
 
 /**
  * @typedef {Object} ActionBy
@@ -44,6 +45,24 @@ const samples = require("./files.samples.js")
  * @typedef {Object} CreateFolderFields
  * @property {number} folderId
  * @property {string} title
+ */
+
+/**
+ * @typedef {Object} DownloadFileData
+ * @property {number} id
+ * @property {string} file
+ */
+
+/**
+ * @typedef {Object} DownloadFileFields
+ * @property {number} fileId
+ */
+
+/**
+ * @typedef {Object} DownloadLinkData
+ * @property {string} filetype
+ * @property {string} token
+ * @property {string} url
  */
 
 /**
@@ -452,6 +471,42 @@ const createFolder = {
   }
 }
 
+const downloadFile = {
+  key: "downloadFile",
+  noun: "File",
+  display: {
+    label: "Download File",
+    description: "Returns a hydrated link to download a file."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "File",
+        key: "fileId",
+        type: "integer",
+        required: true
+        //TODO: Add file search
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DownloadFileFields>} bundle
+     * @returns {Promise<DownloadFileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const result = await files.downloadLink(bundle.inputData.fileId)
+      const hydrate = await z.dehydrateFile(stashFile, { url: result.url })
+      return {
+        id: bundle.inputData.fileId,
+        file: hydrate
+      }
+    },
+    sample: samples.hydratedFile
+  }
+}
+
 const externalLink = {
   key: "externalLink",
   noun: "Room",
@@ -584,6 +639,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/file/{{fileId}}/presigned
+   * ```
+   * @param {number} fileId
+   * @returns {Promise<DownloadLinkData>}
+   */
+  downloadLink(fileId) {
+    const url = this.client.url(`/files/file/${fileId}/presigned`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{id}}/link
    * ```
    * @param {number} id
@@ -650,6 +717,7 @@ module.exports = {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   fileCreated,
   fileDeleted,

@@ -11,6 +11,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   fileCreated,
   fileDeleted,
@@ -21,6 +22,7 @@ const {
 } = require("./files.js")
 const { userAdded } = require("./people.js")
 const { version } = require("../package.json")
+const hydrators = require("./hydrators")
 
 const App = {
   version,
@@ -29,6 +31,7 @@ const App = {
   beforeRequest: [
     ...beforeSessionAuthRequest
   ],
+  hydrators,
   triggers: {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
@@ -42,6 +45,7 @@ const App = {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
+    [downloadFile.key]: downloadFile,
     [externalLink.key]: externalLink,
     [roomCreate.key]: roomCreate
   }

@@ -11,6 +11,12 @@ const actionBy = {
   profileUrl: "https://johndoe.onlyoffice.io/accounts/view/john.doe"
 }
 
+/** @type {DownloadFileData} */
+const hydratedFile = {
+  id: 1,
+  file: "hydrate||| |||hydrate"
+}
+
 /** @type {FileData} */
 const file = {
   folderId: 3,
@@ -88,4 +94,4 @@ const room = {
   updatedBy: actionBy
 }
 
-module.exports = { file, folder, externalLink, progress, room }
+module.exports = { hydratedFile, file, folder, externalLink, progress, room }
