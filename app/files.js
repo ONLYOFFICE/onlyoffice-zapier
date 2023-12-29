@@ -110,6 +110,12 @@ const samples = require("./files.samples.js")
  */
 
 /**
+ * @typedef {Object} PathParts
+ * @property {number} id
+ * @property {string} title
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} operation
@@ -158,6 +164,14 @@ const samples = require("./files.samples.js")
  * @property {boolean} isExpired
  * @property {boolean} primary
  * @property {string} requestToken
+ */
+
+/**
+ * @typedef {Object} Section
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
+ * @property {FolderData} current
+ * @property {PathParts[]} pathParts
  */
 
 // Triggers
@@ -641,6 +655,28 @@ class FilesService extends Service {
    */
   listTrash(filters) {
     const url = this.client.url("/files/@trash", filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/@my
+   * ```
+   * @returns {Promise<Section>}
+   */
+  myDocumentsSection() {
+    const url = this.client.url("/files/@my")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/@trash
+   * ```
+   * @returns {Promise<Section>}
+   */
+  trashSection() {
+    const url = this.client.url("/files/@trash")
     return this.client.request("GET", url)
   }
 }
