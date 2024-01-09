@@ -8,6 +8,7 @@
     "all": "node ./makefile.js all",
     "build": "node ./makefile.js build",
     "check": "tsc",
+    "install-lefthook": "node ./makefile.js install-lefthook",
     "install-zapier": "node ./makefile.js install-zapier",
     "lint": "eslint .",
     "promote": "node ./makefile.js promote",
@@ -22,10 +23,13 @@
     "zapier-platform-core": "15.5.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^18.4.3",
+    "@commitlint/config-conventional": "^18.4.3",
     "@stylistic/eslint-plugin-js": "^1.4.1",
     "esbuild": "^0.19.5",
     "eslint": "^8.53.0",
     "globals": "^13.24.0",
+    "lefthook": "^1.5.5",
     "nock": "^13.3.8",
     "sade": "^1.8.1",
     "typescript": "^5.2.2",
