@@ -4,12 +4,12 @@
 
 // @ts-check
 
+const { createAppTester } = require("zapier-platform-core")
 const { not, unreachable } = require("uvu/assert")
 const { suite } = require("uvu")
-const { createAppTester } = require("zapier-platform-core")
-const { App } = require("./app.js")
-const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
-const { userAdded } = require("./people.js")
+const { App } = require("../../app.js")
+const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
+const { userAdded } = require("./triggers.js")
 
 const tester = createAppTester(App)
 

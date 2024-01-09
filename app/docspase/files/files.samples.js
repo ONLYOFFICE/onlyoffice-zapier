@@ -4,6 +4,16 @@
 
 // @ts-check
 
+/**
+ * @typedef {import("./files.js").ActionBy} ActionBy
+ * @typedef {import("./files.js").ExternalLinkData} ExternalLinkData
+ * @typedef {import("./files.js").FileData} FileData
+ * @typedef {import("./files.js").FolderData} FolderData
+ * @typedef {import("./files.js").ProgressData} ProgressData
+ * @typedef {import("./files.js").RoomData} RoomData
+ * @typedef {import("./files.js").SharedTo} SharedTo
+ */
+
 /** @type {ActionBy} */
 const actionBy = {
   id: "11111111-2222-3333-4444-555555555555",

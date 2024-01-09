@@ -8,6 +8,10 @@ const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
 const { Client, Progress } = require("./client.js")
 
+/**
+ * @typedef {import("./client.js").Filters} Filters
+ */
+
 test("has the actual version", () => {
   // @ts-ignore: it's okay.
   const client = new Client("", () => {})

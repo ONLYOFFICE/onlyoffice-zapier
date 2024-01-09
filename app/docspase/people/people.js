@@ -4,8 +4,7 @@
 
 // @ts-check
 
-const { Client, Service } = require("./client.js")
-const samples = require("./people.samples.js")
+const { Service } = require("../client/client")
 
 /**
  * @typedef {Object} User
@@ -39,28 +38,6 @@ const samples = require("./people.samples.js")
  * @property {boolean} hasAvatar
  */
 
-const userAdded = {
-  key: "userAdded",
-  noun: "Users",
-  display: {
-    label: "User Added",
-    description: "Triggers when a user is added."
-  },
-  operation: {
-    /**
-     * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData>} bundle
-     * @returns {Promise<User[]>}
-     */
-    async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const people = new PeopleService(client)
-      return await people.listUsers()
-    },
-    sample: samples.user
-  }
-}
-
 class PeopleService extends Service {
   /**
    * ```http
@@ -86,6 +63,5 @@ class PeopleService extends Service {
 }
 
 module.exports = {
-  userAdded,
   PeopleService
 }
