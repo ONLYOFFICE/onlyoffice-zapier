@@ -39,4 +39,5 @@ jobs:
         DOC_SPACE_BASE_URL: ${{ vars.DOC_SPACE_BASE_URL }}
         DOC_SPACE_USERNAME: ${{ vars.DOC_SPACE_USERNAME }}
         DOC_SPACE_PASSWORD: ${{ secrets.DOC_SPACE_PASSWORD }}
+        ZAPIER_DEPLOY_KEY: ${{ secrets.ZAPIER_DEPLOY_KEY }}
       run: pnpm tt
