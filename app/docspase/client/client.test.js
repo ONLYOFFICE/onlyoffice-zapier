@@ -7,6 +7,7 @@
 const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
 const { Client, Progress } = require("./client.js")
+const samples = require("../../docspase/files/files.samples.js")
 
 /**
  * @typedef {import("./client.js").Filters} Filters
@@ -50,72 +51,24 @@ test("url generate a valid URL without filters", () => {
 
 test("progress initializes with the endpoint", async () => {
   async function endpoint() {
-    return {
-      error: "",
-      progress: 0,
-      percents: 0
-    }
+    return [samples.progress]
   }
 
-  const progress = new Progress(endpoint)
-  equal(progress.options.length, 0)
-
+  const progress = new Progress(endpoint, samples.progress)
   const response = await progress.endpoint()
-  equal(response.error, "")
-  equal(response.progress, 0)
-  equal(response.percents, 0)
+  equal(response.length, 1)
+  equal(response[0].error, samples.progress.error)
+  equal(response[0].progress, samples.progress.progress)
+  equal(response[0].percents, samples.progress.percents)
 })
 
-test("progress initializes with the endpoint and it's options", async () => {
-  /**
-   * @param {string} a
-   * @param {number} b
-   */
-  async function endpoint(a, b) {
-    return {
-      error: "",
-      a,
-      b
-    }
-  }
-
-  const progress = new Progress(endpoint, "", 0)
-  equal(progress.options[0], "")
-  equal(progress.options[1], 0)
-
-  const response = await progress.endpoint(...progress.options)
-  equal(response.a, "")
-  equal(response.b, 0)
-})
-
-test("progress returns the response in the iterator's value", async () => {
+test("progress initializes with the endpoint and it's operation", async () => {
   async function endpoint() {
-    return {
-      error: ""
-    }
+    return [samples.progress]
   }
 
-  const progress = new Progress(endpoint)
-  const result = await progress[Symbol.asyncIterator]().next()
-
-  equal(result.done, false)
-  equal(result.value.error, "")
-})
-
-test("progress iterates the endpoint", async () => {
-  async function endpoint() {
-    return {
-      error: ""
-    }
-  }
-
-  const progress = new Progress(endpoint)
-  for await (const response of progress) {
-    equal(response.error, "")
-    return
-  }
-
-  unreachable()
+  const progress = new Progress(endpoint, samples.progress)
+  equal(progress.operation, samples.progress)
 })
 
 test("progress completes with a default delay", async () => {
@@ -130,13 +83,10 @@ test("progress completes with a default limit", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return {
-      error: "",
-      percents: 0
-    }
+    return [samples.progress]
   }
 
-  const progress = new Progress(endpoint)
+  const progress = new Progress(endpoint, samples.progress)
   await progress.complete()
 
   equal(i, 20)
@@ -146,13 +96,10 @@ test("progress completes with the custom limit", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return {
-      error: "",
-      percents: 0
-    }
+    return [samples.progress]
   }
 
-  const progress = new Progress(endpoint)
+  const progress = new Progress(endpoint, samples.progress)
   await progress.complete(100, 10)
 
   equal(i, 10)
@@ -160,13 +107,10 @@ test("progress completes with the custom limit", async () => {
 
 test("progress throws an error if the limit is negative or zero", async () => {
   async function endpoint() {
-    return {
-      error: "",
-      percents: 0
-    }
+    return [samples.progress]
   }
 
-  const progress = new Progress(endpoint)
+  const progress = new Progress(endpoint, samples.progress)
 
   try {
     await progress.complete(100, 0)
@@ -187,12 +131,20 @@ test("progress breaks if the response contains an error", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return {
-      error: "hola"
-    }
+    return [
+      {
+        id: "00000000-1111-2222-3333-444444444444",
+        operation: 0,
+        progress: 0,
+        percents: 0,
+        error: "hola",
+        processed: "0",
+        finished: false
+      }
+    ]
   }
 
-  const progress = new Progress(endpoint)
+  const progress = new Progress(endpoint, samples.progress)
   const response = await progress.complete()
 
   equal(i, 1)
@@ -205,13 +157,20 @@ test("progress completes when the response contains 100 progress", async () => {
   async function endpoint() {
     i += 1
     p += 50
-    return {
-      error: "",
-      progress: p
-    }
+    return [
+      {
+        id: "00000000-1111-2222-3333-444444444444",
+        operation: 0,
+        progress: p,
+        percents: 0,
+        error: "",
+        processed: "0",
+        finished: false
+      }
+    ]
   }
 
-  const progress = new Progress(endpoint)
+  const progress = new Progress(endpoint, samples.progress)
   const response = await progress.complete()
 
   equal(i, 2)
@@ -226,13 +185,20 @@ test("progress completes when the response contains 100 percents", async () => {
   async function endpoint() {
     i += 1
     p += 50
-    return {
-      error: "",
-      percents: p
-    }
+    return [
+      {
+        id: "00000000-1111-2222-3333-444444444444",
+        operation: 0,
+        progress: 0,
+        percents: p,
+        error: "",
+        processed: "0",
+        finished: false
+      }
+    ]
   }
 
-  const progress = new Progress(endpoint)
+  const progress = new Progress(endpoint, samples.progress)
   const response = await progress.complete()
 
   equal(i, 2)

@@ -5,6 +5,10 @@
 // @ts-check
 
 /**
+ * @typedef {import("../../docspase/files/files.js").ProgressData} ProgressData
+ */
+
+/**
  * @typedef {Object} Filters
  * @property {number=} count
  * @property {number=} startIndex
@@ -79,100 +83,53 @@ class Client {
   }
 }
 
-/**
- * DocSpace server doesn't have a generic structure for asynchronous responses.
- * Some endpoints may return the `progress` property[^1][^2][^3], while others
- * may return the `percents`[^4][^5].
- *
- * [^1]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/ConversationResultDto.cs#L32
- * [^2]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/FileOperationDto.cs#L90
- * [^3]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/Services/WCFService/FileOperations/FileOperationResult.cs#L31
- * [^4]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/RequestsDto/SmtpOperationStatusRequestsDto.cs#L31
- * [^5]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/ResponseDto/LdapStatusDto.cs#L31
- *
- * @typedef {Object} InternalProgress
- * @property {string} error
- * @property {number=} progress
- * @property {number=} percents
- */
-
-/**
- * @template {(...args: Parameters<T>) => PromiseLike<Awaited<ReturnType<T>> & InternalProgress>} T
- */
 class Progress {
   /**
-   * @param {T} endpoint
-   * @param {Parameters<T>} options
+   * @param {() => Promise<ProgressData[]>} endpoint
+   * @param {ProgressData} operation
    */
-  constructor(endpoint, ...options) {
+  constructor(endpoint, operation) {
     this.endpoint = endpoint
-    this.options = options
+    this.operation = operation
   }
 
-  /**
-   * @param {number} delay
-   * @param {number} limit
-   * @returns {Promise<ReturnType<T>>}
-   */
   async complete(delay = 100, limit = 20) {
     if (limit <= 0) {
       throw new Error("todo")
     }
-    const iterator = this[Symbol.asyncIterator]()
-    return gather(iterator, delay, limit)
+    let progress = this.operation
+    while (limit > 0) {
+      const operations = await this.endpoint()
+      const operation = operations.find(item => item.id === this.operation.id)
+      if (operation) {
+        progress = operation
+        if (!!progress.error || limit === 0) {
+          return progress
+        }
 
-    /**
-     * todo: replace the iterator type with the AsyncIterableIterator interface.
-     * @param {ReturnType<Progress<T>[typeof Symbol.asyncIterator]>} iterator
-     * @param {number} delay
-     * @param {number} limit
-     * @returns {Promise<ReturnType<T>>}
-     */
-    async function gather(iterator, delay, limit) {
-      limit -= 1
+        if (Object.hasOwn(progress, "progress")) {
+          if (progress.progress === 100) {
+            return progress
+          }
+        }
 
-      const result = await iterator.next()
-      const response = result.value
-
-      if (!!response.error || limit === 0) {
-        return response
-      }
-
-      if (Object.hasOwn(response, "progress")) {
-        if (response.progress === 100) {
-          return response
+        if (Object.hasOwn(progress, "percents")) {
+          if (progress.percents === 100) {
+            return progress
+          }
         }
       }
-
-      if (Object.hasOwn(response, "percents")) {
-        if (response.percents === 100) {
-          return response
-        }
-      }
-
-      wait(delay)
-      return gather(iterator, delay, limit)
+      await this.wait(delay)
+      limit--
     }
-
-    /**
-     * @param {number} delay
-     * @returns {Promise<void>}
-     */
-    async function wait(delay) {
-      await new Promise((resolve) => setTimeout(resolve, delay))
-    }
+    return progress
   }
 
-  [Symbol.asyncIterator]() {
-    return {
-      next: async () => {
-        const value = await this.endpoint(...this.options)
-        return {
-          value,
-          done: false
-        }
-      }
-    }
+  /**
+   * @param {number} delay
+   */
+  async wait(delay) {
+    return new Promise(resolve => setTimeout(resolve, delay))
   }
 }
 
