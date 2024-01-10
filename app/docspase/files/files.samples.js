@@ -13,6 +13,7 @@
  * @typedef {import("./files.js").ProgressData} ProgressData
  * @typedef {import("./files.js").RoomData} RoomData
  * @typedef {import("./files.js").SharedTo} SharedTo
+ * @typedef {import("./files.js").UploadFileData} UploadFileData
  */
 
 const { account } = require("../people/people.samples.js")
@@ -100,4 +101,14 @@ const room = {
   updatedBy: account
 }
 
-module.exports = { file, folder, externalLink, pathParts, progress, room }
+/** @type {UploadFileData} */
+const upload = {
+  id: 3,
+  folderId: 1,
+  version: 1,
+  title: "sample.docx",
+  uploaded: true,
+  file
+}
+
+module.exports = { file, folder, externalLink, pathParts, progress, room, upload }

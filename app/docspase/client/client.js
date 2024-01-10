@@ -67,22 +67,23 @@ class Client {
    * @param {HttpMethod} method
    * @param {string} url
    * @param {HttpRequestOptions["body"]} body
+   * @param {HttpRequestOptions["headers"]} headers
    * @returns {Promise<T>}
    */
-  async request(method, url, body = {}) {
-    const response = await this.zrequest({ url, method, body })
+  async request(method, url, body = {}, headers = {}) {
+    const response = await this.zrequest({ url, method, body, headers })
 
     const { data } = response
     if (!data) {
       throw Error("TODO")
     }
 
-    const { status } = data
-    if (status !== 0) {
+    const { status, success } = data
+    if (status !== 0 && success !== true) {
       throw Error("TODO")
     }
 
-    return data.response
+    return data.response || data.data
   }
 }
 

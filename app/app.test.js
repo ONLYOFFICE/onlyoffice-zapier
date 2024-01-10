@@ -15,7 +15,8 @@ const {
   createFileInMyDocuments,
   createFolder,
   externalLink,
-  roomCreate
+  roomCreate,
+  uploadFile
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
@@ -154,6 +155,11 @@ test("has the `inviteUser` creation", () => {
 
 test("has the `roomCreate` creation", () => {
   const has = App.creates[roomCreate.key] === roomCreate
+  equal(has, true)
+})
+
+test("has the `uploadFile` creation", () => {
+  const has = App.creates[uploadFile.key] === uploadFile
   equal(has, true)
 })
 

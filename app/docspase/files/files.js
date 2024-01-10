@@ -9,7 +9,14 @@ const { Service } = require("../client/client.js")
 /**
  * @typedef {import("../people/people.js").Account} Account
  * @typedef {import("../client/client.js").Filters} Filters
+ * @typedef {import("../../zapier/files/uploader.js").UploadFileData} UploadFileData
  * @typedef {import("../people/people.js").User} User
+ */
+
+/**
+ * @typedef {Object} ChunkData
+ * @property {HttpRequestOptions["body"]} body
+ * @property {HttpRequestOptions["headers"]} headers
  */
 
 /**
@@ -157,6 +164,27 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} Session
+ * @property {boolean} success
+ * @property {Object} data
+ * @property {string} data.id
+ * @property {number[]} data.path
+ * @property {string} data.created
+ * @property {string} data.expired
+ * @property {string} data.location
+ * @property {number} data.bytes_uploaded
+ * @property {number} data.bytes_total
+ */
+
+/**
+ * @typedef {Object} SessionData
+ * @property {number} folderId
+ * @property {string} FileName
+ * @property {number} FileSize
+ * @property {string} CreateOn
+ */
+
+/**
  * @typedef {Object} TrashList
  * @property {FileData[]} files
  * @property {FolderData[]} folders
@@ -235,6 +263,19 @@ class FilesService extends Service {
    */
   createRoom(body) {
     const url = this.client.url("/files/rooms")
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * POST /files/{{folderId}}/upload/create_session
+   * ```
+   * @param {number} folderId
+   * @param {SessionData} body
+   * @returns {Promise<Session>}
+   */
+  createSession(folderId, body) {
+    const url = this.client.url(`/files/${folderId}/upload/create_session`)
     return this.client.request("POST", url, body)
   }
 
@@ -333,6 +374,19 @@ class FilesService extends Service {
   listUsers(id, filters) {
     const url = this.client.url(`/files/rooms/${id}/share`, filters)
     return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/{{folderId}}/upload/create_session
+   * ```
+   * @param {string} sessionId
+   * @param {ChunkData} chunkData
+   * @returns {Promise<UploadFileData>}
+   */
+  uploadChunk(sessionId, chunkData) {
+    const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${sessionId}`
+    return this.client.request("POST", url, chunkData.body, chunkData.headers)
   }
 }
 
