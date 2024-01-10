@@ -5,22 +5,25 @@
 // @ts-check
 
 const { version: platformVersion } = require("zapier-platform-core")
-const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
+const { version } = require("../package.json")
 const {
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
   externalLink,
+  roomCreate
+} = require("./zapier/files/actions.js")
+const {
   fileCreated,
   fileDeleted,
   folderCreated,
   roomArchived,
-  roomCreate,
   roomCreated
-} = require("./files.js")
-const { userAdded } = require("./people.js")
-const { version } = require("../package.json")
+} = require("./zapier/files/triggers.js")
+const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
+const { sessionAuth } = require("./zapier/auth/auth.js")
+const { userAdded } = require("./zapier/people/triggers.js")
 
 const App = {
   version,

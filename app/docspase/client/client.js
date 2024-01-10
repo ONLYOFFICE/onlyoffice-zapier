@@ -5,17 +5,17 @@
 // @ts-check
 
 /**
-   * @typedef {Object} Filters
-   * @property {number=} count
-   * @property {number=} startIndex
-   * @property {string=} sortBy
-   * @property {string=} sortOrder
-   * @property {string=} filterBy
-   * @property {string=} filterOp
-   * @property {string=} filterValue
-   * @property {string=} filterType
-   * @property {string=} searchArea
-   */
+ * @typedef {Object} Filters
+ * @property {number=} count
+ * @property {number=} startIndex
+ * @property {string=} sortBy
+ * @property {string=} sortOrder
+ * @property {string=} filterBy
+ * @property {string=} filterOp
+ * @property {string=} filterValue
+ * @property {string=} filterType
+ * @property {string=} searchArea
+ */
 
 class Client {
   /**

@@ -4,6 +4,10 @@
 
 // @ts-check
 
+/**
+ * @typedef {import("./people.js").User} User
+ */
+
 /** @type {User} */
 const user = {
   firstName: "John",

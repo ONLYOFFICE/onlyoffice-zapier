@@ -4,27 +4,30 @@
 
 // @ts-check
 
-const { readFile } = require("node:fs/promises")
 const { join } = require("node:path")
+const { readFile } = require("node:fs/promises")
 const { equal } = require("uvu/assert")
 const { test } = require("uvu")
 const { App } = require("./app.js")
-const { beforeSessionAuthRequest, sessionAuth } = require("./auth.js")
 const {
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
   externalLink,
+  roomCreate
+} = require("./zapier/files/actions.js")
+const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
+const {
   fileCreated,
   fileDeleted,
   folderCreated,
   roomArchived,
-  roomCreate,
   roomCreated
-} = require("./files.js")
-const { userAdded } = require("./people.js")
+} = require("./zapier/files/triggers.js")
 const pack = require("../package.json")
+const { sessionAuth } = require("./zapier/auth/auth.js")
+const { userAdded } = require("./zapier/people/triggers.js")
 
 test("has the actual version", () => {
   const version = "0.0.1"

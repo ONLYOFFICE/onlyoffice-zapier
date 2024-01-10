@@ -4,24 +4,37 @@
 
 // @ts-check
 
+const { createAppTester } = require("zapier-platform-core")
 const { equal, not, unreachable } = require("uvu/assert")
 const { suite } = require("uvu")
-const { createAppTester } = require("zapier-platform-core")
-const { App } = require("./app.js")
-const { sessionAuthContext, sessionAuthPerform } = require("./auth.fixture.js")
+const { App } = require("../../app.js")
 const {
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
   externalLink,
+  roomCreate
+} = require("./actions.js")
+const {
   fileCreated,
   fileDeleted,
   folderCreated,
   roomArchived,
-  roomCreate,
   roomCreated
-} = require("./files.js")
+} = require("./triggers.js")
+const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
+
+/**
+ * @typedef {import("./actions.js").ArchiveRoomFields} ArchiveRoomFields
+ * @typedef {import("./actions.js").CreateFileFields} CreateFileFields
+ * @typedef {import("./actions.js").CreateFileInMyDocumentsFields} CreateFileInMyDocumentsFields
+ * @typedef {import("./actions.js").CreateFolderFields} CreateFolderFields
+ * @typedef {import("./actions.js").ExternalLinkFields} ExternalLinkFields
+ * @typedef {import("./triggers.js").FileCreatedFields} FileCreatedFields
+ * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
+ * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
+ */
 
 const tester = createAppTester(App)
 

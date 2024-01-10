@@ -5,16 +5,16 @@
  * @typedef {import("node:readline").Interface} Interface
  */
 
-const { execSync } = require("node:child_process")
-const { log, warn, error } = require("node:console")
-const { writeFile, readFile, rm, copyFile } = require("node:fs/promises")
-const { existsSync } = require("node:fs")
-const { join } = require("node:path")
-const { createInterface } = require("node:readline")
 const { argv, chdir, env, exit, stdin, stdout } = require("node:process")
 const { build } = require("esbuild")
-const sade = require("sade")
+const { copyFile, readFile, rm, writeFile } = require("node:fs/promises")
+const { createInterface } = require("node:readline")
+const { error, log, warn } = require("node:console")
+const { execSync } = require("node:child_process")
+const { existsSync } = require("node:fs")
+const { join } = require("node:path")
 const pack = require("./package.json")
+const sade = require("sade")
 
 const root = __dirname
 const dist = join(root, "dist")
