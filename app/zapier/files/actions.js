@@ -7,14 +7,17 @@
 const { Client, Progress } = require("../../docspase/client/client.js")
 const { FilesService } = require("../../docspase/files/files.js")
 const samples = require("../../docspase/files/files.samples.js")
+const { Uploader } = require("./uploader.js")
 
 /**
+ * @typedef {import("../../docspase/files/files.js").ChunkData} ChunkData
  * @typedef {import("../../docspase/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspase/files/files.js").FileData} FileData
  * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspase/files/files.js").ProgressData} ProgressData
  * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("./uploader.js").UploadFileData} UploadFileData
  */
 
 /**
@@ -48,6 +51,13 @@ const samples = require("../../docspase/files/files.samples.js")
  * @typedef {Object} RoomCreateFields
  * @property {string} title
  * @property {string} type
+ */
+
+/**
+ * @typedef {Object} UploadFileFields
+ * @property {number=} id
+ * @property {number} folderId
+ * @property {string} url
  */
 
 const archiveRoom = {
@@ -257,11 +267,83 @@ const roomCreate = {
   }
 }
 
+const uploadFile = {
+  key: "uploadFile",
+  noun: "File",
+  display: {
+    label: "Upload File",
+    description: "Upload a file."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "Folder",
+        key: "folderId",
+        dynamic: "folderCreated.id.title"
+      },
+      {
+        label: "URL or File",
+        key: "url",
+        required: true,
+        helpText: "Download file via direct link or hydrate file"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UploadFileFields>} bundle
+     * @returns {Promise<UploadFileData>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId && bundle.inputData.id) {
+        bundle.inputData.folderId = bundle.inputData.id
+      }
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const uploader = new Uploader(z)
+      try {
+        const fileStash = await uploader.stash(bundle.inputData.url)
+        const headers = await uploader.headers(fileStash)
+        const bodySession = {
+          folderId: bundle.inputData.folderId,
+          FileName: headers.fileName,
+          FileSize: headers.fileSize,
+          CreateOn: new Date().toISOString()
+        }
+        const session = await files.createSession(bundle.inputData.folderId, bodySession)
+        const bodyUpload = {
+          fileName: headers.fileName,
+          fileSize: headers.fileSize,
+          fileStash
+        }
+        return await uploader.upload(
+          bodyUpload,
+          (chunkData) => files.uploadChunk(session.data.id, chunkData)
+        )
+      } catch (error) {
+        let message = "Unknown error"
+        if (error instanceof Error) {
+          message = error.message
+        }
+        throw new z.errors.HaltedError(message)
+      }
+    },
+    sample: samples.upload
+  }
+}
+
 module.exports = {
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
   externalLink,
-  roomCreate
+  roomCreate,
+  uploadFile
 }

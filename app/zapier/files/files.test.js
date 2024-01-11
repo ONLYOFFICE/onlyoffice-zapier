@@ -14,7 +14,8 @@ const {
   createFileInMyDocuments,
   createFolder,
   externalLink,
-  roomCreate
+  roomCreate,
+  uploadFile
 } = require("./actions.js")
 const {
   fileCreated,
@@ -42,6 +43,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
+ * @typedef {import("./actions.js").UploadFileFields} UploadFileFields
  * @typedef {import("./triggers.js").UserInvitedFields} UserInvitedFields
  */
 
@@ -51,6 +53,7 @@ const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
     id: 0,
+    folderId: 0,
     myDocumentsId: 0,
     trashId: 0,
     roomsId: 0,
@@ -189,6 +192,7 @@ Files("create a folder", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
+  context.inputData.folderId = result.id
   not.equal(result.id, 0)
 })
 
@@ -211,6 +215,22 @@ Files("search a folder", async (context) => {
   }
   not.equal(folder.id, 0)
 })
+
+Files("upload a file", async (context) => {
+  const { perform } = uploadFile.operation
+  /** @type {UploadFileFields} */
+  const inputData = {
+    folderId: context.inputData.id,
+    url: "https://d2nlctn12v279m.cloudfront.net/assets/docs/samples/demo.docx"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.uploaded, true)
+})
+
 
 Files("returns the links of a room", async (context) => {
   const { perform } = externalLink.operation

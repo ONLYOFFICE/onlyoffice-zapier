@@ -12,7 +12,8 @@ const {
   createFileInMyDocuments,
   createFolder,
   externalLink,
-  roomCreate
+  roomCreate,
+  uploadFile
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
@@ -62,7 +63,8 @@ const App = {
     [createFolder.key]: createFolder,
     [externalLink.key]: externalLink,
     [inviteUser.key]: inviteUser,
-    [roomCreate.key]: roomCreate
+    [roomCreate.key]: roomCreate,
+    [uploadFile.key]: uploadFile
   }
 }
 
