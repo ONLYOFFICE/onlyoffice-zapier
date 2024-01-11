@@ -14,6 +14,7 @@ const {
   externalLink,
   roomCreate
 } = require("./zapier/files/actions.js")
+const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
   fileCreated,
   fileDeleted,
@@ -24,11 +25,11 @@ const {
   roomCreated,
   userInvited
 } = require("./zapier/files/triggers.js")
+const { inviteUser } = require("./zapier/people/actions.js")
 const {
   searchFile,
   searchFolder
 } = require("./zapier/files/searches.js")
-const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
 
@@ -60,6 +61,7 @@ const App = {
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
     [externalLink.key]: externalLink,
+    [inviteUser.key]: inviteUser,
     [roomCreate.key]: roomCreate
   }
 }

@@ -7,6 +7,24 @@
 const { Service } = require("../client/client")
 
 /**
+ * @typedef {Object} Account
+ * @property {string} id
+ * @property {string} displayName
+ * @property {string} profileUrl
+ */
+
+/**
+ * @typedef {Object} Invitations
+ * @property {string} email
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object} InviteUserBody
+ * @property {Invitations[]} invitations
+ */
+
+/**
  * @typedef {Object} User
  * @property {string} firstName
  * @property {string} lastName
@@ -48,6 +66,18 @@ class PeopleService extends Service {
   async self() {
     const url = this.client.url("/people/@self")
     return await this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /people/invite
+   * ```
+   * @param {InviteUserBody} body
+   * @returns {Promise<Account[]>}
+   */
+  inviteUser(body) {
+    const url = this.client.url("/people/invite")
+    return this.client.request("POST", url, body)
   }
 
   /**

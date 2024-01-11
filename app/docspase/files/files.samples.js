@@ -5,7 +5,7 @@
 // @ts-check
 
 /**
- * @typedef {import("./files.js").ActionBy} ActionBy
+ * @typedef {import("./files.js").Account} Account
  * @typedef {import("./files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("./files.js").FileData} FileData
  * @typedef {import("./files.js").FolderData} FolderData
@@ -15,12 +15,7 @@
  * @typedef {import("./files.js").SharedTo} SharedTo
  */
 
-/** @type {ActionBy} */
-const actionBy = {
-  id: "11111111-2222-3333-4444-555555555555",
-  displayName: "John Doe",
-  profileUrl: "https://johndoe.onlyoffice.io/accounts/view/john.doe"
-}
+const { account } = require("../people/people.samples.js")
 
 /** @type {FileData} */
 const file = {
@@ -33,10 +28,10 @@ const file = {
   rootFolderId: 1,
   title: "README.docx",
   created: "2023-01-01T12:00:00.0000000+03:00",
-  createdBy: actionBy,
+  createdBy: account,
   updated: "2023-01-01T12:00:00.0000000+03:00",
   rootFolderType: 14,
-  updatedBy: actionBy
+  updatedBy: account
 }
 
 /** @type {FolderData} */
@@ -45,10 +40,10 @@ const folder = {
   id: 2,
   title: "Test Folder",
   created: "2023-01-01T13:00:00.0000000+03:00",
-  createdBy: actionBy,
+  createdBy: account,
   updated: "2023-01-01T13:00:00.0000000+03:00",
   rootFolderType: 14,
-  updatedBy: actionBy
+  updatedBy: account
 }
 
 /** @type {SharedTo} */
@@ -99,10 +94,10 @@ const room = {
   roomType: 5,
   rootFolderId: 1,
   created: "2023-01-01T13:00:00.0000000+03:00",
-  createdBy: actionBy,
+  createdBy: account,
   updated: "2023-01-01T13:00:00.0000000+03:00",
   rootFolderType: 14,
-  updatedBy: actionBy
+  updatedBy: account
 }
 
 module.exports = { file, folder, externalLink, pathParts, progress, room }

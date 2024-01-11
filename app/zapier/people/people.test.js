@@ -5,11 +5,16 @@
 // @ts-check
 
 const { createAppTester } = require("zapier-platform-core")
-const { not, unreachable } = require("uvu/assert")
+const { equal, not, unreachable } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
+const { inviteUser } = require("./actions.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
 const { userAdded } = require("./triggers.js")
+
+/**
+ * @typedef {import("./actions.js").InviteUserFields} InviteUserFields
+ */
 
 const tester = createAppTester(App)
 
@@ -22,6 +27,42 @@ const People = suite("people", {
 
 People.before(async (context) => {
   await sessionAuthPerform(tester, context)
+})
+
+People("invited a user", async (context) => {
+  const { perform } = inviteUser.operation
+  /** @type {InviteUserFields} */
+  const inputData = {
+    email: "whatever@onlyoffice.io",
+    type: "2"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  try {
+    const user = await tester(perform, bundle)
+    if (!user) {
+      unreachable("TODO")
+      return
+    }
+    equal(user.displayName, bundle.inputData.email)
+  } catch (error) {
+    if (!(error instanceof Error && error.message)) {
+      unreachable("Was expecting an Error but got something else")
+      return
+    }
+
+    const response = JSON.parse(error.message)
+    if (!response.content) {
+      unreachable("Was expecting a content but did not get it")
+      return
+    }
+
+    const data = JSON.parse(response.content)
+    const message = data.error.message
+    equal(message, "User with this email is already registered")
+  }
 })
 
 People("triggers when a user is added", async (context) => {

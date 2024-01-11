@@ -28,6 +28,7 @@ const {
   roomCreated,
   userInvited
 } = require("./zapier/files/triggers.js")
+const { inviteUser } = require("./zapier/people/actions.js")
 const {
   searchFile,
   searchFolder
@@ -61,6 +62,7 @@ test("has session authentication", () => {
 })
 
 // Triggers
+
 test("has the `fileCreated` trigger", () => {
   const has = App.triggers[fileCreated.key] === fileCreated
   equal(has, true)
@@ -119,6 +121,7 @@ test("has the `searchFolder` search", () => {
 })
 
 // Actions
+
 test("has the `archiveRoom` creation", () => {
   const has = App.creates[archiveRoom.key] === archiveRoom
   equal(has, true)
@@ -141,6 +144,11 @@ test("has the `createFolder` creation", () => {
 
 test("has the `externalLink` creation", () => {
   const has = App.creates[externalLink.key] === externalLink
+  equal(has, true)
+})
+
+test("has the `inviteUser` creation", () => {
+  const has = App.creates[inviteUser.key] === inviteUser
   equal(has, true)
 })
 
