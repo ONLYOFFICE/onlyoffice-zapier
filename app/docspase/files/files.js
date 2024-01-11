@@ -88,13 +88,24 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * DocSpace server doesn't have a generic structure for asynchronous responses.
+ * Some endpoints may return the `progress` property[^1][^2][^3], while others
+ * may return the `percents`[^4][^5].
+ *
+ * [^1]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/ConversationResultDto.cs#L32
+ * [^2]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/FileOperationDto.cs#L90
+ * [^3]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/Services/WCFService/FileOperations/FileOperationResult.cs#L31
+ * [^4]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/RequestsDto/SmtpOperationStatusRequestsDto.cs#L31
+ * [^5]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/ResponseDto/LdapStatusDto.cs#L31
+ *
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} operation
- * @property {number} progress
+ * @property {number=} progress
  * @property {string} error
  * @property {string} processed
  * @property {boolean} finished
+ * @property {number=} percents
  */
 
 /**
@@ -254,6 +265,17 @@ class FilesService extends Service {
    */
   listFolders(id, filters) {
     const url = this.client.url(`/files/${id}`, filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/fileops
+   * ```
+   * @returns {Promise<ProgressData[]>}
+   */
+  listOperations() {
+    const url = this.client.url("/files/fileops")
     return this.client.request("GET", url)
   }
 

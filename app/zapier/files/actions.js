@@ -74,7 +74,8 @@ const archiveRoom = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const progress = new Progress(files.archiveRoom.bind(files), bundle.inputData.id)
+      const operation = await files.archiveRoom(bundle.inputData.id)
+      const progress = new Progress(files.listOperations.bind(files), operation)
       return await progress.complete()
     },
     sample: samples.progress
