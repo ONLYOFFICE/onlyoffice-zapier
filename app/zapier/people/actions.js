@@ -11,7 +11,6 @@ const samples = require("../../docspase/people/people.samples.js")
 /**
  * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("../../docspase/people/people.js").Account} Account
- * @typedef {import("../../docspase/people/people.js").InviteUserBody} InviteUserBody
  */
 
 /**
@@ -52,9 +51,25 @@ const inviteUser = {
      * @returns {Promise<Account>}
      */
     async perform(z, bundle) {
+      /**
+     * @param {string} email
+     * @param {Account[]} accounts
+     * @returns {Account|undefined}
+     */
+      function findUser(email, accounts) {
+        for (let i = 0; i < accounts.length; i++) {
+          if (accounts[i].displayName === email) {
+            return accounts[i]
+          }
+        }
+      }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
-      /** @type {InviteUserBody} */
+      const userList = await people.listUsers()
+      let invitedUser = findUser(bundle.inputData.email, userList)
+      if (invitedUser) {
+        return invitedUser
+      }
       const body = {
         invitations: [{
           email: bundle.inputData.email,
@@ -62,13 +77,7 @@ const inviteUser = {
         }]
       }
       const accounts = await people.inviteUser(body)
-      let invitedUser
-      for (let i = 0; i < accounts.length; i++) {
-        if (accounts[i].displayName === bundle.inputData.email) {
-          invitedUser = accounts[i]
-          break
-        }
-      }
+      invitedUser = findUser(bundle.inputData.email, accounts)
       if (invitedUser) {
         return invitedUser
       }

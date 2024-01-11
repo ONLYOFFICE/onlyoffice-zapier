@@ -15,6 +15,7 @@ const {
   createFolder,
   externalLink,
   roomCreate,
+  shareRoom,
   uploadFile
 } = require("./actions.js")
 const {
@@ -25,8 +26,10 @@ const {
   folderDeleted,
   roomArchived,
   roomCreated,
+  shareRoles,
   userInvited
 } = require("./triggers.js")
+const { invitedUser } = require("../people/people.fixture.js")
 const {
   searchFile,
   searchFolder
@@ -43,6 +46,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
+ * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
  * @typedef {import("./actions.js").UploadFileFields} UploadFileFields
  * @typedef {import("./triggers.js").UserInvitedFields} UserInvitedFields
  */
@@ -52,12 +56,13 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    id: 0,
+    access: 0,
+    archiveId: 0,
     folderId: 0,
+    id: 0,
     myDocumentsId: 0,
-    trashId: 0,
     roomsId: 0,
-    archiveId: 0
+    trashId: 0
   }
 })
 
@@ -315,6 +320,42 @@ Files("triggers when a user invited to Room", async (context) => {
   const users = await tester(perform, bundle)
   const user = users[0]
   not.equal(user.id, 0)
+})
+
+Files("hidden share roles trigger return roles", async (context) => {
+  const { perform } = shareRoles.operation
+  /** @type {ShareRolesFields} */
+  const inputData = {
+    id: context.inputData.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const roles = await tester(perform, bundle)
+  const role = roles[0]
+  if (!role) {
+    unreachable("TODO")
+    return
+  }
+  context.inputData.access = role.id
+  not.equal(role.id, 0)
+})
+
+Files("user is invited to the room", async (context) => {
+  const { perform } = shareRoom.operation
+  const userId = await invitedUser(context.authData)
+  const inputData = {
+    roomId: context.inputData.id,
+    userId: userId,
+    access: context.inputData.access
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const members = await tester(perform, bundle)
+  equal(members.id, userId)
 })
 
 Files("archive the room", async (context) => {

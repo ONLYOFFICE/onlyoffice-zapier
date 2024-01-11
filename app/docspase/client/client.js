@@ -6,6 +6,7 @@
 
 /**
  * @typedef {import("../../docspase/files/files.js").ProgressData} ProgressData
+ * @typedef {import("../../docspase/files/files.js").RoleData} RoleData
  */
 
 /**
@@ -23,6 +24,42 @@
 
 const ACTIVATION_STATUS = 1
 const ONLY_USERS_FILTER_TYPE = 0
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isPublicRoom(type) {
+  return type === 5
+}
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isCustomRoom(type) {
+  return type === 6
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function publicRoomRoles() {
+  return [
+    { id: 2, name: "Viewer" },
+    { id: 10, name: "Editor" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function customRoomRoles() {
+  return [
+    { id: 9, name: "Room admin" },
+    { id: 11, name: "Power user" }
+  ]
+}
 
 class Client {
   /**
@@ -146,4 +183,14 @@ class Service {
   }
 }
 
-module.exports = { Client, Service, Progress, ACTIVATION_STATUS, ONLY_USERS_FILTER_TYPE }
+module.exports = {
+  ACTIVATION_STATUS,
+  Client,
+  customRoomRoles,
+  isCustomRoom,
+  isPublicRoom,
+  ONLY_USERS_FILTER_TYPE,
+  Progress,
+  publicRoomRoles,
+  Service
+}

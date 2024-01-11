@@ -21,7 +21,7 @@ const tester = createAppTester(App)
 const People = suite("people", {
   ...sessionAuthContext(),
   inputData: {
-    folderId: 0
+    userId: ""
   }
 })
 
@@ -46,6 +46,7 @@ People("invited a user", async (context) => {
       unreachable("TODO")
       return
     }
+    context.inputData.userId = user.id
     equal(user.displayName, bundle.inputData.email)
   } catch (error) {
     if (!(error instanceof Error && error.message)) {

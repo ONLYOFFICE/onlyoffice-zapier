@@ -12,7 +12,9 @@
  * @typedef {import("./files.js").PathParts} PathParts
  * @typedef {import("./files.js").ProgressData} ProgressData
  * @typedef {import("./files.js").RoomData} RoomData
+ * @typedef {import("./files.js").RoleData} RoleData
  * @typedef {import("./files.js").SharedTo} SharedTo
+ * @typedef {import("./files.js").ShareData} _ShareData
  * @typedef {import("./files.js").UploadFileData} UploadFileData
  */
 
@@ -84,6 +86,12 @@ const progress = {
   finished: false
 }
 
+/** @type {RoleData} */
+const role = {
+  id: 1,
+  name: "Viewer"
+}
+
 /** @type {RoomData} */
 const room = {
   id: 2,
@@ -101,6 +109,28 @@ const room = {
   updatedBy: account
 }
 
+/** @type {_ShareData} */
+const share = {
+  "firstName": "John",
+  "lastName": "Doe",
+  "userName": "example",
+  "email": "example@onlyoffice.io",
+  "status": 1,
+  "activationStatus": 2,
+  "isAdmin": false,
+  "isRoomAdmin": false,
+  "isLDAP": false,
+  "isOwner": false,
+  "isVisitor": false,
+  "isCollaborator": true,
+  "isSSO": false,
+  "quotaLimit": 0,
+  "usedSpace": 0,
+  "id": "11111111-2222-3333-4444-555555555555",
+  "displayName": "example@onlyoffice.io",
+  "profileUrl": "https://alexandersalyakhov.onlyoffice.io/accounts/view/example"
+}
+
 /** @type {UploadFileData} */
 const upload = {
   id: 3,
@@ -111,4 +141,14 @@ const upload = {
   file
 }
 
-module.exports = { file, folder, externalLink, pathParts, progress, room, upload }
+module.exports = {
+  file,
+  folder,
+  externalLink,
+  pathParts,
+  progress,
+  role,
+  room,
+  share,
+  upload
+}
