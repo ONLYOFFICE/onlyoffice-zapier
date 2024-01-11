@@ -19,6 +19,7 @@ const {
   fileDeleted,
   filteredSections,
   folderCreated,
+  folderDeleted,
   roomArchived,
   roomCreated
 } = require("./zapier/files/triggers.js")
@@ -42,6 +43,7 @@ const App = {
     [fileDeleted.key]: fileDeleted,
     [filteredSections.key]: filteredSections,
     [folderCreated.key]: folderCreated,
+    [folderDeleted.key]: folderDeleted,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
     [userAdded.key]: userAdded

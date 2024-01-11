@@ -26,6 +26,11 @@ const samples = require("../../docspase/files/files.samples.js")
  * @property {number} id
  */
 
+/**
+ * @typedef {Object} FolderDeletedFields
+ * @property {number} id
+ */
+
 const fileCreated = {
   key: "fileCreated",
   noun: "File",
@@ -153,6 +158,45 @@ const folderCreated = {
   }
 }
 
+const folderDeleted = {
+  key: "folderDeleted",
+  noun: "Folders",
+  display: {
+    label: "Folder Deleted",
+    description: "Triggers when a folder is deleted."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        dynamic: "roomCreated.id.title",
+        helpText: "Trigger after deleted from a specific room"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderDeletedFields>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        sortBy: "DateAndTime",
+        sortOrder: "descending",
+        filterType: "FoldersOnly"
+      }
+      const trash = await files.listTrash(filters)
+      if (bundle.inputData.id) {
+        return trash.folders.filter(item => item.originRoomId === bundle.inputData.id)
+      }
+      return trash.folders
+    },
+    sample: samples.folder
+  }
+}
+
 const roomCreated = {
   key: "roomCreated",
   noun: "Rooms",
@@ -209,6 +253,7 @@ module.exports = {
   fileDeleted,
   filteredSections,
   folderCreated,
+  folderDeleted,
   roomArchived,
   roomCreated
 }

@@ -73,6 +73,7 @@ const { Service } = require("../client/client.js")
  * @property {string} updated
  * @property {number} rootFolderType
  * @property {ActionBy} updatedBy
+ * @property {number=} originRoomId
  */
 
 /**
@@ -147,6 +148,12 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Section[]} SectionList
+ */
+
+/**
+ * @typedef {Object} TrashList
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
  */
 
 class FilesService extends Service {
@@ -278,7 +285,7 @@ class FilesService extends Service {
    * GET /files/@trash
    * ```
    * @param {Filters} filters
-   * @returns {Promise<FilesList>}
+   * @returns {Promise<TrashList>}
    */
   listTrash(filters) {
     const url = this.client.url("/files/@trash", filters)
