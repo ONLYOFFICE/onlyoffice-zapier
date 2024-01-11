@@ -21,7 +21,8 @@ const {
   fileDeleted,
   folderCreated,
   roomArchived,
-  roomCreated
+  roomCreated,
+  userInvited
 } = require("./triggers.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
 
@@ -34,6 +35,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./triggers.js").FileCreatedFields} FileCreatedFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
+ * @typedef {import("./triggers.js").UserInvitedFields} UserInvitedFields
  */
 
 const tester = createAppTester(App)
@@ -190,6 +192,26 @@ Files("triggers when a file is deleted", async (context) => {
   // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
   if (files.length) not.equal(file.id, 0)
   else equal(true, true)
+})
+
+Files("triggers when a user invited to Room", async (context) => {
+  // TODO: After merging with the invite-user-action branch,
+  // add a test with an array length check.
+  // If active true, an array of length 1 will be returned
+  // if active false, array will consist of two elements.
+  const { perform } = userInvited.operation
+  /** @type {UserInvitedFields} */
+  const inputData = {
+    id: context.inputData.id,
+    active: true
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const users = await tester(perform, bundle)
+  const user = users[0]
+  not.equal(user.id, 0)
 })
 
 Files("archive the room", async (context) => {

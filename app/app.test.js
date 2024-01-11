@@ -23,7 +23,8 @@ const {
   fileDeleted,
   folderCreated,
   roomArchived,
-  roomCreated
+  roomCreated,
+  userInvited
 } = require("./zapier/files/triggers.js")
 const pack = require("../package.json")
 const { sessionAuth } = require("./zapier/auth/auth.js")
@@ -81,6 +82,11 @@ test("has the `roomCreated` trigger", () => {
 
 test("has the `userAdded` trigger", () => {
   const has = App.triggers[userAdded.key] === userAdded
+  equal(has, true)
+})
+
+test("has the `userInvited` trigger", () => {
+  const has = App.triggers[userInvited.key] === userInvited
   equal(has, true)
 })
 

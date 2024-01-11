@@ -19,7 +19,8 @@ const {
   fileDeleted,
   folderCreated,
   roomArchived,
-  roomCreated
+  roomCreated,
+  userInvited
 } = require("./zapier/files/triggers.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
@@ -38,7 +39,8 @@ const App = {
     [folderCreated.key]: folderCreated,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
-    [userAdded.key]: userAdded
+    [userAdded.key]: userAdded,
+    [userInvited.key]: userInvited
   },
   creates: {
     [archiveRoom.key]: archiveRoom,

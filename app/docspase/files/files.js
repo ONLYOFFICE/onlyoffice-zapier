@@ -8,6 +8,7 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {import("../client/client.js").Filters} Filters
+ * @typedef {import("../people/people.js").User} User
  */
 
 /**
@@ -129,6 +130,19 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isExpired
  * @property {boolean} primary
  * @property {string} requestToken
+ */
+
+/**
+ * @typedef {Object} UserData
+ * @property {number} access
+ * @property {boolean} canEditAccess
+ * @property {boolean} isLocked
+ * @property {boolean} isOwner
+ * @property {User} sharedTo
+ */
+
+/**
+ * @typedef {UserData[]} UsersList
  */
 
 class FilesService extends Service {
@@ -253,6 +267,19 @@ class FilesService extends Service {
    */
   listTrash(filters) {
     const url = this.client.url("/files/@trash", filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/rooms/{{id}}/share
+   * ```
+   * @param {number} id
+   * @param {Filters} filters
+   * @returns {Promise<UsersList>}
+   */
+  listUsers(id, filters) {
+    const url = this.client.url(`/files/rooms/${id}/share`, filters)
     return this.client.request("GET", url)
   }
 }
