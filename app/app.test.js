@@ -22,6 +22,7 @@ const {
   fileCreated,
   fileDeleted,
   folderCreated,
+  folderDeleted,
   roomArchived,
   roomCreated
 } = require("./zapier/files/triggers.js")
@@ -66,6 +67,11 @@ test("has the `fileDeleted` trigger", () => {
 
 test("has the `folderCreated` trigger", () => {
   const has = App.triggers[folderCreated.key] === folderCreated
+  equal(has, true)
+})
+
+test("has the `folderDeleted` trigger", () => {
+  const has = App.triggers[folderDeleted.key] === folderDeleted
   equal(has, true)
 })
 
