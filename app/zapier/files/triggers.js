@@ -11,6 +11,7 @@ const samples = require("../../docspase/files/files.samples.js")
 /**
  * @typedef {import("../../docspase/files/files.js").FileData} FileData
  * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspase/files/files.js").PathParts} PathParts
  * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  */
@@ -91,6 +92,33 @@ const fileDeleted = {
       return trash.files
     },
     sample: samples.file
+  }
+}
+
+const filteredSections = {
+  key: "filteredSections",
+  noun: "Section",
+  display: {
+    label: "Filtered Sections",
+    description: "Returns all the sections.",
+    hidden: true
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderCreatedFields>} bundle
+     * @returns {Promise<PathParts[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const sections = await files.listSections()
+      return sections.map(section => ({
+        title: section.pathParts[0].title,
+        id: section.pathParts[0].id
+      }))
+    },
+    sample: samples.pathParts
   }
 }
 
@@ -223,6 +251,7 @@ const roomArchived = {
 module.exports = {
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   folderDeleted,
   roomArchived,
