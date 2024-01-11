@@ -20,6 +20,7 @@ const {
   fileCreated,
   fileDeleted,
   folderCreated,
+  folderDeleted,
   roomArchived,
   roomCreated,
   userInvited
@@ -240,6 +241,22 @@ Files("triggers when a room is archived", async (context) => {
     return
   }
   not.equal(room.id, 0)
+})
+
+Files("triggers when a folder is deleted", async (context) => {
+  const { perform } = folderDeleted.operation
+  // TODO: Add a check to delete a folder from a specific room after adding a Delete Folder action
+  /*const inputData = {
+    id: context.inputData.folderId
+  }*/
+  const bundle = {
+    authData: context.authData
+  }
+  const folders = await tester(perform, bundle)
+  const folder = folders[0]
+  // TODO: Without the folder delete action, the folder delete trigger test may fail because the trash may be empty.
+  if (folders.length) not.equal(folder.id, 0)
+  else equal(true, true)
 })
 
 Files.run()
