@@ -5,8 +5,16 @@
 // @ts-check
 
 /**
+ * @typedef {import("./people.js").Account} Account
  * @typedef {import("./people.js").User} User
  */
+
+/** @type {Account} */
+const account = {
+  id: "11111111-2222-3333-4444-555555555555",
+  displayName: "John Doe",
+  profileUrl: "https://johndoe.onlyoffice.io/accounts/view/john.doe"
+}
 
 /** @type {User} */
 const user = {
@@ -43,4 +51,4 @@ const user = {
   hasAvatar: false
 }
 
-module.exports = { user }
+module.exports = { account, user }

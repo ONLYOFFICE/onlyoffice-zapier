@@ -7,15 +7,9 @@
 const { Service } = require("../client/client.js")
 
 /**
+ * @typedef {import("../people/people.js").Account} Account
  * @typedef {import("../client/client.js").Filters} Filters
  * @typedef {import("../people/people.js").User} User
- */
-
-/**
- * @typedef {Object} ActionBy
- * @property {string} displayName
- * @property {string} id
- * @property {string} profileUrl
  */
 
 /**
@@ -53,10 +47,10 @@ const { Service } = require("../client/client.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {ActionBy} createdBy
+ * @property {Account} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {ActionBy} updatedBy
+ * @property {Account} updatedBy
  */
 
 /**
@@ -70,10 +64,10 @@ const { Service } = require("../client/client.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {ActionBy} createdBy
+ * @property {Account} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {ActionBy} updatedBy
+ * @property {Account} updatedBy
  * @property {number=} originRoomId
  */
 
@@ -126,10 +120,10 @@ const { Service } = require("../client/client.js")
  * @property {number} id
  * @property {string} title
  * @property {string} created
- * @property {ActionBy} createdBy
+ * @property {Account} createdBy
  * @property {string} updated
  * @property {number} rootFolderType
- * @property {ActionBy} updatedBy
+ * @property {Account} updatedBy
  */
 
 /**
