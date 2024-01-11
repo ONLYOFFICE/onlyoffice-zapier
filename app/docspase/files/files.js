@@ -81,6 +81,12 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} PathParts
+ * @property {number} id
+ * @property {string} title
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} operation
@@ -129,6 +135,18 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isExpired
  * @property {boolean} primary
  * @property {string} requestToken
+ */
+
+/**
+ * @typedef {Object} Section
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
+ * @property {FolderData} current
+ * @property {PathParts[]} pathParts
+ */
+
+/**
+ * @typedef {Section[]} SectionList
  */
 
 class FilesService extends Service {
@@ -241,6 +259,17 @@ class FilesService extends Service {
    */
   listRooms(filters) {
     const url = this.client.url("/files/rooms", filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/@root
+   * ```
+   * @returns {Promise<SectionList>}
+   */
+  listSections() {
+    const url = this.client.url("/files/@root")
     return this.client.request("GET", url)
   }
 
