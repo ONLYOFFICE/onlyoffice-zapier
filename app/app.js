@@ -17,12 +17,17 @@ const {
 const {
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   folderDeleted,
   roomArchived,
   roomCreated,
   userInvited
 } = require("./zapier/files/triggers.js")
+const {
+  searchFile,
+  searchFolder
+} = require("./zapier/files/searches.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
@@ -37,12 +42,17 @@ const App = {
   triggers: {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
+    [filteredSections.key]: filteredSections,
     [folderCreated.key]: folderCreated,
     [folderDeleted.key]: folderDeleted,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
     [userAdded.key]: userAdded,
     [userInvited.key]: userInvited
+  },
+  searches: {
+    [searchFile.key]: searchFile,
+    [searchFolder.key]: searchFolder
   },
   creates: {
     [archiveRoom.key]: archiveRoom,

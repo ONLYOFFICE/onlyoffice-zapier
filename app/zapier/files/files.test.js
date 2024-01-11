@@ -19,12 +19,17 @@ const {
 const {
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   folderDeleted,
   roomArchived,
   roomCreated,
   userInvited
 } = require("./triggers.js")
+const {
+  searchFile,
+  searchFolder
+} = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
 
 /**
@@ -36,6 +41,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./triggers.js").FileCreatedFields} FileCreatedFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
+ * @typedef {import("./searches.js").SearchFields} SearchFields
  * @typedef {import("./triggers.js").UserInvitedFields} UserInvitedFields
  */
 
@@ -44,7 +50,11 @@ const tester = createAppTester(App)
 const Files = suite("files", {
   ...sessionAuthContext(),
   inputData: {
-    id: 0
+    id: 0,
+    myDocumentsId: 0,
+    trashId: 0,
+    roomsId: 0,
+    archiveId: 0
   }
 })
 
@@ -86,6 +96,38 @@ Files("triggers when a room is created", async (context) => {
   not.equal(room.id, 0)
 })
 
+Files("hidden filtered sections trigger return sections", async (context) => {
+  const { perform } = filteredSections.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const sections = await tester(perform, bundle)
+  const section = sections[0]
+  if (!section) {
+    unreachable("TODO")
+    return
+  }
+  sections.forEach(item => {
+    switch (item.title) {
+    case "My documents":
+      context.inputData.myDocumentsId = item.id
+      break
+    case "Trash":
+      context.inputData.trashId = item.id
+      break
+    case "Rooms":
+      context.inputData.roomsId = item.id
+      break
+    case "Archive":
+      context.inputData.archiveId = item.id
+      break
+    default:
+      break
+    }
+  })
+  not.equal(section.id, 0)
+})
+
 Files("creates a file", async (context) => {
   const { perform } = createFile.operation
   /** @type {CreateFileFields} */
@@ -99,6 +141,26 @@ Files("creates a file", async (context) => {
   }
   const result = await tester(perform, bundle)
   equal(result.folderId, bundle.inputData.folderId)
+})
+
+Files("search a file", async (context) => {
+  const { perform } = searchFile.operation
+  /** @type {SearchFields} */
+  const inputData = {
+    folderId: context.inputData.myDocumentsId,
+    title: "README"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const files = await tester(perform, bundle)
+  const file = files[0]
+  if (!file) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(file.id, 0)
 })
 
 Files("creates a file in the My Documents", async (context) => {
@@ -128,6 +190,26 @@ Files("create a folder", async (context) => {
   }
   const result = await tester(perform, bundle)
   not.equal(result.id, 0)
+})
+
+Files("search a folder", async (context) => {
+  const { perform } = searchFolder.operation
+  /** @type {SearchFields} */
+  const inputData = {
+    folderId: context.inputData.roomsId,
+    title: "Test Folder"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const folders = await tester(perform, bundle)
+  const folder = folders[0]
+  if (!folder) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(folder.id, 0)
 })
 
 Files("returns the links of a room", async (context) => {

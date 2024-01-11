@@ -21,12 +21,17 @@ const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
   fileCreated,
   fileDeleted,
+  filteredSections,
   folderCreated,
   folderDeleted,
   roomArchived,
   roomCreated,
   userInvited
 } = require("./zapier/files/triggers.js")
+const {
+  searchFile,
+  searchFolder
+} = require("./zapier/files/searches.js")
 const pack = require("../package.json")
 const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
@@ -66,6 +71,11 @@ test("has the `fileDeleted` trigger", () => {
   equal(has, true)
 })
 
+test("has the `filteredSections` trigger", () => {
+  const has = App.triggers[filteredSections.key] === filteredSections
+  equal(has, true)
+})
+
 test("has the `folderCreated` trigger", () => {
   const has = App.triggers[folderCreated.key] === folderCreated
   equal(has, true)
@@ -93,6 +103,18 @@ test("has the `userAdded` trigger", () => {
 
 test("has the `userInvited` trigger", () => {
   const has = App.triggers[userInvited.key] === userInvited
+  equal(has, true)
+})
+
+// Searches
+
+test("has the `searchFile` search", () => {
+  const has = App.searches[searchFile.key] === searchFile
+  equal(has, true)
+})
+
+test("has the `searchFolder` search", () => {
+  const has = App.searches[searchFolder.key] === searchFolder
   equal(has, true)
 })
 
