@@ -4,9 +4,10 @@
 
 // @ts-check
 
-const { Client } = require("../../docspase/client/client.js")
+const { Client, ACTIVATION_STATUS, ONLY_USERS_FILTER_TYPE } = require("../../docspase/client/client.js")
 const { FilesService } = require("../../docspase/files/files.js")
 const samples = require("../../docspase/files/files.samples.js")
+const { user } = require("../../docspase/people/people.samples.js")
 
 /**
  * @typedef {import("../../docspase/files/files.js").FileData} FileData
@@ -14,6 +15,7 @@ const samples = require("../../docspase/files/files.samples.js")
  * @typedef {import("../../docspase/files/files.js").PathParts} PathParts
  * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspase/people/people.js").User} User
  */
 
 /**
@@ -29,6 +31,12 @@ const samples = require("../../docspase/files/files.samples.js")
 /**
  * @typedef {Object} FolderDeletedFields
  * @property {number} id
+ */
+
+/**
+ * @typedef {Object} UserInvitedFields
+ * @property {number} id
+ * @property {boolean} active
  */
 
 const fileCreated = {
@@ -248,6 +256,49 @@ const roomArchived = {
   }
 }
 
+const userInvited = {
+  key: "userInvited",
+  noun: "User",
+  display: {
+    label: "User Joined",
+    description: "Triggers when a user invited to Room."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "active",
+        key: "active",
+        type: "boolean",
+        helpText: "Return only those who are active"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UserInvitedFields>} bundle
+     * @returns {Promise<User[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        filterType: ONLY_USERS_FILTER_TYPE
+      }
+      let users = await files.listUsers(bundle.inputData.id, filters)
+      if (bundle.inputData.active) {
+        users = users.filter((item) => item.sharedTo.activationStatus === ACTIVATION_STATUS)
+      }
+      return users.map((item) => item.sharedTo)
+    },
+    sample: user
+  }
+}
+
 module.exports = {
   fileCreated,
   fileDeleted,
@@ -255,5 +306,6 @@ module.exports = {
   folderCreated,
   folderDeleted,
   roomArchived,
-  roomCreated
+  roomCreated,
+  userInvited
 }

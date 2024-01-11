@@ -17,9 +17,12 @@
  * @property {string=} filterBy
  * @property {string=} filterOp
  * @property {string=} filterValue
- * @property {string=} filterType
+ * @property {string|number=} filterType
  * @property {string=} searchArea
  */
+
+const ACTIVATION_STATUS = 1
+const ONLY_USERS_FILTER_TYPE = 0
 
 class Client {
   /**
@@ -142,4 +145,4 @@ class Service {
   }
 }
 
-module.exports = { Client, Service, Progress }
+module.exports = { Client, Service, Progress, ACTIVATION_STATUS, ONLY_USERS_FILTER_TYPE }
