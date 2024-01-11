@@ -16,6 +16,7 @@ const { Uploader } = require("./uploader.js")
  * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspase/files/files.js").ProgressData} ProgressData
  * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
+ * @typedef {import("../../docspase/files/files.js").ShareData}  _ShareData
  * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("./uploader.js").UploadFileData} UploadFileData
  */
@@ -51,6 +52,13 @@ const { Uploader } = require("./uploader.js")
  * @typedef {Object} RoomCreateFields
  * @property {string} title
  * @property {string} type
+ */
+
+/**
+ * @typedef {Object} ShareRoomFields
+ * @property {number} roomId
+ * @property {string} userId
+ * @property {number} access
  */
 
 /**
@@ -267,6 +275,59 @@ const roomCreate = {
   }
 }
 
+const shareRoom = {
+  key: "shareRoom",
+  noun: "Room",
+  display: {
+    label: "Share Room",
+    description: "Share a room with a user."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "roomId",
+        required: true,
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title"
+      },
+      {
+        label: "User",
+        key: "userId",
+        required: true,
+        dynamic: "userAdded.id.displayName"
+      },
+      {
+        label: "Role",
+        key: "access",
+        required: true,
+        dynamic: "shareRoles.id.name"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ShareRoomFields>} bundle
+     * @returns {Promise<_ShareData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const body = {
+        invitations: [{
+          access: bundle.inputData.access,
+          id: bundle.inputData.userId
+        }],
+        notify: true,
+        message: "Invitation from Zapier"
+      }
+      const response = await files.shareRoom(bundle.inputData.roomId, body)
+      if (response.members.length <= 0) throw new z.errors.HaltedError("Failed to invite user")
+      return response.members[0].sharedTo
+    },
+    sample: samples.share
+  }
+}
+
 const uploadFile = {
   key: "uploadFile",
   noun: "File",
@@ -345,5 +406,6 @@ module.exports = {
   createFolder,
   externalLink,
   roomCreate,
+  shareRoom,
   uploadFile
 }

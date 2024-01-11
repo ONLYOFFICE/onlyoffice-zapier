@@ -13,6 +13,7 @@ const {
   createFolder,
   externalLink,
   roomCreate,
+  shareRoom,
   uploadFile
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
@@ -24,6 +25,7 @@ const {
   folderDeleted,
   roomArchived,
   roomCreated,
+  shareRoles,
   userInvited
 } = require("./zapier/files/triggers.js")
 const { inviteUser } = require("./zapier/people/actions.js")
@@ -49,6 +51,7 @@ const App = {
     [folderDeleted.key]: folderDeleted,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
+    [shareRoles.key]: shareRoles,
     [userAdded.key]: userAdded,
     [userInvited.key]: userInvited
   },
@@ -64,6 +67,7 @@ const App = {
     [externalLink.key]: externalLink,
     [inviteUser.key]: inviteUser,
     [roomCreate.key]: roomCreate,
+    [shareRoom.key]: shareRoom,
     [uploadFile.key]: uploadFile
   }
 }

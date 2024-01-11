@@ -16,6 +16,7 @@ const {
   createFolder,
   externalLink,
   roomCreate,
+  shareRoom,
   uploadFile
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
@@ -27,6 +28,7 @@ const {
   folderDeleted,
   roomArchived,
   roomCreated,
+  shareRoles,
   userInvited
 } = require("./zapier/files/triggers.js")
 const { inviteUser } = require("./zapier/people/actions.js")
@@ -99,6 +101,11 @@ test("has the `roomCreated` trigger", () => {
   equal(has, true)
 })
 
+test("has the `shareRoles` trigger", () => {
+  const has = App.triggers[shareRoles.key] === shareRoles
+  equal(has, true)
+})
+
 test("has the `userAdded` trigger", () => {
   const has = App.triggers[userAdded.key] === userAdded
   equal(has, true)
@@ -155,6 +162,11 @@ test("has the `inviteUser` creation", () => {
 
 test("has the `roomCreate` creation", () => {
   const has = App.creates[roomCreate.key] === roomCreate
+  equal(has, true)
+})
+
+test("has the `shareRoom` creation", () => {
+  const has = App.creates[shareRoom.key] === shareRoom
   equal(has, true)
 })
 

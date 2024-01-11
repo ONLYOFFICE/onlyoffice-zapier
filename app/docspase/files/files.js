@@ -84,6 +84,12 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} Invitations
+ * @property {string} id
+ * @property {number} access
+ */
+
+/**
  * @typedef {Object} PathParts
  * @property {number} id
  * @property {string} title
@@ -134,6 +140,12 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} RoleData
+ * @property {number} id
+ * @property {string} name
+ */
+
+/**
  * @typedef {Object} RoomsList
  * @property {RoomData} current
  * @property {RoomData[]} folders
@@ -149,6 +161,45 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isExpired
  * @property {boolean} primary
  * @property {string} requestToken
+ */
+
+/**
+* @typedef {Object} ShareData
+* @property {string} firstName
+* @property {string} lastName
+* @property {string} userName
+* @property {string} email
+* @property {number} status
+* @property {number} activationStatus
+* @property {boolean} isAdmin
+* @property {boolean} isRoomAdmin
+* @property {boolean} isLDAP
+* @property {boolean} isOwner
+* @property {boolean} isVisitor
+* @property {boolean} isCollaborator
+* @property {boolean} isSSO
+* @property {number} quotaLimit
+* @property {number} usedSpace
+* @property {string} id
+* @property {string} displayName
+* @property {string} profileUrl
+*/
+
+/**
+* @typedef {object} ShareList
+* @property {ShareMembers[]} members
+*/
+
+/**
+* @typedef {Object} ShareMembers
+* @property {ShareData} sharedTo
+*/
+
+/**
+ * @typedef {Object} ShareRoomBody
+ * @property {Invitations[]} invitations
+ * @property {boolean} notify
+ * @property {string} message
  */
 
 /**
@@ -293,6 +344,19 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/rooms/{{id}}/share
+   * ```
+   * @param {number} id
+   * @param {ShareRoomBody} data
+   * @returns {Promise<ShareList>}
+   */
+  shareRoom(id, data) {
+    const url = this.client.url(`/files/rooms/${id}/share`)
+    return this.client.request("PUT", url, data)
+  }
+
+  /**
+   * ```http
    * GET /files/{{folderId}}
    * ```
    * @param {number} folderId
@@ -373,6 +437,18 @@ class FilesService extends Service {
    */
   listUsers(id, filters) {
     const url = this.client.url(`/files/rooms/${id}/share`, filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/rooms/{{folderId}}
+   * ```
+   * @param {number} folderId
+   * @returns {Promise<RoomData>}
+   */
+  roomInfo(folderId) {
+    const url = this.client.url(`/files/rooms/${folderId}`)
     return this.client.request("GET", url)
   }
 

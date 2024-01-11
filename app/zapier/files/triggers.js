@@ -4,7 +4,15 @@
 
 // @ts-check
 
-const { Client, ACTIVATION_STATUS, ONLY_USERS_FILTER_TYPE } = require("../../docspase/client/client.js")
+const {
+  ACTIVATION_STATUS,
+  Client,
+  customRoomRoles,
+  isCustomRoom,
+  isPublicRoom,
+  ONLY_USERS_FILTER_TYPE,
+  publicRoomRoles
+} = require("../../docspase/client/client.js")
 const { FilesService } = require("../../docspase/files/files.js")
 const samples = require("../../docspase/files/files.samples.js")
 const { user } = require("../../docspase/people/people.samples.js")
@@ -13,6 +21,7 @@ const { user } = require("../../docspase/people/people.samples.js")
  * @typedef {import("../../docspase/files/files.js").FileData} FileData
  * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspase/files/files.js").PathParts} PathParts
+ * @typedef {import("../../docspase/files/files.js").RoleData} RoleData
  * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("../../docspase/people/people.js").User} User
@@ -32,6 +41,11 @@ const { user } = require("../../docspase/people/people.samples.js")
  * @typedef {Object} FolderDeletedFields
  * @property {number} id
  */
+
+/**
+* @typedef {object} ShareRolesFields
+* @property {number} id
+*/
 
 /**
  * @typedef {Object} UserInvitedFields
@@ -256,6 +270,36 @@ const roomArchived = {
   }
 }
 
+const shareRoles = {
+  key: "shareRoles",
+  noun: "Room",
+  display: {
+    label: "Get Roles",
+    description: "Get roles for share by room id.",
+    hidden: true
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ShareRolesFields>} bundle
+     * @returns {Promise<RoleData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.roomInfo(bundle.inputData.id)
+      if (isPublicRoom(room.roomType)) {
+        return publicRoomRoles()
+      }
+      if (isCustomRoom(room.roomType)) {
+        return customRoomRoles()
+      }
+      return []
+    },
+    sample: samples.role
+  }
+}
+
 const userInvited = {
   key: "userInvited",
   noun: "User",
@@ -307,5 +351,6 @@ module.exports = {
   folderDeleted,
   roomArchived,
   roomCreated,
+  shareRoles,
   userInvited
 }
