@@ -13,6 +13,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFolder,
   downloadFile,
   externalLink,
   roomCreate,
@@ -43,6 +44,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./actions.js").CreateFileFields} CreateFileFields
  * @typedef {import("./actions.js").CreateFileInMyDocumentsFields} CreateFileInMyDocumentsFields
  * @typedef {import("./actions.js").CreateFolderFields} CreateFolderFields
+ * @typedef {import("./actions.js").DeleteFolderFields} DeleteFolderFields
  * @typedef {import("./actions.js").DownloadFileFields} DownloadFileFields
  * @typedef {import("./actions.js").ExternalLinkFields} ExternalLinkFields
  * @typedef {import("./triggers.js").FileCreatedFields} FileCreatedFields
@@ -319,6 +321,21 @@ Files("triggers when a folder is created", async (context) => {
     return
   }
   not.equal(folder.id, 0)
+})
+
+Files("delete a folder", async (context) => {
+  const { perform } = deleteFolder.operation
+  /** @type {DeleteFolderFields} */
+  const inputData = {
+    id: context.inputData.id,
+    folderId: context.inputData.folderId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.finished, true)
 })
 
 Files("triggers when a file is created", async (context) => {
