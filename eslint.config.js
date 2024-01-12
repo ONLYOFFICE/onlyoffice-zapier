@@ -1,6 +1,9 @@
 const eslint = require("@eslint/js")
-const stylistic = require("@stylistic/eslint-plugin-js")
 const globals = require("globals")
+const jsdoc = require("eslint-plugin-jsdoc")
+const pluginImport = require("eslint-plugin-import")
+const pluginRequireSort = require("eslint-plugin-require-sort")
+const stylistic = require("@stylistic/eslint-plugin-js")
 
 module.exports = [
   eslint.configs.recommended,
@@ -18,9 +21,18 @@ module.exports = [
 
     },
     plugins: {
-      "@stylistic": stylistic
+      jsdoc,
+      "@stylistic": stylistic,
+      import: pluginImport,
+      jsdoc,
+      "require-sort": pluginRequireSort
     },
     rules: {
+      "sort-keys-fix/sort-keys-fix": "warn",
+      "jsdoc/check-alignment": "warn",
+      "jsdoc/check-line-alignment": "warn",
+      "jsdoc/multiline-blocks": "warn",
+      "jsdoc/require-returns": "warn",
       "@stylistic/array-bracket-newline": [
         "warn",
         "consistent"
@@ -35,7 +47,10 @@ module.exports = [
       ],
       "@stylistic/arrow-spacing": "warn",
       "@stylistic/block-spacing": "warn",
-      "@stylistic/brace-style": "warn",
+      "@stylistic/brace-style": [
+        "warn",
+        "1tbs"
+      ],
       "@stylistic/comma-dangle": [
         "warn",
         "never"
@@ -116,7 +131,10 @@ module.exports = [
       "@stylistic/no-extra-semi": "warn",
       "@stylistic/no-mixed-spaces-and-tabs": "warn",
       "@stylistic/no-multi-spaces": "warn",
-      "@stylistic/no-multiple-empty-lines": "warn",
+      "@stylistic/no-multiple-empty-lines": [
+        "warn",
+        { "max": 1 }
+      ],
       "@stylistic/no-tabs": "warn",
       "@stylistic/no-trailing-spaces": "warn",
       "@stylistic/no-whitespace-before-property": "warn",
@@ -162,6 +180,7 @@ module.exports = [
         "warn",
         "never"
       ],
+      "@stylistic/space-infix-ops": ["warn"],
       "no-unused-vars": [
         "warn",
         {
@@ -176,7 +195,35 @@ module.exports = [
         "warn",
         "always"
       ],
-      "prefer-const": "warn"
+      "prefer-const": "warn",
+      "no-plusplus": "warn",
+      "arrow-parens": "warn",
+      "curly": "warn",
+      "import/exports-last": "warn",
+      "import/first": "warn",
+      "import/newline-after-import": "warn",
+      "import/order": [
+        "warn",
+        {
+          "groups": [
+            "builtin",
+            "external",
+            [
+              "parent",
+              "sibling",
+              "index"
+            ]
+          ]
+        }
+      ],
+      "require-sort/require-sort": [
+        "warn",
+        {
+          "ignoreCase": true,
+          "ignoreDeclarationSort": true
+        }
+      ],
+      "sort-keys": "warn"
     }
   }
 ]
