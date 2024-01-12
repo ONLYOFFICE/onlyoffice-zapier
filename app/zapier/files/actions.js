@@ -46,6 +46,12 @@ const { Uploader } = require("./uploader.js")
  */
 
 /**
+ * @typedef {Object} DeleteFolderFields
+ * @property {number} folderId
+ * @property {number} id
+ */
+
+/**
  * @typedef {Object} DownloadFileFields
  * @property {number} fileId
  */
@@ -212,6 +218,45 @@ const createFolder = {
       return await files.createFolder(bundle.inputData.folderId, body)
     },
     sample: samples.folder
+  }
+}
+
+const deleteFolder = {
+  key: "deleteFolder",
+  noun: "Folder",
+  display: {
+    label: "Delete Folder",
+    description: "Delete a folder."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        dynamic: "roomCreated.id.title",
+        altersDynamicFields: true
+      },
+      {
+        label: "Folder",
+        key: "folderId",
+        required: true,
+        dynamic: "folderCreated.id.title"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DeleteFolderFields>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const operation = await files.deleteFolder(bundle.inputData.folderId)
+      const progress = new Progress(files.listOperations.bind(files), operation[0])
+      return await progress.complete()
+    },
+    sample: samples.progress
   }
 }
 
@@ -463,6 +508,7 @@ module.exports = {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFolder,
   downloadFile,
   externalLink,
   roomCreate,

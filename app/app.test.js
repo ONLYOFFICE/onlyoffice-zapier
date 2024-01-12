@@ -14,6 +14,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  deleteFolder,
   downloadFile,
   externalLink,
   roomCreate,
@@ -154,6 +155,11 @@ test("has the `createFileInMyDocuments` creation", () => {
 
 test("has the `createFolder` creation", () => {
   const has = App.creates[createFolder.key] === createFolder
+  equal(has, true)
+})
+
+test("has the `deleteFolder` creation", () => {
+  const has = App.creates[deleteFolder.key] === deleteFolder
   equal(has, true)
 })
 

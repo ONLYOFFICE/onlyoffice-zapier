@@ -345,6 +345,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * DELETE /files/folder/{{folderId}}
+   * ```
+   * @param {number} folderId
+   * @returns {Promise<ProgressData[]>}
+   */
+  deleteFolder(folderId) {
+    const url = this.client.url(`/files/folder/${folderId}`)
+    return this.client.request("DELETE", url)
+  }
+
+  /**
+   * ```http
    * GET /files/file/{{fileId}}/presigned
    * ```
    * @param {number} fileId
