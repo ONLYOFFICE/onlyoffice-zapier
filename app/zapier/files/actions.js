@@ -7,10 +7,12 @@
 const { Client, Progress } = require("../../docspase/client/client.js")
 const { FilesService } = require("../../docspase/files/files.js")
 const samples = require("../../docspase/files/files.samples.js")
+const { stashFile } = require("./hydrators.js")
 const { Uploader } = require("./uploader.js")
 
 /**
  * @typedef {import("../../docspase/files/files.js").ChunkData} ChunkData
+ * @typedef {import("../../docspase/files/files.js").DownloadFileData} DownloadFileData
  * @typedef {import("../../docspase/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspase/files/files.js").FileData} FileData
  * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
@@ -41,6 +43,11 @@ const { Uploader } = require("./uploader.js")
  * @typedef {Object} CreateFolderFields
  * @property {number} folderId
  * @property {string} title
+ */
+
+/**
+ * @typedef {Object} DownloadFileFields
+ * @property {number} fileId
  */
 
 /**
@@ -205,6 +212,58 @@ const createFolder = {
       return await files.createFolder(bundle.inputData.folderId, body)
     },
     sample: samples.folder
+  }
+}
+
+const downloadFile = {
+  key: "downloadFile",
+  noun: "File",
+  display: {
+    label: "Download File",
+    description: "Returns a hydrated link to download a file."
+  },
+  operation: {
+    inputFields: [
+      {
+        label: "Room",
+        key: "id",
+        required: true,
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room where the file is located"
+      },
+      {
+        label: "Folder",
+        key: "folderId",
+        altersDynamicFields: true,
+        dynamic: "folderCreated.id.title",
+        helpText: "The folder where the file is located (optional)"
+      },
+      {
+        label: "File",
+        key: "fileId",
+        type: "integer",
+        required: true,
+        dynamic: "hiddenFileCreated.id.title",
+        search: "searchFile.id"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DownloadFileFields>} bundle
+     * @returns {Promise<DownloadFileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const result = await files.downloadLink(bundle.inputData.fileId)
+      const hydrate = await z.dehydrateFile(stashFile, { url: result.url })
+      return {
+        id: bundle.inputData.fileId,
+        file: hydrate
+      }
+    },
+    sample: samples.hydratedFile
   }
 }
 
@@ -404,6 +463,7 @@ module.exports = {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   roomCreate,
   shareRoom,

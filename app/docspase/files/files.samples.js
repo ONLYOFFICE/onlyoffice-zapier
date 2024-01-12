@@ -6,6 +6,7 @@
 
 /**
  * @typedef {import("./files.js").Account} Account
+ * @typedef {import("./files.js").DownloadFileData} DownloadFileData
  * @typedef {import("./files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("./files.js").FileData} FileData
  * @typedef {import("./files.js").FolderData} FolderData
@@ -19,6 +20,12 @@
  */
 
 const { account } = require("../people/people.samples.js")
+
+/** @type {DownloadFileData} */
+const hydratedFile = {
+  id: 1,
+  file: "hydrate||| |||hydrate"
+}
 
 /** @type {FileData} */
 const file = {
@@ -142,6 +149,7 @@ const upload = {
 }
 
 module.exports = {
+  hydratedFile,
   file,
   folder,
   externalLink,

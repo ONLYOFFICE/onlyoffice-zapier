@@ -5,7 +5,7 @@
 // @ts-check
 
 const { createAppTester } = require("zapier-platform-core")
-const { equal, not, unreachable } = require("uvu/assert")
+const { equal, match, not, unreachable } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const {
@@ -13,6 +13,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   roomCreate,
   shareRoom,
@@ -21,6 +22,7 @@ const {
 const {
   fileCreated,
   fileDeleted,
+  filesList,
   filteredSections,
   folderCreated,
   folderDeleted,
@@ -41,8 +43,10 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./actions.js").CreateFileFields} CreateFileFields
  * @typedef {import("./actions.js").CreateFileInMyDocumentsFields} CreateFileInMyDocumentsFields
  * @typedef {import("./actions.js").CreateFolderFields} CreateFolderFields
+ * @typedef {import("./actions.js").DownloadFileFields} DownloadFileFields
  * @typedef {import("./actions.js").ExternalLinkFields} ExternalLinkFields
  * @typedef {import("./triggers.js").FileCreatedFields} FileCreatedFields
+ * @typedef {import("./triggers.js").FilesListFields} FilesListFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
@@ -58,6 +62,7 @@ const Files = suite("files", {
   inputData: {
     access: 0,
     archiveId: 0,
+    fileId: 0,
     folderId: 0,
     id: 0,
     myDocumentsId: 0,
@@ -151,6 +156,37 @@ Files("creates a file", async (context) => {
   equal(result.folderId, bundle.inputData.folderId)
 })
 
+Files("hidden files list trigger returned file via room id", async (context) => {
+  const { perform } = filesList.operation
+  /** @type {FilesListFields} */
+  const inputData = {
+    id: context.inputData.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const files = await tester(perform, bundle)
+  const file = files[0]
+  equal(file.title, "README.docx")
+})
+
+Files("hidden files list trigger returned file via folder id", async (context) => {
+  const { perform } = filesList.operation
+  /** @type {FilesListFields} */
+  const inputData = {
+    id: -1, // In Zapier UI, the user will be required to first select a Room
+    folderId: context.inputData.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const files = await tester(perform, bundle)
+  const file = files[0]
+  equal(file.title, "README.docx")
+})
+
 Files("search a file", async (context) => {
   const { perform } = searchFile.operation
   /** @type {SearchFields} */
@@ -182,7 +218,22 @@ Files("creates a file in the My Documents", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
+  context.inputData.fileId = result.id
   not.equal(result.id, 0)
+})
+
+Files("downloads file", async (context) => {
+  const { perform } = downloadFile.operation
+  /** @type {DownloadFileFields} */
+  const inputData = {
+    fileId: context.inputData.fileId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  match(result.file, "hydrate|||")
 })
 
 Files("create a folder", async (context) => {

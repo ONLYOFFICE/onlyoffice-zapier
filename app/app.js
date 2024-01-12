@@ -11,6 +11,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   roomCreate,
   shareRoom,
@@ -20,6 +21,7 @@ const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
   fileCreated,
   fileDeleted,
+  filesList,
   filteredSections,
   folderCreated,
   folderDeleted,
@@ -28,6 +30,7 @@ const {
   shareRoles,
   userInvited
 } = require("./zapier/files/triggers.js")
+const hydrators = require("./zapier/files/hydrators")
 const { inviteUser } = require("./zapier/people/actions.js")
 const {
   searchFile,
@@ -43,9 +46,11 @@ const App = {
   beforeRequest: [
     ...beforeSessionAuthRequest
   ],
+  hydrators,
   triggers: {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
+    [filesList.key]: filesList,
     [filteredSections.key]: filteredSections,
     [folderCreated.key]: folderCreated,
     [folderDeleted.key]: folderDeleted,
@@ -64,6 +69,7 @@ const App = {
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
+    [downloadFile.key]: downloadFile,
     [externalLink.key]: externalLink,
     [inviteUser.key]: inviteUser,
     [roomCreate.key]: roomCreate,
