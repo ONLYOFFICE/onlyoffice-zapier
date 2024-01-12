@@ -19,6 +19,7 @@ const {
   uploadFile
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
+const { errorHandling } = require("./zapier/middleware")
 const {
   fileCreated,
   fileDeleted,
@@ -77,7 +78,10 @@ const App = {
     [roomCreate.key]: roomCreate,
     [shareRoom.key]: shareRoom,
     [uploadFile.key]: uploadFile
-  }
+  },
+  afterResponse: [
+    errorHandling
+  ]
 }
 
 module.exports = { App }
