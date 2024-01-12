@@ -35,6 +35,19 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} DownloadFileData
+ * @property {number} id
+ * @property {string} file
+ */
+
+/**
+ * @typedef {Object} DownloadLinkData
+ * @property {string} filetype
+ * @property {string} token
+ * @property {string} url
+ */
+
+/**
  * @typedef {Object} ExternalLinkData
  * @property {number} access
  * @property {boolean} canEditAccess
@@ -328,6 +341,18 @@ class FilesService extends Service {
   createSession(folderId, body) {
     const url = this.client.url(`/files/${folderId}/upload/create_session`)
     return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{fileId}}/presigned
+   * ```
+   * @param {number} fileId
+   * @returns {Promise<DownloadLinkData>}
+   */
+  downloadLink(fileId) {
+    const url = this.client.url(`/files/file/${fileId}/presigned`)
+    return this.client.request("GET", url)
   }
 
   /**

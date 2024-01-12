@@ -14,6 +14,7 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  downloadFile,
   externalLink,
   roomCreate,
   shareRoom,
@@ -23,6 +24,7 @@ const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
   fileCreated,
   fileDeleted,
+  filesList,
   filteredSections,
   folderCreated,
   folderDeleted,
@@ -73,6 +75,11 @@ test("has the `fileCreated` trigger", () => {
 
 test("has the `fileDeleted` trigger", () => {
   const has = App.triggers[fileDeleted.key] === fileDeleted
+  equal(has, true)
+})
+
+test("has the `filesList` trigger", () => {
+  const has = App.triggers[filesList.key] === filesList
   equal(has, true)
 })
 
@@ -147,6 +154,11 @@ test("has the `createFileInMyDocuments` creation", () => {
 
 test("has the `createFolder` creation", () => {
   const has = App.creates[createFolder.key] === createFolder
+  equal(has, true)
+})
+
+test("has the `downloadFile` creation", () => {
+  const has = App.creates[downloadFile.key] === downloadFile
   equal(has, true)
 })
 

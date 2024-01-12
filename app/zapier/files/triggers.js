@@ -33,6 +33,12 @@ const { user } = require("../../docspase/people/people.samples.js")
  */
 
 /**
+ * @typedef {Object} FilesListFields
+ * @property {number=} id
+ * @property {number=} folderId
+ */
+
+/**
  * @typedef {Object} FolderCreatedFields
  * @property {number} id
  */
@@ -112,6 +118,37 @@ const fileDeleted = {
       }
       const trash = await files.listTrash(filters)
       return trash.files
+    },
+    sample: samples.file
+  }
+}
+
+const filesList = {
+  key: "filesList",
+  noun: "Files",
+  display: {
+    label: "Files List",
+    description: "Get files list from folder or room.",
+    hidden: true
+  },
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FilesListFields>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.id) {
+        return []
+      }
+      const refinedBundle = {
+        ...bundle,
+        inputData: {
+          ...bundle.inputData,
+          folderId: bundle.inputData.folderId || bundle.inputData.id
+        }
+      }
+      return fileCreated.operation.perform(z, refinedBundle)
     },
     sample: samples.file
   }
@@ -346,6 +383,7 @@ const userInvited = {
 module.exports = {
   fileCreated,
   fileDeleted,
+  filesList,
   filteredSections,
   folderCreated,
   folderDeleted,
