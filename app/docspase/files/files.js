@@ -479,6 +479,17 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/@my
+   * ```
+   * @returns {Promise<Section>}
+   */
+  myDocumentsSection() {
+    const url = this.client.url("/files/@my")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{folderId}}
    * ```
    * @param {number} folderId
@@ -486,6 +497,17 @@ class FilesService extends Service {
    */
   roomInfo(folderId) {
     const url = this.client.url(`/files/rooms/${folderId}`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/@trash
+   * ```
+   * @returns {Promise<Section>}
+   */
+  trashSection() {
+    const url = this.client.url("/files/@trash")
     return this.client.request("GET", url)
   }
 
