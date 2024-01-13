@@ -21,18 +21,12 @@ module.exports = [
 
     },
     plugins: {
-      jsdoc,
       "@stylistic": stylistic,
       import: pluginImport,
       jsdoc,
       "require-sort": pluginRequireSort
     },
     rules: {
-      "sort-keys-fix/sort-keys-fix": "warn",
-      "jsdoc/check-alignment": "warn",
-      "jsdoc/check-line-alignment": "warn",
-      "jsdoc/multiline-blocks": "warn",
-      "jsdoc/require-returns": "warn",
       "@stylistic/array-bracket-newline": [
         "warn",
         "consistent"
@@ -58,12 +52,16 @@ module.exports = [
       "@stylistic/comma-spacing": [
         "warn",
         {
-          "before": false, "after": true
+          "after": true, "before": false
         }
       ],
       "@stylistic/comma-style": [
         "warn",
         "last"
+      ],
+      "@stylistic/eol-last": [
+        "warn",
+        "always"
       ],
       "@stylistic/function-call-argument-newline": [
         "warn",
@@ -85,19 +83,19 @@ module.exports = [
         "warn",
         2,
         {
-          "VariableDeclarator": "first",
+          "ArrayExpression": "first",
+          "CallExpression": {
+            "arguments": "first"
+          },
           "FunctionDeclaration": {
             "parameters": "first"
           },
           "FunctionExpression": {
             "parameters": "first"
           },
-          "CallExpression": {
-            "arguments": "first"
-          },
-          "ArrayExpression": "first",
-          "ObjectExpression": "first",
           "ImportDeclaration": "first",
+          "ObjectExpression": "first",
+          "VariableDeclarator": "first",
           "flatTernaryExpressions": true
         }
       ],
@@ -174,31 +172,19 @@ module.exports = [
       "@stylistic/space-before-blocks": "warn",
       "@stylistic/space-before-function-paren": [
         "warn",
-        { "anonymous": "always", "named": "never", "asyncArrow": "always" }
+        { "anonymous": "always", "asyncArrow": "always", "named": "never" }
       ],
       "@stylistic/space-in-parens": [
         "warn",
         "never"
       ],
       "@stylistic/space-infix-ops": ["warn"],
-      "no-unused-vars": [
-        "warn",
-        {
-          "vars": "local"
-        }
-      ],
-      "@stylistic/eol-last": [
-        "warn",
-        "always"
-      ],
+      "arrow-parens": "warn",
+      "curly": "warn",
       "eqeqeq": [
         "warn",
         "always"
       ],
-      "prefer-const": "warn",
-      "no-plusplus": "warn",
-      "arrow-parens": "warn",
-      "curly": "warn",
       "import/exports-last": "warn",
       "import/first": "warn",
       "import/newline-after-import": "warn",
@@ -216,6 +202,18 @@ module.exports = [
           ]
         }
       ],
+      "jsdoc/check-alignment": "warn",
+      "jsdoc/check-line-alignment": "warn",
+      "jsdoc/multiline-blocks": "warn",
+      "jsdoc/require-returns": "warn",
+      "no-plusplus": "warn",
+      "no-unused-vars": [
+        "warn",
+        {
+          "vars": "local"
+        }
+      ],
+      "prefer-const": "warn",
       "require-sort/require-sort": [
         "warn",
         {

@@ -122,7 +122,7 @@ Files("hidden filtered sections trigger return sections", async (context) => {
     unreachable("TODO")
     return
   }
-  sections.forEach(item => {
+  sections.forEach((item) => {
     switch (item.title) {
     case "My documents":
       context.inputData.myDocumentsId = item.id
@@ -177,8 +177,9 @@ Files("hidden files list trigger returned file via folder id", async (context) =
   const { perform } = filesList.operation
   /** @type {FilesListFields} */
   const inputData = {
-    id: -1, // In Zapier UI, the user will be required to first select a Room
-    folderId: context.inputData.id
+    // In Zapier UI, the user will be required to first select a Room
+    folderId: context.inputData.id,
+    id: -1
   }
   const bundle = {
     authData: context.authData,
@@ -289,7 +290,6 @@ Files("upload a file", async (context) => {
   equal(result.uploaded, true)
 })
 
-
 Files("returns the links of a room", async (context) => {
   const { perform } = externalLink.operation
   /** @type {ExternalLinkFields} */
@@ -327,8 +327,8 @@ Files("delete a folder", async (context) => {
   const { perform } = deleteFolder.operation
   /** @type {DeleteFolderFields} */
   const inputData = {
-    id: context.inputData.id,
-    folderId: context.inputData.folderId
+    folderId: context.inputData.folderId,
+    id: context.inputData.id
   }
   const bundle = {
     authData: context.authData,
@@ -366,8 +366,11 @@ Files("triggers when a file is deleted", async (context) => {
   const files = await tester(perform, bundle)
   const file = files[0]
   // TODO: Without the file delete action, the file delete trigger test may fail because the trash may be empty.
-  if (files.length) not.equal(file.id, 0)
-  else equal(true, true)
+  if (files.length) {
+    not.equal(file.id, 0)
+  } else {
+    equal(true, true)
+  }
 })
 
 Files("triggers when a user invited to Room", async (context) => {
@@ -378,8 +381,8 @@ Files("triggers when a user invited to Room", async (context) => {
   const { perform } = userInvited.operation
   /** @type {UserInvitedFields} */
   const inputData = {
-    id: context.inputData.id,
-    active: true
+    active: true,
+    id: context.inputData.id
   }
   const bundle = {
     authData: context.authData,
@@ -414,9 +417,9 @@ Files("user is invited to the room", async (context) => {
   const { perform } = shareRoom.operation
   const userId = await invitedUser(context.authData)
   const inputData = {
+    access: context.inputData.access,
     roomId: context.inputData.id,
-    userId: userId,
-    access: context.inputData.access
+    userId: userId
   }
   const bundle = {
     authData: context.authData,
@@ -466,8 +469,11 @@ Files("triggers when a folder is deleted", async (context) => {
   const folders = await tester(perform, bundle)
   const folder = folders[0]
   // TODO: Without the folder delete action, the folder delete trigger test may fail because the trash may be empty.
-  if (folders.length) not.equal(folder.id, 0)
-  else equal(true, true)
+  if (folders.length) {
+    not.equal(folder.id, 0)
+  } else {
+    equal(true, true)
+  }
 })
 
 Files.run()

@@ -49,8 +49,8 @@ async function sessionAuthPerform(tester, context) {
   /** @type {SessionAuthenticationFields} */
   const authData = {
     baseUrl: DOC_SPACE_BASE_URL,
-    username: DOC_SPACE_USERNAME,
-    password: DOC_SPACE_PASSWORD
+    password: DOC_SPACE_PASSWORD,
+    username: DOC_SPACE_USERNAME
   }
   const bundle = { authData }
   const data = await tester(perform, bundle)

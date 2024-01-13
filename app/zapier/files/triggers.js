@@ -49,9 +49,9 @@ const { user } = require("../../docspase/people/people.samples.js")
  */
 
 /**
-* @typedef {object} ShareRolesFields
-* @property {number} id
-*/
+ * @typedef {object} ShareRolesFields
+ * @property {number} id
+ */
 
 /**
  * @typedef {Object} UserInvitedFields
@@ -60,19 +60,19 @@ const { user } = require("../../docspase/people/people.samples.js")
  */
 
 const fileCreated = {
+  display: {
+    description: "Triggers when a file is created.",
+    label: "File Created"
+  },
   key: "fileCreated",
   noun: "File",
-  display: {
-    label: "File Created",
-    description: "Triggers when a file is created."
-  },
   operation: {
     inputFields: [
       {
-        label: "Folder",
+        dynamic: "roomCreated.id.title",
         key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Folder",
+        required: true
       }
     ],
     /**
@@ -84,9 +84,9 @@ const fileCreated = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const filters = {
+        filterType: "FilesOnly",
         sortBy: "DateAndTime",
-        sortOrder: "descending",
-        filterType: "FilesOnly"
+        sortOrder: "descending"
       }
       const filesList = await files.listFiles(bundle.inputData.folderId, filters)
       return filesList.files
@@ -96,12 +96,12 @@ const fileCreated = {
 }
 
 const fileDeleted = {
+  display: {
+    description: "Triggers when a file is deleted.",
+    label: "File Deleted"
+  },
   key: "fileDeleted",
   noun: "File",
-  display: {
-    label: "File Deleted",
-    description: "Triggers when a file is deleted."
-  },
   operation: {
     /**
      * @param {ZObject} z
@@ -112,9 +112,9 @@ const fileDeleted = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const filters = {
+        filterType: "FilesOnly",
         sortBy: "DateAndTime",
-        sortOrder: "descending",
-        filterType: "FilesOnly"
+        sortOrder: "descending"
       }
       const trash = await files.listTrash(filters)
       return trash.files
@@ -124,13 +124,13 @@ const fileDeleted = {
 }
 
 const filesList = {
+  display: {
+    description: "Get files list from folder or room.",
+    hidden: true,
+    label: "Files List"
+  },
   key: "filesList",
   noun: "Files",
-  display: {
-    label: "Files List",
-    description: "Get files list from folder or room.",
-    hidden: true
-  },
   operation: {
     /**
      * @param {ZObject} z
@@ -155,13 +155,13 @@ const filesList = {
 }
 
 const filteredSections = {
+  display: {
+    description: "Returns all the sections.",
+    hidden: true,
+    label: "Filtered Sections"
+  },
   key: "filteredSections",
   noun: "Section",
-  display: {
-    label: "Filtered Sections",
-    description: "Returns all the sections.",
-    hidden: true
-  },
   operation: {
     /**
      * @param {ZObject} z
@@ -172,9 +172,9 @@ const filteredSections = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const sections = await files.listSections()
-      return sections.map(section => ({
-        title: section.pathParts[0].title,
-        id: section.pathParts[0].id
+      return sections.map((section) => ({
+        id: section.pathParts[0].id,
+        title: section.pathParts[0].title
       }))
     },
     sample: samples.pathParts
@@ -182,19 +182,19 @@ const filteredSections = {
 }
 
 const folderCreated = {
+  display: {
+    description: "Triggers when a folder is created.",
+    label: "Folder Created"
+  },
   key: "folderCreated",
   noun: "Folders",
-  display: {
-    label: "Folder Created",
-    description: "Triggers when a folder is created."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
+        dynamic: "roomCreated.id.title",
         key: "id",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Room",
+        required: true
       }
     ],
     /**
@@ -206,9 +206,9 @@ const folderCreated = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const filters = {
+        filterType: "FoldersOnly",
         sortBy: "DateAndTime",
-        sortOrder: "descending",
-        filterType: "FoldersOnly"
+        sortOrder: "descending"
       }
       const folders = await files.listFolders(bundle.inputData.id, filters)
       return folders.folders
@@ -218,19 +218,19 @@ const folderCreated = {
 }
 
 const folderDeleted = {
+  display: {
+    description: "Triggers when a folder is deleted.",
+    label: "Folder Deleted"
+  },
   key: "folderDeleted",
   noun: "Folders",
-  display: {
-    label: "Folder Deleted",
-    description: "Triggers when a folder is deleted."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
-        key: "id",
         dynamic: "roomCreated.id.title",
-        helpText: "Trigger after deleted from a specific room"
+        helpText: "Trigger after deleted from a specific room",
+        key: "id",
+        label: "Room"
       }
     ],
     /**
@@ -242,13 +242,13 @@ const folderDeleted = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const filters = {
+        filterType: "FoldersOnly",
         sortBy: "DateAndTime",
-        sortOrder: "descending",
-        filterType: "FoldersOnly"
+        sortOrder: "descending"
       }
       const trash = await files.listTrash(filters)
       if (bundle.inputData.id) {
-        return trash.folders.filter(item => item.originRoomId === bundle.inputData.id)
+        return trash.folders.filter((item) => item.originRoomId === bundle.inputData.id)
       }
       return trash.folders
     },
@@ -257,12 +257,12 @@ const folderDeleted = {
 }
 
 const roomCreated = {
+  display: {
+    description: "Triggers when a room is created.",
+    label: "Room Created"
+  },
   key: "roomCreated",
   noun: "Rooms",
-  display: {
-    label: "Room Created",
-    description: "Triggers when a room is created."
-  },
   operation: {
     /**
      * @param {ZObject} z
@@ -280,12 +280,12 @@ const roomCreated = {
 }
 
 const roomArchived = {
+  display: {
+    description: "Triggers when a room is archived.",
+    label: "Room Archived"
+  },
   key: "roomArchived",
   noun: "Rooms",
-  display: {
-    label: "Room Archived",
-    description: "Triggers when a room is archived."
-  },
   operation: {
     /**
      * @param {ZObject} z
@@ -308,13 +308,13 @@ const roomArchived = {
 }
 
 const shareRoles = {
+  display: {
+    description: "Get roles for share by room id.",
+    hidden: true,
+    label: "Get Roles"
+  },
   key: "shareRoles",
   noun: "Room",
-  display: {
-    label: "Get Roles",
-    description: "Get roles for share by room id.",
-    hidden: true
-  },
   operation: {
     /**
      * @param {ZObject} z
@@ -338,25 +338,25 @@ const shareRoles = {
 }
 
 const userInvited = {
+  display: {
+    description: "Triggers when a user invited to Room.",
+    label: "User Joined"
+  },
   key: "userInvited",
   noun: "User",
-  display: {
-    label: "User Joined",
-    description: "Triggers when a user invited to Room."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
+        dynamic: "roomCreated.id.title",
         key: "id",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Room",
+        required: true
       },
       {
-        label: "active",
+        helpText: "Return only those who are active",
         key: "active",
-        type: "boolean",
-        helpText: "Return only those who are active"
+        label: "active",
+        type: "boolean"
       }
     ],
     /**

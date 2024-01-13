@@ -21,27 +21,27 @@ const samples = require("../../docspase/files/files.samples.js")
  */
 
 const searchFile = {
+  display: {
+    description: "Search a file.",
+    label: "Search File"
+  },
   key: "searchFile",
   noun: "Files",
-  display: {
-    label: "Search File",
-    description: "Search a file."
-  },
   operation: {
     inputFields: [
       {
-        label: "Section",
-        key: "folderId",
-        required: true,
-        type: "integer",
         dynamic: "filteredSections.id.title",
-        helpText: "Search section"
+        helpText: "Search section",
+        key: "folderId",
+        label: "Section",
+        required: true,
+        type: "integer"
       },
       {
-        label: "Title",
+        helpText: "File title or extension",
         key: "title",
-        required: true,
-        helpText: "File title or extension"
+        label: "Title",
+        required: true
       }
     ],
     /**
@@ -58,34 +58,34 @@ const searchFile = {
         withSubfolders: true
       }
       const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-      return filesList.files.filter(file => file.title.includes(bundle.inputData.title))
+      return filesList.files.filter((file) => file.title.includes(bundle.inputData.title))
     },
     sample: samples.file
   }
 }
 
 const searchFolder = {
+  display: {
+    description: "Search a folder.",
+    label: "Search Folder"
+  },
   key: "searchFolder",
   noun: "Folders",
-  display: {
-    label: "Search Folder",
-    description: "Search a folder."
-  },
   operation: {
     inputFields: [
       {
-        label: "Section",
-        key: "folderId",
-        required: true,
-        type: "integer",
         dynamic: "filteredSections.id.title",
-        helpText: "Search section"
+        helpText: "Search section",
+        key: "folderId",
+        label: "Section",
+        required: true,
+        type: "integer"
       },
       {
-        label: "Title",
+        helpText: "Folder title",
         key: "title",
-        required: true,
-        helpText: "Folder title"
+        label: "Title",
+        required: true
       }
     ],
     /**
@@ -102,7 +102,7 @@ const searchFolder = {
         withSubfolders: true
       }
       const folderList = await files.listFolders(bundle.inputData.folderId, filters)
-      return folderList.folders.filter(folder => folder.title.includes(bundle.inputData.title))
+      return folderList.folders.filter((folder) => folder.title.includes(bundle.inputData.title))
     },
     sample: samples.folder
   }

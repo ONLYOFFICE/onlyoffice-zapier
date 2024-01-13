@@ -17,7 +17,27 @@ const { PeopleService } = require("../../docspase/people/people")
  */
 
 const sessionAuth = {
-  type: "session",
+  connectionLabel: "{{firstName}} {{lastName}}",
+  fields: [
+    {
+      helpText: "Go to the [API Details](https://my.site.com/manage/api-details) screen from your. Website Dashboard to find your API Key.",
+      key: "baseUrl",
+      label: "URL",
+      required: true
+    },
+    {
+      key: "username",
+      label: "Username",
+      required: true
+    },
+    {
+      key: "password",
+      label: "Password",
+      required: true,
+      type: "password"
+    }
+  ],
+
   sessionConfig: {
     /**
      * @param {ZObject} z
@@ -35,26 +55,6 @@ const sessionAuth = {
       }
     }
   },
-
-  fields: [
-    {
-      key: "baseUrl",
-      label: "URL",
-      required: true,
-      helpText: "Go to the [API Details](https://my.site.com/manage/api-details) screen from your. Website Dashboard to find your API Key."
-    },
-    {
-      key: "username",
-      label: "Username",
-      required: true
-    },
-    {
-      key: "password",
-      label: "Password",
-      type: "password",
-      required: true
-    }
-  ],
 
   /**
    * @param {ZObject} z
@@ -81,7 +81,7 @@ const sessionAuth = {
     return user
   },
 
-  connectionLabel: "{{firstName}} {{lastName}}"
+  type: "session"
 }
 
 module.exports = {

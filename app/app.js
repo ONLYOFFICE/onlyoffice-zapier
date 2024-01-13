@@ -41,13 +41,29 @@ const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
 
 const App = {
-  version,
-  platformVersion,
   authentication: sessionAuth,
   beforeRequest: [
     ...beforeSessionAuthRequest
   ],
+  creates: {
+    [archiveRoom.key]: archiveRoom,
+    [createFile.key]: createFile,
+    [createFileInMyDocuments.key]: createFileInMyDocuments,
+    [createFolder.key]: createFolder,
+    [deleteFolder.key]: deleteFolder,
+    [downloadFile.key]: downloadFile,
+    [externalLink.key]: externalLink,
+    [inviteUser.key]: inviteUser,
+    [roomCreate.key]: roomCreate,
+    [shareRoom.key]: shareRoom,
+    [uploadFile.key]: uploadFile
+  },
   hydrators,
+  platformVersion,
+  searches: {
+    [searchFile.key]: searchFile,
+    [searchFolder.key]: searchFolder
+  },
   triggers: {
     [fileCreated.key]: fileCreated,
     [fileDeleted.key]: fileDeleted,
@@ -61,23 +77,7 @@ const App = {
     [userAdded.key]: userAdded,
     [userInvited.key]: userInvited
   },
-  searches: {
-    [searchFile.key]: searchFile,
-    [searchFolder.key]: searchFolder
-  },
-  creates: {
-    [archiveRoom.key]: archiveRoom,
-    [createFile.key]: createFile,
-    [createFileInMyDocuments.key]: createFileInMyDocuments,
-    [createFolder.key]: createFolder,
-    [deleteFolder.key]: deleteFolder,
-    [downloadFile.key]: downloadFile,
-    [externalLink.key]: externalLink,
-    [inviteUser.key]: inviteUser,
-    [roomCreate.key]: roomCreate,
-    [shareRoom.key]: shareRoom,
-    [uploadFile.key]: uploadFile
-  }
+  version
 }
 
 module.exports = { App }

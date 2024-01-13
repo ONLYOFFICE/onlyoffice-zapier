@@ -68,8 +68,8 @@ class AuthenticationService extends Service {
    */
   auth(data) {
     const payload = {
-      UserName: data.username,
-      Password: data.password
+      Password: data.password,
+      UserName: data.username
     }
     const url = this.client.url("/authentication")
     return this.client.request("POST", url, payload)
@@ -88,6 +88,6 @@ class AuthenticationService extends Service {
 }
 
 module.exports = {
-  beforeSessionAuthRequest,
-  AuthenticationService
+  AuthenticationService,
+  beforeSessionAuthRequest
 }
