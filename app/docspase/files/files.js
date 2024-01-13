@@ -71,6 +71,7 @@ const { Service } = require("../client/client.js")
  * @property {string} updated
  * @property {number} rootFolderType
  * @property {Account} updatedBy
+ * @property {number} originId
  */
 
 /**

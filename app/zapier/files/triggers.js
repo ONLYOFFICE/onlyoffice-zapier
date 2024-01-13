@@ -29,7 +29,14 @@ const { user } = require("../../docspase/people/people.samples.js")
 
 /**
  * @typedef {Object} FileCreatedFields
- * @property {number} folderId
+ * @property {number=} id
+ * @property {number=} folderId
+ */
+
+/**
+ * @typedef {Object} FileDeletedFields
+ * @property {number=} id
+ * @property {number=} folderId
  */
 
 /**
@@ -40,12 +47,14 @@ const { user } = require("../../docspase/people/people.samples.js")
 
 /**
  * @typedef {Object} FolderCreatedFields
- * @property {number} id
+ * @property {number=} id
+ * @property {number=} folderId
  */
 
 /**
  * @typedef {Object} FolderDeletedFields
- * @property {number} id
+ * @property {number=} id
+ * @property {number=} folderId
  */
 
 /**
@@ -61,7 +70,7 @@ const { user } = require("../../docspase/people/people.samples.js")
 
 const fileCreated = {
   display: {
-    description: "Triggers when a file is created.",
+    description: "Triggers when a file is created in room or folder.",
     label: "File Created"
   },
   key: "fileCreated",
@@ -69,10 +78,19 @@ const fileCreated = {
   operation: {
     inputFields: [
       {
+        altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
+        helpText: "Trigger after created from a specific room",
+        key: "id",
+        label: "Room",
+        type: "integer"
+      },
+      {
+        dynamic: "folderCreated.id.title",
+        helpText: "Trigger after created from a specific folder",
         key: "folderId",
         label: "Folder",
-        required: true
+        type: "integer"
       }
     ],
     /**
@@ -81,15 +99,21 @@ const fileCreated = {
      * @returns {Promise<FileData[]>}
      */
     async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const filters = {
-        filterType: "FilesOnly",
-        sortBy: "DateAndTime",
-        sortOrder: "descending"
+      if (!bundle.inputData.folderId) {
+        bundle.inputData.folderId = bundle.inputData.id
       }
-      const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-      return filesList.files
+      if (bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const filters = {
+          filterType: "FilesOnly",
+          sortBy: "DateAndTime",
+          sortOrder: "descending"
+        }
+        const filesList = await files.listFiles(bundle.inputData.folderId, filters)
+        return filesList.files
+      }
+      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
     sample: samples.file
   }
@@ -97,15 +121,32 @@ const fileCreated = {
 
 const fileDeleted = {
   display: {
-    description: "Triggers when a file is deleted.",
+    description: "Triggers when a file is deleted (from room or folder optional).",
     label: "File Deleted"
   },
   key: "fileDeleted",
   noun: "File",
   operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Trigger after deleted from a specific room (optional)",
+        key: "id",
+        label: "Room",
+        type: "integer"
+      },
+      {
+        dynamic: "folderCreated.id.title",
+        helpText: "Trigger after deleted from a specific folder (optional)",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
+      }
+    ],
     /**
      * @param {ZObject} z
-     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @param {Bundle<SessionAuthenticationData, FileDeletedFields>} bundle
      * @returns {Promise<FileData[]>}
      */
     async perform(z, bundle) {
@@ -117,6 +158,12 @@ const fileDeleted = {
         sortOrder: "descending"
       }
       const trash = await files.listTrash(filters)
+      if (bundle.inputData.id || bundle.inputData.folderId) {
+        if (!bundle.inputData.folderId) {
+          bundle.inputData.folderId = bundle.inputData.id
+        }
+        return trash.files.filter((item) => item.originId === bundle.inputData.folderId)
+      }
       return trash.files
     },
     sample: samples.file
@@ -125,7 +172,7 @@ const fileDeleted = {
 
 const filesList = {
   display: {
-    description: "Get files list from folder or room.",
+    description: "Hidden trigger for get files list from folder or room.",
     hidden: true,
     label: "Files List"
   },
@@ -156,12 +203,12 @@ const filesList = {
 
 const filteredSections = {
   display: {
-    description: "Returns all the sections.",
+    description: "Hidden trigger for get all sections.",
     hidden: true,
     label: "Filtered Sections"
   },
   key: "filteredSections",
-  noun: "Section",
+  noun: "Sections",
   operation: {
     /**
      * @param {ZObject} z
@@ -183,18 +230,27 @@ const filteredSections = {
 
 const folderCreated = {
   display: {
-    description: "Triggers when a folder is created.",
+    description: "Triggers when a folder is created in room or folder.",
     label: "Folder Created"
   },
   key: "folderCreated",
-  noun: "Folders",
+  noun: "Folder",
   operation: {
     inputFields: [
       {
+        altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
+        helpText: "Trigger after created from a specific room",
         key: "id",
         label: "Room",
-        required: true
+        type: "integer"
+      },
+      {
+        dynamic: "folderCreated.id.title",
+        helpText: "Trigger after created from a specific folder",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
       }
     ],
     /**
@@ -203,15 +259,21 @@ const folderCreated = {
      * @returns {Promise<FolderData[]>}
      */
     async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const filters = {
-        filterType: "FoldersOnly",
-        sortBy: "DateAndTime",
-        sortOrder: "descending"
+      if (!bundle.inputData.id) {
+        bundle.inputData.id = bundle.inputData.folderId
       }
-      const folders = await files.listFolders(bundle.inputData.id, filters)
-      return folders.folders
+      if (bundle.inputData.id) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const filters = {
+          filterType: "FoldersOnly",
+          sortBy: "DateAndTime",
+          sortOrder: "descending"
+        }
+        const folders = await files.listFolders(bundle.inputData.id, filters)
+        return folders.folders
+      }
+      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
     sample: samples.folder
   }
@@ -219,18 +281,27 @@ const folderCreated = {
 
 const folderDeleted = {
   display: {
-    description: "Triggers when a folder is deleted.",
+    description: "Triggers when a folder is deleted (from room or folder optional).",
     label: "Folder Deleted"
   },
   key: "folderDeleted",
-  noun: "Folders",
+  noun: "Folder",
   operation: {
     inputFields: [
       {
+        altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Trigger after deleted from a specific room",
+        helpText: "Trigger after deleted from a specific room (optional)",
         key: "id",
-        label: "Room"
+        label: "Room",
+        type: "integer"
+      },
+      {
+        dynamic: "folderCreated.id.title",
+        helpText: "Trigger after deleted from a specific folder (optional)",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
       }
     ],
     /**
@@ -247,7 +318,11 @@ const folderDeleted = {
         sortOrder: "descending"
       }
       const trash = await files.listTrash(filters)
-      if (bundle.inputData.id) {
+
+      if (bundle.inputData.id || bundle.inputData.folderId) {
+        if (!bundle.inputData.folderId) {
+          bundle.inputData.folderId = bundle.inputData.id
+        }
         return trash.folders.filter((item) => item.originRoomId === bundle.inputData.id)
       }
       return trash.folders
@@ -262,7 +337,7 @@ const roomCreated = {
     label: "Room Created"
   },
   key: "roomCreated",
-  noun: "Rooms",
+  noun: "Room",
   operation: {
     /**
      * @param {ZObject} z
@@ -285,7 +360,7 @@ const roomArchived = {
     label: "Room Archived"
   },
   key: "roomArchived",
-  noun: "Rooms",
+  noun: "Room",
   operation: {
     /**
      * @param {ZObject} z
@@ -309,12 +384,12 @@ const roomArchived = {
 
 const shareRoles = {
   display: {
-    description: "Get roles for share by room id.",
+    description: "Hidden trigger for get roles for share by room id.",
     hidden: true,
     label: "Get Roles"
   },
   key: "shareRoles",
-  noun: "Room",
+  noun: "Role",
   operation: {
     /**
      * @param {ZObject} z
@@ -350,7 +425,8 @@ const userInvited = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
-        required: true
+        required: true,
+        type: "integer"
       },
       {
         helpText: "Return only those who are active",

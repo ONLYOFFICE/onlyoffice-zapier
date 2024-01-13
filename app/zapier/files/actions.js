@@ -30,7 +30,8 @@ const { Uploader } = require("./uploader.js")
 
 /**
  * @typedef {Object} CreateFileFields
- * @property {number} folderId
+ * @property {number=} id
+ * @property {number=} folderId
  * @property {string} title
  */
 
@@ -41,7 +42,8 @@ const { Uploader } = require("./uploader.js")
 
 /**
  * @typedef {Object} CreateFolderFields
- * @property {number} folderId
+ * @property {number=} id
+ * @property {number=} folderId
  * @property {string} title
  */
 
@@ -77,7 +79,7 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} UploadFileFields
  * @property {number=} id
- * @property {number} folderId
+ * @property {number=} folderId
  * @property {string} url
  */
 
@@ -94,7 +96,8 @@ const archiveRoom = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
-        required: true
+        required: true,
+        type: "integer"
       }
     ],
     /**
@@ -123,16 +126,27 @@ const createFile = {
   operation: {
     inputFields: [
       {
+        altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        key: "folderId",
-        label: "Folder",
-        required: true
+        helpText: "The room where the file will be created",
+        key: "id",
+        label: "Room",
+        type: "integer"
       },
       {
-        default: "README",
+        dynamic: "folderCreated.id.title",
+        helpText: "The folder where the file will be created (optional)",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
+      },
+      {
+        default: "File from Zapier",
         key: "title",
         label: "Title",
-        required: true
+        required: true,
+        type: "string"
       }
     ],
     /**
@@ -141,12 +155,18 @@ const createFile = {
      * @returns {Promise<FileData>}
      */
     perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const body = {
-        title: bundle.inputData.title
+      if (!bundle.inputData.folderId) {
+        bundle.inputData.folderId = bundle.inputData.id
       }
-      return files.createFile(bundle.inputData.folderId, body)
+      if (bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const body = {
+          title: bundle.inputData.title
+        }
+        return files.createFile(bundle.inputData.folderId, body)
+      }
+      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
     sample: samples.file
   }
@@ -162,10 +182,11 @@ const createFileInMyDocuments = {
   operation: {
     inputFields: [
       {
-        default: "README",
+        default: "File from Zapier",
         key: "title",
         label: "Title",
-        required: true
+        required: true,
+        type: "string"
       }
     ],
     /**
@@ -188,17 +209,24 @@ const createFolder = {
     label: "Create Folder"
   },
   key: "createFolder",
-  noun: "File",
+  noun: "Folder",
   operation: {
     inputFields: [
       {
         dynamic: "roomCreated.id.title",
-        key: "folderId",
-        label: "Folder",
-        required: true
+        key: "id",
+        label: "Room",
+        type: "integer"
       },
       {
-        default: "Created Folder",
+        dynamic: "folderCreated.id.title",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
+      },
+      {
+        default: "Folder from Zapier",
         key: "title",
         label: "Title",
         required: true
@@ -210,12 +238,18 @@ const createFolder = {
      * @returns {Promise<FolderData>}
      */
     async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const body = {
-        title: bundle.inputData.title
+      if (!bundle.inputData.folderId) {
+        bundle.inputData.folderId = bundle.inputData.id
       }
-      return await files.createFolder(bundle.inputData.folderId, body)
+      if (bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const body = {
+          title: bundle.inputData.title
+        }
+        return await files.createFolder(bundle.inputData.folderId, body)
+      }
+      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
     sample: samples.folder
   }
@@ -235,13 +269,15 @@ const deleteFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
-        required: true
+        type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         key: "folderId",
         label: "Folder",
-        required: true
+        required: true,
+        search: "searchFolder.id",
+        type: "integer"
       }
     ],
     /**
@@ -275,17 +311,19 @@ const downloadFile = {
         helpText: "The room where the file is located",
         key: "id",
         label: "Room",
-        required: true
+        type: "integer"
       },
       {
         altersDynamicFields: true,
         dynamic: "folderCreated.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
-        label: "Folder"
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
       },
       {
-        dynamic: "hiddenFileCreated.id.title",
+        dynamic: "filesList.id.title",
         key: "fileId",
         label: "File",
         required: true,
@@ -318,14 +356,15 @@ const externalLink = {
     label: "External Link"
   },
   key: "externalLink",
-  noun: "Room",
+  noun: "Link",
   operation: {
     inputFields: [
       {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
-        required: true
+        required: true,
+        type: "integer"
       }
     ],
     /**
@@ -348,14 +387,15 @@ const roomCreate = {
     label: "Create Room"
   },
   key: "roomCreate",
-  noun: "Rooms",
+  noun: "Room",
   operation: {
     inputFields: [
       {
-        default: "Test room",
+        default: "Room from Zapier",
         key: "title",
         label: "Title",
-        required: true
+        required: true,
+        type: "string"
       },
       {
         choices: { "CustomRoom": "Custom room", "EditingRooms": "Editing rooms" },
@@ -393,19 +433,21 @@ const shareRoom = {
         dynamic: "roomCreated.id.title",
         key: "roomId",
         label: "Room",
-        required: true
-      },
-      {
-        dynamic: "userAdded.id.displayName",
-        key: "userId",
-        label: "User",
-        required: true
+        required: true,
+        type: "integer"
       },
       {
         dynamic: "shareRoles.id.name",
         key: "access",
         label: "Role",
         required: true
+      },
+      {
+        dynamic: "userAdded.id.displayName",
+        key: "userId",
+        label: "User",
+        required: true,
+        type: "integer"
       }
     ],
     /**
@@ -448,18 +490,21 @@ const uploadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
-        required: true
+        type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         key: "folderId",
-        label: "Folder"
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
       },
       {
         helpText: "Download file via direct link or hydrate file",
         key: "url",
         label: "URL or File",
-        required: true
+        required: true,
+        type: "string"
       }
     ],
     /**
@@ -468,38 +513,41 @@ const uploadFile = {
      * @returns {Promise<UploadFileData>}
      */
     async perform(z, bundle) {
-      if (!bundle.inputData.folderId && bundle.inputData.id) {
+      if (!bundle.inputData.folderId) {
         bundle.inputData.folderId = bundle.inputData.id
       }
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const uploader = new Uploader(z)
-      try {
-        const fileStash = await uploader.stash(bundle.inputData.url)
-        const headers = await uploader.headers(fileStash)
-        const bodySession = {
-          CreateOn: new Date().toISOString(),
-          FileName: headers.fileName,
-          FileSize: headers.fileSize,
-          folderId: bundle.inputData.folderId
+      if (bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const uploader = new Uploader(z)
+        try {
+          const fileStash = await uploader.stash(bundle.inputData.url)
+          const headers = await uploader.headers(fileStash)
+          const bodySession = {
+            CreateOn: new Date().toISOString(),
+            FileName: headers.fileName,
+            FileSize: headers.fileSize,
+            folderId: bundle.inputData.folderId
+          }
+          const session = await files.createSession(bundle.inputData.folderId, bodySession)
+          const bodyUpload = {
+            fileName: headers.fileName,
+            fileSize: headers.fileSize,
+            fileStash
+          }
+          return await uploader.upload(
+            bodyUpload,
+            (chunkData) => files.uploadChunk(session.data.id, chunkData)
+          )
+        } catch (error) {
+          let message = "Unknown error"
+          if (error instanceof Error) {
+            message = error.message
+          }
+          throw new z.errors.HaltedError(message)
         }
-        const session = await files.createSession(bundle.inputData.folderId, bodySession)
-        const bodyUpload = {
-          fileName: headers.fileName,
-          fileSize: headers.fileSize,
-          fileStash
-        }
-        return await uploader.upload(
-          bodyUpload,
-          (chunkData) => files.uploadChunk(session.data.id, chunkData)
-        )
-      } catch (error) {
-        let message = "Unknown error"
-        if (error instanceof Error) {
-          message = error.message
-        }
-        throw new z.errors.HaltedError(message)
       }
+      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
     sample: samples.upload
   }

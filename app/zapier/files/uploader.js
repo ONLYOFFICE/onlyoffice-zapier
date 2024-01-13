@@ -78,7 +78,7 @@ class Uploader {
     const length = headers.get("content-length")
     const disposition = headers.get("content-disposition")
     const fileSize = length ? parseInt(length) : 0
-    const fileName = disposition ? contentDisposition.parse(disposition).parameters.filename : "File from Zapier"
+    const fileName = disposition ? contentDisposition.parse(disposition).parameters.filename : "File from Zapier.docx"
     return { fileName, fileSize }
   }
 
