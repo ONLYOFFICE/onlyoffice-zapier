@@ -50,6 +50,7 @@ const folder = {
   created: "2023-01-01T13:00:00.0000000+03:00",
   createdBy: account,
   id: 2,
+  originId: 1,
   parentId: 1,
   rootFolderType: 14,
   title: "Test Folder",

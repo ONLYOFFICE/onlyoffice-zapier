@@ -13,20 +13,30 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  createFolderInMyDocuments,
   deleteFolder,
+  deleteFolderInMyDocuments,
   downloadFile,
+  downloadFileFromMyDocuments,
   externalLink,
   roomCreate,
   shareRoom,
-  uploadFile
+  uploadFile,
+  uploadFileToMyDocuments
 } = require("./actions.js")
 const {
   fileCreated,
+  fileCreatedInMyDocuments,
   fileDeleted,
+  //fileDeletedInMyDocuments, TODO:
   filesList,
+  //filesListFromMyDocuments, TODO:
   filteredSections,
   folderCreated,
+  folderCreatedInMyDocuments,
   folderDeleted,
+  folderDeletedInMyDocuments,
+  //foldersInMyDocumentsList, TODO:
   roomArchived,
   roomCreated,
   shareRoles,
@@ -44,16 +54,22 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./actions.js").CreateFileFields} CreateFileFields
  * @typedef {import("./actions.js").CreateFileInMyDocumentsFields} CreateFileInMyDocumentsFields
  * @typedef {import("./actions.js").CreateFolderFields} CreateFolderFields
+ * @typedef {import("./actions.js").CreateFolderInMyDocumentsFields} CreateFolderInMyDocumentsFields
  * @typedef {import("./actions.js").DeleteFolderFields} DeleteFolderFields
+ * @typedef {import("./actions.js").DeleteFolderInMyDocumentsFields} DeleteFolderInMyDocumentsFields
  * @typedef {import("./actions.js").DownloadFileFields} DownloadFileFields
+ * @typedef {import("./actions.js").DownloadFileFromMyDocumentsFields} DownloadFileFromMyDocumentsFields
  * @typedef {import("./actions.js").ExternalLinkFields} ExternalLinkFields
  * @typedef {import("./triggers.js").FileCreatedFields} FileCreatedFields
+ * @typedef {import("./triggers.js").FileCreatedInMyDocumentsFields} FileCreatedInMyDocumentsFields
  * @typedef {import("./triggers.js").FilesListFields} FilesListFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
+ * @typedef {import("./triggers.js").FolderCreatedInMyDocumentsFields} FolderCreatedInMyDocumentsFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
  * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
  * @typedef {import("./actions.js").UploadFileFields} UploadFileFields
+ * @typedef {import("./actions.js").UploadFileToMyDocumentsFields} UploadFileToMyDocumentsFields
  * @typedef {import("./triggers.js").UserInvitedFields} UserInvitedFields
  */
 
@@ -67,7 +83,14 @@ const Files = suite("files", {
     fileId: 0,
     folderId: 0,
     id: 0,
-    myDocumentsId: 0,
+    myDocuments: {
+      fileId: 0,
+      folderId: {
+        fileId: 0,
+        id: 0
+      },
+      id: 0
+    },
     roomsId: 0,
     trashId: 0
   }
@@ -125,7 +148,7 @@ Files("hidden filtered sections trigger return sections", async (context) => {
   sections.forEach((item) => {
     switch (item.title) {
     case "My documents":
-      context.inputData.myDocumentsId = item.id
+      context.inputData.myDocuments.id = item.id
       break
     case "Trash":
       context.inputData.trashId = item.id
@@ -155,6 +178,7 @@ Files("creates a file", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
+  context.inputData.fileId = result.id
   equal(result.folderId, bundle.inputData.folderId)
 })
 
@@ -194,7 +218,7 @@ Files("search a file", async (context) => {
   const { perform } = searchFile.operation
   /** @type {SearchFields} */
   const inputData = {
-    folderId: context.inputData.myDocumentsId,
+    folderId: context.inputData.id, // Set section for search
     title: "README"
   }
   const bundle = {
@@ -221,8 +245,128 @@ Files("creates a file in the My Documents", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
-  context.inputData.fileId = result.id
+  context.inputData.myDocuments.fileId = result.id
   not.equal(result.id, 0)
+})
+
+Files("triggers when a file is created in My Documents", async (context) => {
+  const { perform } = fileCreatedInMyDocuments.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const file = await tester(perform, bundle)
+  const newFile = file[0]
+  if (!newFile) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(newFile.id, 0)
+})
+
+Files("create a folder in the My Documents", async (context) => {
+  const { perform } = createFolderInMyDocuments.operation
+  /** @type {CreateFolderInMyDocumentsFields} */
+  const inputData = {
+    title: "Test Folder"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  context.inputData.myDocuments.folderId.id = result.id
+  not.equal(result.id, 0)
+})
+
+Files("triggers when a folder is created in the My Documents", async (context) => {
+  const { perform } = folderCreatedInMyDocuments.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const folders = await tester(perform, bundle)
+  const folder = folders[0]
+  if (!folder) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(folder.id, context.inputData.myDocuments.folderId)
+})
+
+Files("creates a file in the folder that is in My Documents", async (context) => {
+  const { perform } = createFileInMyDocuments.operation
+  /** @type {CreateFileInMyDocumentsFields} */
+  const inputData = {
+    folderId: context.inputData.myDocuments.folderId.id,
+    title: "README"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  context.inputData.myDocuments.folderId.fileId = result.id
+  not.equal(result.originId, context.inputData.myDocuments.folderId.id)
+})
+
+Files("triggers when a file is created in the folder that is in My Documents", async (context) => {
+  const { perform } = fileCreatedInMyDocuments.operation
+  /** @type {FileCreatedInMyDocumentsFields} */
+  const inputData = {
+    folderId: context.inputData.myDocuments.folderId.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const file = await tester(perform, bundle)
+  const newFile = file[0]
+  if (!newFile) {
+    unreachable("TODO")
+    return
+  }
+  equal(newFile.id, context.inputData.myDocuments.folderId.fileId)
+})
+
+Files("downloads file from My Documents", async (context) => {
+  const { perform } = downloadFileFromMyDocuments.operation
+  /** @type {DownloadFileFromMyDocumentsFields} */
+  const inputData = {
+    fileId: context.inputData.myDocuments.fileId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  match(result.file, "hydrate|||")
+})
+
+Files("upload a file to My Documents", async (context) => {
+  const { perform } = uploadFileToMyDocuments.operation
+  /** @type {UploadFileToMyDocumentsFields} */
+  const inputData = {
+    url: "https://d2nlctn12v279m.cloudfront.net/assets/docs/samples/demo.docx"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.uploaded, true)
+})
+
+Files("delete a folder from My Documents", async (context) => {
+  const { perform } = deleteFolderInMyDocuments.operation
+  /** @type {DeleteFolderInMyDocumentsFields} */
+  const inputData = {
+    folderId: context.inputData.myDocuments.folderId.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.finished, true)
 })
 
 Files("downloads file", async (context) => {
@@ -253,6 +397,25 @@ Files("create a folder", async (context) => {
   const result = await tester(perform, bundle)
   context.inputData.folderId = result.id
   not.equal(result.id, 0)
+})
+
+Files("triggers when a folder is created", async (context) => {
+  const { perform } = folderCreated.operation
+  /** @type {FolderCreatedFields} */
+  const inputData = {
+    id: context.inputData.id
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const folders = await tester(perform, bundle)
+  const folder = folders[0]
+  if (!folder) {
+    unreachable("TODO")
+    return
+  }
+  not.equal(folder.id, 0)
 })
 
 Files("search a folder", async (context) => {
@@ -302,25 +465,6 @@ Files("returns the links of a room", async (context) => {
   }
   const result = await tester(perform, bundle)
   not.equal(result.sharedTo.shareLink, null)
-})
-
-Files("triggers when a folder is created", async (context) => {
-  const { perform } = folderCreated.operation
-  /** @type {FolderCreatedFields} */
-  const inputData = {
-    id: context.inputData.id
-  }
-  const bundle = {
-    authData: context.authData,
-    inputData
-  }
-  const folders = await tester(perform, bundle)
-  const folder = folders[0]
-  if (!folder) {
-    unreachable("TODO")
-    return
-  }
-  not.equal(folder.id, 0)
 })
 
 Files("delete a folder", async (context) => {
@@ -468,12 +612,21 @@ Files("triggers when a folder is deleted", async (context) => {
   }
   const folders = await tester(perform, bundle)
   const folder = folders[0]
-  // TODO: Without the folder delete action, the folder delete trigger test may fail because the trash may be empty.
-  if (folders.length) {
-    not.equal(folder.id, 0)
-  } else {
-    equal(true, true)
+  not.equal(folder.id, 0)
+})
+
+Files("triggers when a folder from My Documents is deleted", async (context) => {
+  const { perform } = folderDeletedInMyDocuments.operation
+  // TODO: Add a check to delete a folder from a specific room after adding a Delete Folder action
+  /*const inputData = {
+    id: context.inputData.folderId
+  }*/
+  const bundle = {
+    authData: context.authData
   }
+  const folders = await tester(perform, bundle)
+  const folder = folders[0]
+  not.equal(folder.id, 0)
 })
 
 Files.run()

@@ -37,6 +37,7 @@ const { Uploader } = require("./uploader.js")
 
 /**
  * @typedef {Object} CreateFileInMyDocumentsFields
+ * @property {number=} folderId
  * @property {string} title
  */
 
@@ -48,13 +49,29 @@ const { Uploader } = require("./uploader.js")
  */
 
 /**
+ * @typedef {Object} CreateFolderInMyDocumentsFields
+ * @property {number=} folderId
+ * @property {string} title
+ */
+
+/**
  * @typedef {Object} DeleteFolderFields
  * @property {number} folderId
- * @property {number} id
+ * @property {number=} id
+ */
+
+/**
+ * @typedef {Object} DeleteFolderInMyDocumentsFields
+ * @property {number} folderId
  */
 
 /**
  * @typedef {Object} DownloadFileFields
+ * @property {number} fileId
+ */
+
+/**
+ * @typedef {Object} DownloadFileFromMyDocumentsFields
  * @property {number} fileId
  */
 
@@ -79,6 +96,12 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} UploadFileFields
  * @property {number=} id
+ * @property {number=} folderId
+ * @property {string} url
+ */
+
+/**
+ * @typedef {Object} UploadFileToMyDocumentsFields
  * @property {number=} folderId
  * @property {string} url
  */
@@ -182,7 +205,15 @@ const createFileInMyDocuments = {
   operation: {
     inputFields: [
       {
-        default: "File from Zapier",
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "The folder where the folder will be created (optional)",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
+      },
+      {
+        default: "README",
         key: "title",
         label: "Title",
         required: true,
@@ -195,6 +226,9 @@ const createFileInMyDocuments = {
      * @returns {Promise<FileData>}
      */
     perform(z, bundle) {
+      if (bundle.inputData.folderId) {
+        return createFile.operation.perform(z, bundle)
+      }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       return files.createFileInMyDocuments(bundle.inputData)
@@ -255,6 +289,48 @@ const createFolder = {
   }
 }
 
+const createFolderInMyDocuments = {
+  display: {
+    description: "Create a folder in the My Documents directory.",
+    label: "Create Folder in My Documents"
+  },
+  key: "createFolderInMyDocuments",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "The folder where the folder will be created (optional)",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
+      },
+      {
+        default: "Folder from Zapier",
+        key: "title",
+        label: "Title",
+        required: true
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, CreateFolderInMyDocumentsFields>} bundle
+     * @returns {Promise<FolderData>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return createFolder.operation.perform(z, bundle)
+    },
+    sample: samples.folder
+  }
+}
+
 const deleteFolder = {
   display: {
     description: "Delete a folder.",
@@ -291,6 +367,36 @@ const deleteFolder = {
       const operation = await files.deleteFolder(bundle.inputData.folderId)
       const progress = new Progress(files.listOperations.bind(files), operation[0])
       return await progress.complete()
+    },
+    sample: samples.progress
+  }
+}
+
+const deleteFolderInMyDocuments = {
+  display: {
+    description: "Delete a folder in the My Documents directory.",
+    label: "Delete Folder in My Documents"
+  },
+  key: "deleteFolderInMyDocuments",
+  noun: "Folder",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        key: "folderId",
+        label: "Folder",
+        required: true,
+        search: "searchFolder.id",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DeleteFolderInMyDocumentsFields>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      return deleteFolder.operation.perform(z, bundle)
     },
     sample: samples.progress
   }
@@ -345,6 +451,45 @@ const downloadFile = {
         file: hydrate,
         id: bundle.inputData.fileId
       }
+    },
+    sample: samples.hydratedFile
+  }
+}
+
+const downloadFileFromMyDocuments = {
+  display: {
+    description: "Returns a hydrated link to download a file from the My Documents directory.",
+    label: "Download File in My Documents"
+  },
+  key: "downloadFileFromMyDocuments",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "folderCreated.id.title",
+        helpText: "The folder where the file is located (optional)",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
+      },
+      {
+        dynamic: "filesListFromMyDocuments.id.title",
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DownloadFileFromMyDocumentsFields>} bundle
+     * @returns {Promise<DownloadFileData>}
+     */
+    async perform(z, bundle) {
+      return downloadFile.operation.perform(z, bundle)
     },
     sample: samples.hydratedFile
   }
@@ -553,15 +698,61 @@ const uploadFile = {
   }
 }
 
+const uploadFileToMyDocuments = {
+  display: {
+    description: "Upload a file to the My Documents directory.",
+    label: "Upload File to My Documents"
+  },
+  key: "uploadFileToMyDocuments",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "The folder where the file will be uploaded (optional)",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "integer"
+      },
+      {
+        helpText: "Download file via direct link or hydrate file",
+        key: "url",
+        label: "URL or File",
+        required: true
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UploadFileToMyDocumentsFields>} bundle
+     * @returns {Promise<UploadFileData>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return uploadFile.operation.perform(z, bundle)
+    },
+    sample: samples.upload
+  }
+}
+
 module.exports = {
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
+  createFolderInMyDocuments,
   deleteFolder,
+  deleteFolderInMyDocuments,
   downloadFile,
+  downloadFileFromMyDocuments,
   externalLink,
   roomCreate,
   shareRoom,
-  uploadFile
+  uploadFile,
+  uploadFileToMyDocuments
 }
