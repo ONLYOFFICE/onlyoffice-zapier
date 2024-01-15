@@ -14,21 +14,31 @@ const {
   createFile,
   createFileInMyDocuments,
   createFolder,
+  createFolderInMyDocuments,
   deleteFolder,
+  deleteFolderInMyDocuments,
   downloadFile,
+  downloadFileFromMyDocuments,
   externalLink,
   roomCreate,
   shareRoom,
-  uploadFile
+  uploadFile,
+  uploadFileToMyDocuments
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
 const {
   fileCreated,
+  fileCreatedInMyDocuments,
   fileDeleted,
+  fileDeletedInMyDocuments,
   filesList,
+  filesListFromMyDocuments,
   filteredSections,
   folderCreated,
+  folderCreatedInMyDocuments,
   folderDeleted,
+  folderDeletedInMyDocuments,
+  foldersInMyDocumentsList,
   roomArchived,
   roomCreated,
   shareRoles,
@@ -74,13 +84,28 @@ test("has the `fileCreated` trigger", () => {
   equal(has, true)
 })
 
+test("has the `fileCreatedInMyDocuments` trigger", () => {
+  const has = App.triggers[fileCreatedInMyDocuments.key] === fileCreatedInMyDocuments
+  equal(has, true)
+})
+
 test("has the `fileDeleted` trigger", () => {
   const has = App.triggers[fileDeleted.key] === fileDeleted
   equal(has, true)
 })
 
+test("has the `fileDeletedInMyDocuments` trigger", () => {
+  const has = App.triggers[fileDeletedInMyDocuments.key] === fileDeletedInMyDocuments
+  equal(has, true)
+})
+
 test("has the `filesList` trigger", () => {
   const has = App.triggers[filesList.key] === filesList
+  equal(has, true)
+})
+
+test("has the `filesListFromMyDocuments` trigger", () => {
+  const has = App.triggers[filesListFromMyDocuments.key] === filesListFromMyDocuments
   equal(has, true)
 })
 
@@ -94,8 +119,23 @@ test("has the `folderCreated` trigger", () => {
   equal(has, true)
 })
 
+test("has the `folderCreatedInMyDocuments` trigger", () => {
+  const has = App.triggers[folderCreatedInMyDocuments.key] === folderCreatedInMyDocuments
+  equal(has, true)
+})
+
 test("has the `folderDeleted` trigger", () => {
   const has = App.triggers[folderDeleted.key] === folderDeleted
+  equal(has, true)
+})
+
+test("has the `folderDeletedInMyDocuments` trigger", () => {
+  const has = App.triggers[folderDeletedInMyDocuments.key] === folderDeletedInMyDocuments
+  equal(has, true)
+})
+
+test("has the `foldersInMyDocumentsList` trigger", () => {
+  const has = App.triggers[foldersInMyDocumentsList.key] === foldersInMyDocumentsList
   equal(has, true)
 })
 
@@ -158,13 +198,28 @@ test("has the `createFolder` creation", () => {
   equal(has, true)
 })
 
+test("has the `createFolderInMyDocuments` creation", () => {
+  const has = App.creates[createFolderInMyDocuments.key] === createFolderInMyDocuments
+  equal(has, true)
+})
+
 test("has the `deleteFolder` creation", () => {
   const has = App.creates[deleteFolder.key] === deleteFolder
   equal(has, true)
 })
 
+test("has the `deleteFolderInMyDocuments` creation", () => {
+  const has = App.creates[deleteFolderInMyDocuments.key] === deleteFolderInMyDocuments
+  equal(has, true)
+})
+
 test("has the `downloadFile` creation", () => {
   const has = App.creates[downloadFile.key] === downloadFile
+  equal(has, true)
+})
+
+test("has the `downloadFileFromMyDocuments` creation", () => {
+  const has = App.creates[downloadFileFromMyDocuments.key] === downloadFileFromMyDocuments
   equal(has, true)
 })
 
@@ -190,6 +245,11 @@ test("has the `shareRoom` creation", () => {
 
 test("has the `uploadFile` creation", () => {
   const has = App.creates[uploadFile.key] === uploadFile
+  equal(has, true)
+})
+
+test("has the `uploadFileToMyDocuments` creation", () => {
+  const has = App.creates[uploadFileToMyDocuments.key] === uploadFileToMyDocuments
   equal(has, true)
 })
 

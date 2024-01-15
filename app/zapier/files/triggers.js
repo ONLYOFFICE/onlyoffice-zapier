@@ -40,8 +40,23 @@ const { user } = require("../../docspase/people/people.samples.js")
  */
 
 /**
+ * @typedef {Object} FileCreatedInMyDocumentsFields
+ * @property {number=} folderId
+ */
+
+/**
+ * @typedef {Object} FileDeletedInMyDocumentsFields
+ * @property {number=} folderId
+ */
+
+/**
  * @typedef {Object} FilesListFields
  * @property {number=} id
+ * @property {number=} folderId
+ */
+
+/**
+ * @typedef {Object} FilesListFromMyDocumentsFields
  * @property {number=} folderId
  */
 
@@ -52,8 +67,18 @@ const { user } = require("../../docspase/people/people.samples.js")
  */
 
 /**
+ * @typedef {Object} FolderCreatedInMyDocumentsFields
+ * @property {number=} folderId
+ */
+
+/**
  * @typedef {Object} FolderDeletedFields
  * @property {number=} id
+ * @property {number=} folderId
+ */
+
+/**
+ * @typedef {Object} FolderDeletedInMyDocumentsFields
  * @property {number=} folderId
  */
 
@@ -119,6 +144,41 @@ const fileCreated = {
   }
 }
 
+const fileCreatedInMyDocuments = {
+  display: {
+    description: "Triggers when a file is created in the My Documents directory.",
+    label: "File Created in My Documents"
+  },
+  key: "fileCreatedInMyDocuments",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "Trigger after created from a specific folder from my documents directory (optional)",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FileCreatedInMyDocumentsFields>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return fileCreated.operation.perform(z, bundle)
+    },
+    sample: samples.file
+  }
+}
+
 const fileDeleted = {
   display: {
     description: "Triggers when a file is deleted (from room or folder optional).",
@@ -170,6 +230,41 @@ const fileDeleted = {
   }
 }
 
+const fileDeletedInMyDocuments = {
+  display: {
+    description: "Triggers when a file is deleted in the My Documents directory.",
+    label: "File Deleted in My Documents"
+  },
+  key: "fileDeletedInMyDocuments",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "Trigger after deleted from a specific folder from my documents directory (optional)",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FileDeletedInMyDocumentsFields>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return fileDeleted.operation.perform(z, bundle)
+    },
+    sample: samples.file
+  }
+}
+
 const filesList = {
   display: {
     description: "Hidden trigger for get files list from folder or room.",
@@ -196,6 +291,33 @@ const filesList = {
         }
       }
       return fileCreated.operation.perform(z, refinedBundle)
+    },
+    sample: samples.file
+  }
+}
+
+const filesListFromMyDocuments = {
+  display: {
+    description: "Hidden trigger for get files list from my documents.",
+    hidden: true,
+    label: "Files List"
+  },
+  key: "filesListFromMyDocuments",
+  noun: "Files",
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FilesListFromMyDocumentsFields>} bundle
+     * @returns {Promise<FileData[]>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return fileCreated.operation.perform(z, bundle)
     },
     sample: samples.file
   }
@@ -279,6 +401,41 @@ const folderCreated = {
   }
 }
 
+const folderCreatedInMyDocuments = {
+  display: {
+    description: "Triggers when a folder is created in the My Documents directory.",
+    label: "Folder Created in My Documents"
+  },
+  key: "folderCreatedInMyDocuments",
+  noun: "Folder",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "Trigger after deleted from a specific folder from my documents directory (optional)",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderCreatedInMyDocumentsFields>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return folderCreated.operation.perform(z, bundle)
+    },
+    sample: samples.folder
+  }
+}
+
 const folderDeleted = {
   display: {
     description: "Triggers when a folder is deleted (from room or folder optional).",
@@ -318,16 +475,80 @@ const folderDeleted = {
         sortOrder: "descending"
       }
       const trash = await files.listTrash(filters)
-
-      if (bundle.inputData.id || bundle.inputData.folderId) {
-        if (!bundle.inputData.folderId) {
-          bundle.inputData.folderId = bundle.inputData.id
-        }
-        return trash.folders.filter((item) => item.originRoomId === bundle.inputData.id)
+      if (bundle.inputData.folderId) {
+        return trash.folders.filter((item) => item.originId === bundle.inputData.folderId)
+      } else if (bundle.inputData.id) {
+        return trash.folders.filter((item) => item.originId === bundle.inputData.id)
       }
       return trash.folders
     },
     sample: samples.folder
+  }
+}
+
+const folderDeletedInMyDocuments = {
+  display: {
+    description: "Triggers when a folder is deleted in the My Documents directory.",
+    label: "Folder Deleted in My Documents"
+  },
+  key: "folderDeletedInMyDocuments",
+  noun: "Folder",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "Trigger after deleted from a specific folder from my documents directory (optional)",
+        key: "folderId",
+        label: "Folder",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderDeletedInMyDocumentsFields>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      if (!bundle.inputData.folderId) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const folderId = await files.myDocumentsSection()
+        bundle.inputData.folderId = folderId.pathParts[0].id
+      }
+      return folderDeleted.operation.perform(z, bundle)
+    },
+    sample: samples.folder
+  }
+}
+
+const foldersInMyDocumentsList = {
+  display: {
+    description: "Hidden trigger for get folders list from my documents section.",
+    hidden: true,
+    label: "Folders List in My Documents"
+  },
+  key: "foldersInMyDocumentsList",
+  noun: "Folders",
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const folderId = await files.myDocumentsSection()
+      const refinedBundle = {
+        ...bundle,
+        inputData: {
+          ...bundle.inputData,
+          id: folderId.pathParts[0].id
+        }
+      }
+      return await folderCreated.operation.perform(z, refinedBundle)
+    },
+    sample: samples.file
   }
 }
 
@@ -458,11 +679,17 @@ const userInvited = {
 
 module.exports = {
   fileCreated,
+  fileCreatedInMyDocuments,
   fileDeleted,
+  fileDeletedInMyDocuments,
   filesList,
+  filesListFromMyDocuments,
   filteredSections,
   folderCreated,
+  folderCreatedInMyDocuments,
   folderDeleted,
+  folderDeletedInMyDocuments,
+  foldersInMyDocumentsList,
   roomArchived,
   roomCreated,
   shareRoles,

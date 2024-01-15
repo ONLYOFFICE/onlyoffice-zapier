@@ -90,6 +90,7 @@ const { Service } = require("../client/client.js")
  * @property {number} rootFolderType
  * @property {Account} updatedBy
  * @property {number=} originRoomId
+ * @property {number} originId
  */
 
 /**
