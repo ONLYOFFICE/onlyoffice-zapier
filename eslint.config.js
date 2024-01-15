@@ -1,6 +1,9 @@
 const eslint = require("@eslint/js")
-const stylistic = require("@stylistic/eslint-plugin-js")
 const globals = require("globals")
+const jsdoc = require("eslint-plugin-jsdoc")
+const pluginImport = require("eslint-plugin-import")
+const pluginRequireSort = require("eslint-plugin-require-sort")
+const stylistic = require("@stylistic/eslint-plugin-js")
 
 module.exports = [
   eslint.configs.recommended,
@@ -18,7 +21,10 @@ module.exports = [
 
     },
     plugins: {
-      "@stylistic": stylistic
+      "@stylistic": stylistic,
+      import: pluginImport,
+      jsdoc,
+      "require-sort": pluginRequireSort
     },
     rules: {
       "@stylistic/array-bracket-newline": [
@@ -35,7 +41,10 @@ module.exports = [
       ],
       "@stylistic/arrow-spacing": "warn",
       "@stylistic/block-spacing": "warn",
-      "@stylistic/brace-style": "warn",
+      "@stylistic/brace-style": [
+        "warn",
+        "1tbs"
+      ],
       "@stylistic/comma-dangle": [
         "warn",
         "never"
@@ -43,12 +52,16 @@ module.exports = [
       "@stylistic/comma-spacing": [
         "warn",
         {
-          "before": false, "after": true
+          "after": true, "before": false
         }
       ],
       "@stylistic/comma-style": [
         "warn",
         "last"
+      ],
+      "@stylistic/eol-last": [
+        "warn",
+        "always"
       ],
       "@stylistic/function-call-argument-newline": [
         "warn",
@@ -70,19 +83,19 @@ module.exports = [
         "warn",
         2,
         {
-          "VariableDeclarator": "first",
+          "ArrayExpression": "first",
+          "CallExpression": {
+            "arguments": "first"
+          },
           "FunctionDeclaration": {
             "parameters": "first"
           },
           "FunctionExpression": {
             "parameters": "first"
           },
-          "CallExpression": {
-            "arguments": "first"
-          },
-          "ArrayExpression": "first",
-          "ObjectExpression": "first",
           "ImportDeclaration": "first",
+          "ObjectExpression": "first",
+          "VariableDeclarator": "first",
           "flatTernaryExpressions": true
         }
       ],
@@ -116,7 +129,10 @@ module.exports = [
       "@stylistic/no-extra-semi": "warn",
       "@stylistic/no-mixed-spaces-and-tabs": "warn",
       "@stylistic/no-multi-spaces": "warn",
-      "@stylistic/no-multiple-empty-lines": "warn",
+      "@stylistic/no-multiple-empty-lines": [
+        "warn",
+        { "max": 1 }
+      ],
       "@stylistic/no-tabs": "warn",
       "@stylistic/no-trailing-spaces": "warn",
       "@stylistic/no-whitespace-before-property": "warn",
@@ -156,27 +172,56 @@ module.exports = [
       "@stylistic/space-before-blocks": "warn",
       "@stylistic/space-before-function-paren": [
         "warn",
-        { "anonymous": "always", "named": "never", "asyncArrow": "always" }
+        { "anonymous": "always", "asyncArrow": "always", "named": "never" }
       ],
       "@stylistic/space-in-parens": [
         "warn",
         "never"
       ],
+      "@stylistic/space-infix-ops": ["warn"],
+      "arrow-parens": "warn",
+      "curly": "warn",
+      "eqeqeq": [
+        "warn",
+        "always"
+      ],
+      "import/exports-last": "warn",
+      "import/first": "warn",
+      "import/newline-after-import": "warn",
+      "import/order": [
+        "warn",
+        {
+          "groups": [
+            "builtin",
+            "external",
+            [
+              "parent",
+              "sibling",
+              "index"
+            ]
+          ]
+        }
+      ],
+      "jsdoc/check-alignment": "warn",
+      "jsdoc/check-line-alignment": "warn",
+      "jsdoc/multiline-blocks": "warn",
+      "jsdoc/require-returns": "warn",
+      "no-plusplus": "warn",
       "no-unused-vars": [
         "warn",
         {
           "vars": "local"
         }
       ],
-      "@stylistic/eol-last": [
+      "prefer-const": "warn",
+      "require-sort/require-sort": [
         "warn",
-        "always"
+        {
+          "ignoreCase": true,
+          "ignoreDeclarationSort": true
+        }
       ],
-      "eqeqeq": [
-        "warn",
-        "always"
-      ],
-      "prefer-const": "warn"
+      "sort-keys": "warn"
     }
   }
 ]

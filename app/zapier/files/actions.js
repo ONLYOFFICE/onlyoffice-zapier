@@ -82,19 +82,19 @@ const { Uploader } = require("./uploader.js")
  */
 
 const archiveRoom = {
+  display: {
+    description: "Archive a room.",
+    label: "Archive Room"
+  },
   key: "archiveRoom",
   noun: "Room",
-  display: {
-    label: "Archive Room",
-    description: "Archive a room."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
+        dynamic: "roomCreated.id.title",
         key: "id",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Room",
+        required: true
       }
     ],
     /**
@@ -114,25 +114,25 @@ const archiveRoom = {
 }
 
 const createFile = {
+  display: {
+    description: "Create a file.",
+    label: "Create File"
+  },
   key: "createFile",
   noun: "File",
-  display: {
-    label: "Create File",
-    description: "Create a file."
-  },
   operation: {
     inputFields: [
       {
-        label: "Folder",
+        dynamic: "roomCreated.id.title",
         key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Folder",
+        required: true
       },
       {
-        label: "Title",
+        default: "README",
         key: "title",
-        required: true,
-        default: "README"
+        label: "Title",
+        required: true
       }
     ],
     /**
@@ -153,19 +153,19 @@ const createFile = {
 }
 
 const createFileInMyDocuments = {
+  display: {
+    description: "Create a file in the My Documents directory.",
+    label: "Create File in My Documents"
+  },
   key: "createFileInMyDocuments",
   noun: "File",
-  display: {
-    label: "Create File in My Documents",
-    description: "Create a file in the My Documents directory."
-  },
   operation: {
     inputFields: [
       {
-        label: "Title",
+        default: "README",
         key: "title",
-        required: true,
-        default: "README"
+        label: "Title",
+        required: true
       }
     ],
     /**
@@ -183,25 +183,25 @@ const createFileInMyDocuments = {
 }
 
 const createFolder = {
+  display: {
+    description: "Create a folder.",
+    label: "Create Folder"
+  },
   key: "createFolder",
   noun: "File",
-  display: {
-    label: "Create Folder",
-    description: "Create a folder."
-  },
   operation: {
     inputFields: [
       {
-        label: "Folder",
+        dynamic: "roomCreated.id.title",
         key: "folderId",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Folder",
+        required: true
       },
       {
-        label: "Title",
+        default: "Created Folder",
         key: "title",
-        required: true,
-        default: "Created Folder"
+        label: "Title",
+        required: true
       }
     ],
     /**
@@ -222,26 +222,26 @@ const createFolder = {
 }
 
 const deleteFolder = {
+  display: {
+    description: "Delete a folder.",
+    label: "Delete Folder"
+  },
   key: "deleteFolder",
   noun: "Folder",
-  display: {
-    label: "Delete Folder",
-    description: "Delete a folder."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
-        key: "id",
-        required: true,
+        altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        altersDynamicFields: true
+        key: "id",
+        label: "Room",
+        required: true
       },
       {
-        label: "Folder",
+        dynamic: "folderCreated.id.title",
         key: "folderId",
-        required: true,
-        dynamic: "folderCreated.id.title"
+        label: "Folder",
+        required: true
       }
     ],
     /**
@@ -261,36 +261,36 @@ const deleteFolder = {
 }
 
 const downloadFile = {
+  display: {
+    description: "Returns a hydrated link to download a file.",
+    label: "Download File"
+  },
   key: "downloadFile",
   noun: "File",
-  display: {
-    label: "Download File",
-    description: "Returns a hydrated link to download a file."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
-        key: "id",
-        required: true,
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "The room where the file is located"
+        helpText: "The room where the file is located",
+        key: "id",
+        label: "Room",
+        required: true
       },
       {
-        label: "Folder",
-        key: "folderId",
         altersDynamicFields: true,
         dynamic: "folderCreated.id.title",
-        helpText: "The folder where the file is located (optional)"
+        helpText: "The folder where the file is located (optional)",
+        key: "folderId",
+        label: "Folder"
       },
       {
-        label: "File",
-        key: "fileId",
-        type: "integer",
-        required: true,
         dynamic: "hiddenFileCreated.id.title",
-        search: "searchFile.id"
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "integer"
       }
     ],
     /**
@@ -304,8 +304,8 @@ const downloadFile = {
       const result = await files.downloadLink(bundle.inputData.fileId)
       const hydrate = await z.dehydrateFile(stashFile, { url: result.url })
       return {
-        id: bundle.inputData.fileId,
-        file: hydrate
+        file: hydrate,
+        id: bundle.inputData.fileId
       }
     },
     sample: samples.hydratedFile
@@ -313,19 +313,19 @@ const downloadFile = {
 }
 
 const externalLink = {
+  display: {
+    description: "Returns the primary external link of a room.",
+    label: "External Link"
+  },
   key: "externalLink",
   noun: "Room",
-  display: {
-    label: "External Link",
-    description: "Returns the primary external link of a room."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
+        dynamic: "roomCreated.id.title",
         key: "id",
-        required: true,
-        dynamic: "roomCreated.id.title"
+        label: "Room",
+        required: true
       }
     ],
     /**
@@ -343,26 +343,26 @@ const externalLink = {
 }
 
 const roomCreate = {
+  display: {
+    description: "Create a room.",
+    label: "Create Room"
+  },
   key: "roomCreate",
   noun: "Rooms",
-  display: {
-    label: "Create Room",
-    description: "Create a room."
-  },
   operation: {
     inputFields: [
       {
-        label: "Title",
+        default: "Test room",
         key: "title",
-        required: true,
-        default: "Test room"
+        label: "Title",
+        required: true
       },
       {
-        label: "Type",
-        key: "type",
-        required: true,
         choices: { "CustomRoom": "Custom room", "EditingRooms": "Editing rooms" },
-        default: "CustomRoom"
+        default: "CustomRoom",
+        key: "type",
+        label: "Type",
+        required: true
       }
     ],
     /**
@@ -380,32 +380,32 @@ const roomCreate = {
 }
 
 const shareRoom = {
+  display: {
+    description: "Share a room with a user.",
+    label: "Share Room"
+  },
   key: "shareRoom",
   noun: "Room",
-  display: {
-    label: "Share Room",
-    description: "Share a room with a user."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
-        key: "roomId",
-        required: true,
         altersDynamicFields: true,
-        dynamic: "roomCreated.id.title"
+        dynamic: "roomCreated.id.title",
+        key: "roomId",
+        label: "Room",
+        required: true
       },
       {
-        label: "User",
+        dynamic: "userAdded.id.displayName",
         key: "userId",
-        required: true,
-        dynamic: "userAdded.id.displayName"
+        label: "User",
+        required: true
       },
       {
-        label: "Role",
+        dynamic: "shareRoles.id.name",
         key: "access",
-        required: true,
-        dynamic: "shareRoles.id.name"
+        label: "Role",
+        required: true
       }
     ],
     /**
@@ -421,11 +421,13 @@ const shareRoom = {
           access: bundle.inputData.access,
           id: bundle.inputData.userId
         }],
-        notify: true,
-        message: "Invitation from Zapier"
+        message: "Invitation from Zapier",
+        notify: true
       }
       const response = await files.shareRoom(bundle.inputData.roomId, body)
-      if (response.members.length <= 0) throw new z.errors.HaltedError("Failed to invite user")
+      if (response.members.length <= 0) {
+        throw new z.errors.HaltedError("Failed to invite user")
+      }
       return response.members[0].sharedTo
     },
     sample: samples.share
@@ -433,31 +435,31 @@ const shareRoom = {
 }
 
 const uploadFile = {
+  display: {
+    description: "Upload a file.",
+    label: "Upload File"
+  },
   key: "uploadFile",
   noun: "File",
-  display: {
-    label: "Upload File",
-    description: "Upload a file."
-  },
   operation: {
     inputFields: [
       {
-        label: "Room",
-        key: "id",
-        required: true,
         altersDynamicFields: true,
-        dynamic: "roomCreated.id.title"
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true
       },
       {
-        label: "Folder",
+        dynamic: "folderCreated.id.title",
         key: "folderId",
-        dynamic: "folderCreated.id.title"
+        label: "Folder"
       },
       {
-        label: "URL or File",
+        helpText: "Download file via direct link or hydrate file",
         key: "url",
-        required: true,
-        helpText: "Download file via direct link or hydrate file"
+        label: "URL or File",
+        required: true
       }
     ],
     /**
@@ -476,10 +478,10 @@ const uploadFile = {
         const fileStash = await uploader.stash(bundle.inputData.url)
         const headers = await uploader.headers(fileStash)
         const bodySession = {
-          folderId: bundle.inputData.folderId,
+          CreateOn: new Date().toISOString(),
           FileName: headers.fileName,
           FileSize: headers.fileSize,
-          CreateOn: new Date().toISOString()
+          folderId: bundle.inputData.folderId
         }
         const session = await files.createSession(bundle.inputData.folderId, bodySession)
         const bodyUpload = {

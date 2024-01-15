@@ -6,15 +6,15 @@
  */
 
 const { argv, chdir, env, exit, stdin, stdout } = require("node:process")
-const { build } = require("esbuild")
 const { copyFile, readFile, rm, writeFile } = require("node:fs/promises")
 const { createInterface } = require("node:readline")
 const { error, log, warn } = require("node:console")
 const { execSync } = require("node:child_process")
 const { existsSync } = require("node:fs")
 const { join } = require("node:path")
-const pack = require("./package.json")
+const { build } = require("esbuild")
 const sade = require("sade")
+const pack = require("./package.json")
 
 const root = __dirname
 const dist = join(root, "dist")
@@ -40,7 +40,7 @@ function exec(command) {
  * @returns {Promise<string>}
  */
 function question(line, message) {
-  return new Promise(resolve => {
+  return new Promise((resolve) => {
     line.question(message, resolve)
   })
 }
@@ -51,7 +51,7 @@ function question(line, message) {
  */
 async function clearDirectory(directory) {
   if (existsSync(directory)) {
-    await rm(directory, { recursive: true, force: true })
+    await rm(directory, { force: true, recursive: true })
   }
 }
 
@@ -80,13 +80,13 @@ async function buildEntry(input, output) {
  */
 async function buildPackage(pack, directory) {
   const object = {
-    name: pack.name,
-    version: pack.version,
-    type: pack.type,
-    main: pack.main,
     dependencies: {
       "zapier-platform-core": pack.dependencies["zapier-platform-core"]
-    }
+    },
+    main: pack.main,
+    name: pack.name,
+    type: pack.type,
+    version: pack.version
   }
   const content = JSON.stringify(object, undefined, 2)
   const file = join(directory, "package.json")

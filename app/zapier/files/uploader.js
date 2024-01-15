@@ -63,7 +63,7 @@ class Uploader {
     if (url.startsWith("https://zapier.com/engine/hydrate/")) {
       zapierUrl = url
     } else {
-      const filePromise = this.z.request({ url, raw: true })
+      const filePromise = this.z.request({ raw: true, url })
       zapierUrl = await this.z.stashFile(filePromise)
     }
     return zapierUrl
@@ -91,7 +91,7 @@ class Uploader {
     let result
     const chunkSize = 10 * 1024 * 1024
     const chunks = Math.ceil(bodyUpload.fileSize / chunkSize)
-    for (let currentChunk = 0; currentChunk < chunks; currentChunk++) {
+    for (let currentChunk = 0; currentChunk < chunks; currentChunk = currentChunk + 1) {
       const offset = currentChunk * chunkSize
       const headers = { Range: `bytes=${offset}-${offset + chunkSize - 1}` }
       const data = await this.fetchData(bodyUpload.fileStash, headers)
@@ -103,7 +103,9 @@ class Uploader {
       }
       result = await uploadChunk(chunk)
     }
-    if (!result) throw new this.z.errors.HaltedError("Unknown error")
+    if (!result) {
+      throw new this.z.errors.HaltedError("Unknown error")
+    }
     return result
   }
 

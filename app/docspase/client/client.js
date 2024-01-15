@@ -108,7 +108,7 @@ class Client {
    * @returns {Promise<T>}
    */
   async request(method, url, body = {}, headers = {}) {
-    const response = await this.zrequest({ url, method, body, headers })
+    const response = await this.zrequest({ body, headers, method, url })
 
     const { data } = response
     if (!data) {
@@ -141,7 +141,7 @@ class Progress {
     let progress = this.operation
     while (limit > 0) {
       const operations = await this.endpoint()
-      const operation = operations.find(item => item.id === this.operation.id)
+      const operation = operations.find((item) => item.id === this.operation.id)
       if (operation) {
         progress = operation
         if (!!progress.error || limit === 0) {
@@ -161,16 +161,17 @@ class Progress {
         }
       }
       await this.wait(delay)
-      limit--
+      limit = limit - 1
     }
     return progress
   }
 
   /**
    * @param {number} delay
+   * @returns {Promise<void>}
    */
   async wait(delay) {
-    return new Promise(resolve => setTimeout(resolve, delay))
+    return new Promise((resolve) => setTimeout(resolve, delay))
   }
 }
 
@@ -186,11 +187,11 @@ class Service {
 module.exports = {
   ACTIVATION_STATUS,
   Client,
+  ONLY_USERS_FILTER_TYPE,
+  Progress,
+  Service,
   customRoomRoles,
   isCustomRoom,
   isPublicRoom,
-  ONLY_USERS_FILTER_TYPE,
-  Progress,
-  publicRoomRoles,
-  Service
+  publicRoomRoles
 }

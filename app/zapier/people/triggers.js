@@ -14,12 +14,12 @@ const samples = require("../../docspase/people/people.samples.js")
  */
 
 const userAdded = {
+  display: {
+    description: "Triggers when a user is added.",
+    label: "User Added"
+  },
   key: "userAdded",
   noun: "Users",
-  display: {
-    label: "User Added",
-    description: "Triggers when a user is added."
-  },
   operation: {
     /**
      * @param {ZObject} z

@@ -20,29 +20,29 @@ const samples = require("../../docspase/people/people.samples.js")
  */
 
 const inviteUser = {
+  display: {
+    description: "Invites user to the current portal.",
+    label: "Invite User"
+  },
   key: "inviteUser",
   noun: "User",
-  display: {
-    label: "Invite User",
-    description: "Invites user to the current portal."
-  },
   operation: {
     inputFields: [
       {
-        label: "Email",
         key: "email",
+        label: "Email",
         required: true
       },
       {
-        label: "Role",
-        key: "type",
-        required: true,
         choices: {
-          "2": "User",
-          "4": "Power user",
           "1": "Room admin",
-          "3": "DocSpace admin"
-        }
+          "2": "User",
+          "3": "DocSpace admin",
+          "4": "Power user"
+        },
+        key: "type",
+        label: "Role",
+        required: true
       }
     ],
     /**
@@ -52,12 +52,12 @@ const inviteUser = {
      */
     async perform(z, bundle) {
       /**
-     * @param {string} email
-     * @param {Account[]} accounts
-     * @returns {Account|undefined}
-     */
+       * @param {string} email
+       * @param {Account[]} accounts
+       * @returns {Account|undefined}
+       */
       function findUser(email, accounts) {
-        for (let i = 0; i < accounts.length; i++) {
+        for (let i = 0; i < accounts.length; i = i + 1) {
           if (accounts[i].displayName === email) {
             return accounts[i]
           }

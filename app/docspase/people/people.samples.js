@@ -11,44 +11,44 @@
 
 /** @type {Account} */
 const account = {
-  id: "11111111-2222-3333-4444-555555555555",
   displayName: "John Doe",
+  id: "11111111-2222-3333-4444-555555555555",
   profileUrl: "https://johndoe.onlyoffice.io/accounts/view/john.doe"
 }
 
 /** @type {User} */
 const user = {
-  firstName: "John",
-  lastName: "Doe",
-  userName: "john.doe",
-  email: "john.doe@example.com",
-  status: 1,
   activationStatus: 1,
-  department: "",
-  workFrom: "2023-01-12T00:00:00.0000000+03:00",
+  avatar: "/static/images/default_user_photo_size_82-82.png",
   avatarMax: "/static/images/default_user_photo_size_200-200.png",
   avatarMedium: "/static/images/default_user_photo_size_48-48.png",
-  avatar: "/static/images/default_user_photo_size_82-82.png",
+  avatarSmall: "/static/images/default_user_photo_size_32-32.png",
+  department: "",
+  displayName: "John Doe",
+  email: "john.doe@example.com",
+  firstName: "John",
+  hasAvatar: false,
+  id: "11111111-2222-3333-4444-555555555555",
   isAdmin: true,
-  isRoomAdmin: false,
+  isCollaborator: false,
   isLDAP: false,
+  isOwner: true,
+  isRoomAdmin: false,
+  isSSO: false,
+  isVisitor: false,
+  lastName: "Doe",
   listAdminModules: [
     "files",
     "people"
   ],
-  isOwner: true,
-  isVisitor: false,
-  isCollaborator: false,
   mobilePhone: "+555 555 1234",
   mobilePhoneActivationStatus: 0,
-  isSSO: false,
-  quotaLimit: 0,
-  usedSpace: 0,
-  id: "11111111-2222-3333-4444-555555555555",
-  displayName: "John Doe",
-  avatarSmall: "/static/images/default_user_photo_size_32-32.png",
   profileUrl: "https://johndoe.example.io/accounts/view/john.doe",
-  hasAvatar: false
+  quotaLimit: 0,
+  status: 1,
+  usedSpace: 0,
+  userName: "john.doe",
+  workFrom: "2023-01-12T00:00:00.0000000+03:00"
 }
 
 module.exports = { account, user }

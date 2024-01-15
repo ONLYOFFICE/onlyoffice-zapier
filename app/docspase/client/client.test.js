@@ -26,18 +26,18 @@ test("url generate a valid URL with filters", () => {
   /** @type {Filters} */
   const filters = {
     count: 1,
-    sortBy: "DateAndTime",
-    sortOrder: "descending",
-    startIndex: 0,
     filterBy: "userName",
     filterOp: "startsWith",
-    filterValue: "John"
+    filterValue: "John",
+    sortBy: "DateAndTime",
+    sortOrder: "descending",
+    startIndex: 0
   }
   const url = client.url("/files", filters)
 
   equal(
     url,
-    "https://example.com/api/2.0/files?count=1&sortBy=DateAndTime&sortOrder=descending&startIndex=0&filterBy=userName&filterOp=startsWith&filterValue=John"
+    "https://example.com/api/2.0/files?count=1&filterBy=userName&filterOp=startsWith&filterValue=John&sortBy=DateAndTime&sortOrder=descending&startIndex=0"
   )
 })
 
@@ -133,13 +133,13 @@ test("progress breaks if the response contains an error", async () => {
     i += 1
     return [
       {
+        error: "hola",
+        finished: false,
         id: "00000000-1111-2222-3333-444444444444",
         operation: 0,
-        progress: 0,
         percents: 0,
-        error: "hola",
         processed: "0",
-        finished: false
+        progress: 0
       }
     ]
   }
@@ -159,13 +159,13 @@ test("progress completes when the response contains 100 progress", async () => {
     p += 50
     return [
       {
+        error: "",
+        finished: false,
         id: "00000000-1111-2222-3333-444444444444",
         operation: 0,
-        progress: p,
         percents: 0,
-        error: "",
         processed: "0",
-        finished: false
+        progress: p
       }
     ]
   }
@@ -187,13 +187,13 @@ test("progress completes when the response contains 100 percents", async () => {
     p += 50
     return [
       {
+        error: "",
+        finished: false,
         id: "00000000-1111-2222-3333-444444444444",
         operation: 0,
-        progress: 0,
         percents: p,
-        error: "",
         processed: "0",
-        finished: false
+        progress: 0
       }
     ]
   }

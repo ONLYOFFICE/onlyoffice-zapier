@@ -177,36 +177,36 @@ const { Service } = require("../client/client.js")
  */
 
 /**
-* @typedef {Object} ShareData
-* @property {string} firstName
-* @property {string} lastName
-* @property {string} userName
-* @property {string} email
-* @property {number} status
-* @property {number} activationStatus
-* @property {boolean} isAdmin
-* @property {boolean} isRoomAdmin
-* @property {boolean} isLDAP
-* @property {boolean} isOwner
-* @property {boolean} isVisitor
-* @property {boolean} isCollaborator
-* @property {boolean} isSSO
-* @property {number} quotaLimit
-* @property {number} usedSpace
-* @property {string} id
-* @property {string} displayName
-* @property {string} profileUrl
-*/
+ * @typedef {Object} ShareData
+ * @property {string} firstName
+ * @property {string} lastName
+ * @property {string} userName
+ * @property {string} email
+ * @property {number} status
+ * @property {number} activationStatus
+ * @property {boolean} isAdmin
+ * @property {boolean} isRoomAdmin
+ * @property {boolean} isLDAP
+ * @property {boolean} isOwner
+ * @property {boolean} isVisitor
+ * @property {boolean} isCollaborator
+ * @property {boolean} isSSO
+ * @property {number} quotaLimit
+ * @property {number} usedSpace
+ * @property {string} id
+ * @property {string} displayName
+ * @property {string} profileUrl
+ */
 
 /**
-* @typedef {object} ShareList
-* @property {ShareMembers[]} members
-*/
+ * @typedef {object} ShareList
+ * @property {ShareMembers[]} members
+ */
 
 /**
-* @typedef {Object} ShareMembers
-* @property {ShareData} sharedTo
-*/
+ * @typedef {Object} ShareMembers
+ * @property {ShareData} sharedTo
+ */
 
 /**
  * @typedef {Object} ShareRoomBody
