@@ -35,6 +35,7 @@ const file = {
   fileType: 7,
   folderId: 3,
   id: 2,
+  originId: 3,
   rootFolderId: 1,
   rootFolderType: 14,
   title: "README.docx",
