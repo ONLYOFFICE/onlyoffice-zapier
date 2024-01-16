@@ -24,23 +24,29 @@ If you haven't installed Zapier CLI yet, you can do it now with pnpm. It'll auto
 $ pnpm install-zapier
 ```
 
+We also suggest installing Git hooks. Just like the Zapier CLI, you can do this using pnpm.
+
+```sh
+$ pnpm install-lefthook
+```
+
 Once you've everything installed, you can run any script from [`package.json`](./package.json).
 
 ```sh
 $ cat ./package.json | jq .scripts
 {
-  "all": "./makefile.js all",
-  "attachments": "./makefile.js attachments",
-  "build": "./makefile.js build",
+  "all": "node ./makefile.js all",
+  "build": "node ./makefile.js build",
   "check": "tsc",
-  "install-zapier": "./makefile.js install-zapier",
-  "lint": "echo \"warn: eslint isn't configured\"",
-  "notes": "./makefile.js notes",
-  "promote": "./makefile.js promote",
-  "setup-env": "./makefile.js setup-env",
+  "install-lefthook": "node ./makefile.js install-lefthook",
+  "install-zapier": "node ./makefile.js install-zapier",
+  "lint": "eslint .",
+  "promote": "node ./makefile.js promote",
+  "release": "node ./makefile.js release",
+  "setup-env": "node ./makefile.js setup-env",
   "test": "uvu app ^.*\\.test\\.js$",
-  "tt": "./makefile.js tt",
-  "upload": "./makefile.js upload"
+  "tt": "node ./makefile.js tt",
+  "upload": "node ./makefile.js upload"
 }
 ```
 
@@ -53,20 +59,19 @@ $ ./makefile.js --help
     $ ./makefile.js <command> [options]
 
   Available Commands
-    all               Run an audit of the app and then build it
-    attachments       Print a list of attachments for the release action
-    build             Build the app
-    install-zapier    Install Zapier CLI globally using pnpm
-    notes             Print the current version notes for the release action
-    promote           Promote the current version of the app
-    setup-env         Setup environment dot file
-    tt                Run validation with tests
-    upload            Upload the current version of the app
-    version           Print the current version of the app without noises
+    all                 Run an audit of the app and then build it
+    build               Build the app
+    install-lefthook    Install Lefthook locally using pnpm
+    install-zapier      Install Zapier CLI globally using pnpm
+    promote             Promote the current version of the app
+    release             Release the current version of the app
+    setup-env           Setup environment dot file
+    tt                  Run validation with tests
+    upload              Upload the current version of the app
 
   For more info, run any command with the `--help` flag
     $ ./makefile.js all --help
-    $ ./makefile.js attachments --help
+    $ ./makefile.js build --help
 
   Options
     -v, --version    Displays current version
@@ -92,20 +97,17 @@ Instead of the project structure [recommended by the Zapier team](https://github
 $ tree . --dirsfirst
 .
 ├── app
-│   ├── module.fixture.js
-│   ├── module.js
-│   ├── module.samples.js
-│   └── module.test.js
+│   ├── docspase
+│   └── zapier
 ├── vendor
-│   ├── node.d.ts
-│   └── zapier.d.ts
-├── index.d.js
 └── index.js
 ```
 
-The entry point of the application is [`index.js`](./index.js). In addition, [`index.d.js`](./index.d.js), in the manner of a typescript definition file, contains aliases for all types defined using JSDoc throughout the entire application. This is useful as it allows us to avoid importing types into each file individually.
+The entry point of the application is [`index.js`](./index.js).
 
-The [`app`](./app) directory contains a list of modules that implement the application. Each module can have anywhere from 1 to 4 files. A `*.js` file may contain [triggers, searches, creates](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#triggerssearchescreates), [resources](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#resources), and anything else related to its module. To provide sample data for certain parts of the application, a `*.sample.js` file is included. Additionally, a `*.test.js` file contains test cases for the module, while a `*.fixture.js` file contains something that can be shared between different test files, such as authentication hooks.
+The [`app`](./app) directory contains two modules: the [`docspace`](./app/docspase) module and the [`zapier`](./app/zapier) module. The `docspace` module is a wrapper for the DocSpace REST API, while the `zapier` module may contain [triggers, searches, creates, and other resources](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#triggerssearchescreates) for building applications on the Zapier platform.
+
+To provide sample data, we follow the naming pattern `module.samples.js`. In addition, there is a `module.test.js` file that contains test cases for the module, and a `module.fixture.js` file that contains shared resources for different test files, such as authentication hooks.
 
 The [`vendor`](./vendor) directory is intended to store, for example, the [`zapier-platform-core`](./vendor/zapier-platform-core.d.ts) type definitions. In short, it's for anything that isn't related to us.
 
