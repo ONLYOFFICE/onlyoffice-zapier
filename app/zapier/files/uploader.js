@@ -9,7 +9,7 @@ const contentDisposition = require("content-disposition")
 const FormData = require("form-data")
 
 /**
- * @typedef {import("../../docspase/files/files.js").ChunkData} ChunkData
+ * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
  * @typedef {import("./actions.js").UploadFileFields} UploadFileFields
  */
 

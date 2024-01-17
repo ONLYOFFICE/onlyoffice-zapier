@@ -4,14 +4,14 @@
 
 // @ts-check
 
-const { Client } = require("../../docspase/client/client.js")
-const { FilesService } = require("../../docspase/files/files.js")
-const samples = require("../../docspase/files/files.samples.js")
+const { Client } = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
+const samples = require("../../docspace/files/files.samples.js")
 
 /**
- * @typedef {import("../../docspase/files/files.js").FileData} FileData
- * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/files/files.js").FileData} FileData
+ * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  */
 
 /**

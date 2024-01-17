@@ -3,17 +3,17 @@
 //
 
 const normalizeUrl = require("normalize-url")
-const { AuthenticationService } = require("../../docspase/auth/auth")
-const { Client } = require("../../docspase/client/client")
-const { PeopleService } = require("../../docspase/people/people")
+const { AuthenticationService } = require("../../docspace/auth/auth")
+const { Client } = require("../../docspace/client/client")
+const { PeopleService } = require("../../docspace/people/people")
 
 // @ts-check
 
 /**
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationFields} SessionAuthenticationFields
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationUnapprovedData} SessionAuthenticationUnapprovedData
- * @typedef {import("../../docspase/people/people.js").User} User
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationFields} SessionAuthenticationFields
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationUnapprovedData} SessionAuthenticationUnapprovedData
+ * @typedef {import("../../docspace/people/people.js").User} User
  */
 
 const sessionAuth = {

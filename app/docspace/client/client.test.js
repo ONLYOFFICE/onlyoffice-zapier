@@ -7,7 +7,7 @@
 const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
 const { Client, Progress } = require("./client.js")
-const samples = require("../../docspase/files/files.samples.js")
+const samples = require("../../docspace/files/files.samples.js")
 
 /**
  * @typedef {import("./client.js").Filters} Filters

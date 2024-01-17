@@ -25,7 +25,7 @@ const {
   uploadFile,
   uploadFileToMyDocuments
 } = require("./zapier/files/actions.js")
-const { beforeSessionAuthRequest } = require("./docspase/auth/auth.js")
+const { beforeSessionAuthRequest } = require("./docspace/auth/auth.js")
 const {
   fileCreated,
   fileCreatedInMyDocuments,

@@ -12,19 +12,19 @@ const {
   isPublicRoom,
   ONLY_USERS_FILTER_TYPE,
   publicRoomRoles
-} = require("../../docspase/client/client.js")
-const { FilesService } = require("../../docspase/files/files.js")
-const samples = require("../../docspase/files/files.samples.js")
-const { user } = require("../../docspase/people/people.samples.js")
+} = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
+const samples = require("../../docspace/files/files.samples.js")
+const { user } = require("../../docspace/people/people.samples.js")
 
 /**
- * @typedef {import("../../docspase/files/files.js").FileData} FileData
- * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
- * @typedef {import("../../docspase/files/files.js").PathParts} PathParts
- * @typedef {import("../../docspase/files/files.js").RoleData} RoleData
- * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
- * @typedef {import("../../docspase/people/people.js").User} User
+ * @typedef {import("../../docspace/files/files.js").FileData} FileData
+ * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/files/files.js").PathParts} PathParts
+ * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
+ * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/people/people.js").User} User
  */
 
 /**

@@ -8,10 +8,10 @@ const { env } = require("node:process")
 const { sessionAuth } = require("./auth.js")
 
 /**
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationFields} SessionAuthenticationFields
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationUnapprovedData} SessionAuthenticationUnapprovedData
- * @typedef {import("../../docspase/people/people.js").User} User
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationFields} SessionAuthenticationFields
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationUnapprovedData} SessionAuthenticationUnapprovedData
+ * @typedef {import("../../docspace/people/people.js").User} User
  */
 
 const DOC_SPACE_BASE_URL = env.DOC_SPACE_BASE_URL || ""
