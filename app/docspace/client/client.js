@@ -5,8 +5,8 @@
 // @ts-check
 
 /**
- * @typedef {import("../../docspase/files/files.js").ProgressData} ProgressData
- * @typedef {import("../../docspase/files/files.js").RoleData} RoleData
+ * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
+ * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
  */
 
 /**

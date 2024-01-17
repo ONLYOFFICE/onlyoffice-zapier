@@ -4,22 +4,22 @@
 
 // @ts-check
 
-const { Client, Progress } = require("../../docspase/client/client.js")
-const { FilesService } = require("../../docspase/files/files.js")
-const samples = require("../../docspase/files/files.samples.js")
+const { Client, Progress } = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
+const samples = require("../../docspace/files/files.samples.js")
 const { stashFile } = require("./hydrators.js")
 const { Uploader } = require("./uploader.js")
 
 /**
- * @typedef {import("../../docspase/files/files.js").ChunkData} ChunkData
- * @typedef {import("../../docspase/files/files.js").DownloadFileData} DownloadFileData
- * @typedef {import("../../docspase/files/files.js").ExternalLinkData} ExternalLinkData
- * @typedef {import("../../docspase/files/files.js").FileData} FileData
- * @typedef {import("../../docspase/files/files.js").FolderData} FolderData
- * @typedef {import("../../docspase/files/files.js").ProgressData} ProgressData
- * @typedef {import("../../docspase/files/files.js").RoomData} RoomData
- * @typedef {import("../../docspase/files/files.js").ShareData}  _ShareData
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
+ * @typedef {import("../../docspace/files/files.js").DownloadFileData} DownloadFileData
+ * @typedef {import("../../docspace/files/files.js").ExternalLinkData} ExternalLinkData
+ * @typedef {import("../../docspace/files/files.js").FileData} FileData
+ * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
+ * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
+ * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("./uploader.js").UploadFileData} UploadFileData
  */
 

@@ -15,7 +15,7 @@ const { App } = require("../../app.js")
 const { inviteUser } = require("./actions.js")
 
 /**
- * @typedef {import("../../docspase/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("./actions.js").InviteUserFields} InviteUserFields
  */
 

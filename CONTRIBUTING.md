@@ -97,7 +97,7 @@ Instead of the project structure [recommended by the Zapier team](https://github
 $ tree . --dirsfirst
 .
 ├── app
-│   ├── docspase
+│   ├── docspace
 │   └── zapier
 ├── vendor
 └── index.js
@@ -105,7 +105,7 @@ $ tree . --dirsfirst
 
 The entry point of the application is [`index.js`](./index.js).
 
-The [`app`](./app) directory contains two modules: the [`docspace`](./app/docspase) module and the [`zapier`](./app/zapier) module. The `docspace` module is a wrapper for the DocSpace REST API, while the `zapier` module may contain [triggers, searches, creates, and other resources](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#triggerssearchescreates) for building applications on the Zapier platform.
+The [`app`](./app) directory contains two modules: the [`docspace`](./app/docspace) module and the [`zapier`](./app/zapier) module. The `docspace` module is a wrapper for the DocSpace REST API, while the `zapier` module may contain [triggers, searches, creates, and other resources](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#triggerssearchescreates) for building applications on the Zapier platform.
 
 To provide sample data, we follow the naming pattern `module.samples.js`. In addition, there is a `module.test.js` file that contains test cases for the module, and a `module.fixture.js` file that contains shared resources for different test files, such as authentication hooks.
 
