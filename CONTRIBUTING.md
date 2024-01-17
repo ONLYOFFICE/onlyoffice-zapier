@@ -113,7 +113,7 @@ The [`vendor`](./vendor) directory is intended to store, for example, the [`zapi
 
 ## Testing
 
-The Zapier CLI reserves the `test` command in [`package.json`](./package.json). That's why we've the `tt` command, which allows us to run tests and load environment variables at the same time.
+The Zapier CLI reserves the `test` command in [`package.json`](./package.json). That's why we use the `tt` command, which allows us to run tests and load environment variables at the same time.
 
 ```sh
 $ pnpm tt
