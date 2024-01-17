@@ -1,8 +1,13 @@
+ONLYOFFICE Zapier Integration uses code from the following 3rd party projects.
+
 content-disposition  Create and parse HTTP Content-Disposition header (https://github.com/jshttp/content-disposition/blob/v0.5.4/LICENSE)
 license              MIT License
+License File:        content-disposition
 
 form-data            A module to create readable `"multipart/form-data"` streams. Can be used to submit forms and file uploads to other web applications. (https://github.com/form-data/form-data/blob/v4.0.0/License)
 license              MIT License
+License File:        form-data
 
 normalize-url        Normalize a URL (https://github.com/sindresorhus/normalize-url/blob/v6.1.0/license)
 license              MIT License
+License File:        normalize-url
