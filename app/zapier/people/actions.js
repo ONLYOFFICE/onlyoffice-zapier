@@ -21,7 +21,7 @@ const samples = require("../../docspace/people/people.samples.js")
 
 const inviteUser = {
   display: {
-    description: "Invites user to the current portal.",
+    description: "Invites a user to the current portal.",
     label: "Invite User"
   },
   key: "inviteUser",
@@ -81,7 +81,7 @@ const inviteUser = {
       if (invitedUser) {
         return invitedUser
       }
-      throw new z.errors.HaltedError("Could not find invited user in response")
+      throw new z.errors.HaltedError("Could not find the invited user in the response.")
     },
     sample: samples.account
   }

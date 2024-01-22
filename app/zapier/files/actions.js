@@ -206,7 +206,7 @@ const createFileInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "The folder where the folder will be created (optional)",
+        helpText: "The folder where the file will be created (optional)",
         key: "folderId",
         label: "Folder",
         search: "searchFolder.id",
@@ -295,7 +295,7 @@ const createFolderInMyDocuments = {
     label: "Create Folder in My Documents"
   },
   key: "createFolderInMyDocuments",
-  noun: "File",
+  noun: "Folder",
   operation: {
     inputFields: [
       {
@@ -374,8 +374,8 @@ const deleteFolder = {
 
 const deleteFolderInMyDocuments = {
   display: {
-    description: "Delete a folder in the My Documents directory.",
-    label: "Delete Folder in My Documents"
+    description: "Delete a folder from the My Documents directory.",
+    label: "Delete Folder from My Documents"
   },
   key: "deleteFolderInMyDocuments",
   noun: "Folder",
@@ -459,7 +459,7 @@ const downloadFile = {
 const downloadFileFromMyDocuments = {
   display: {
     description: "Returns a hydrated link to download a file from the My Documents directory.",
-    label: "Download File in My Documents"
+    label: "Download File from My Documents"
   },
   key: "downloadFileFromMyDocuments",
   noun: "File",
@@ -498,7 +498,7 @@ const downloadFileFromMyDocuments = {
 const externalLink = {
   display: {
     description: "Returns the primary external link of a room.",
-    label: "External Link"
+    label: "Get External Link"
   },
   key: "externalLink",
   noun: "Link",
@@ -645,7 +645,7 @@ const uploadFile = {
         type: "integer"
       },
       {
-        helpText: "Download file via direct link or hydrate file",
+        helpText: "Download the file via direct link or hydrate the file",
         key: "url",
         label: "URL or File",
         required: true,
@@ -716,7 +716,7 @@ const uploadFileToMyDocuments = {
         type: "integer"
       },
       {
-        helpText: "Download file via direct link or hydrate file",
+        helpText: "Download the file via direct link or hydrate the file",
         key: "url",
         label: "URL or File",
         required: true

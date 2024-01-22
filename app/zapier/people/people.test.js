@@ -29,7 +29,7 @@ People.before(async (context) => {
   await sessionAuthPerform(tester, context)
 })
 
-People("invited a user", async (context) => {
+People("invites a user", async (context) => {
   const { perform } = inviteUser.operation
   /** @type {InviteUserFields} */
   const inputData = {
@@ -50,19 +50,19 @@ People("invited a user", async (context) => {
     equal(user.displayName, bundle.inputData.email)
   } catch (error) {
     if (!(error instanceof Error && error.message)) {
-      unreachable("Was expecting an Error but got something else")
+      unreachable("Expected an error but got something else.")
       return
     }
 
     const response = JSON.parse(error.message)
     if (!response.content) {
-      unreachable("Was expecting a content but did not get it")
+      unreachable("Expected a content but did not get it.")
       return
     }
 
     const data = JSON.parse(response.content)
     const message = data.error.message
-    equal(message, "User with this email is already registered")
+    equal(message, "A user with this email is already registered.")
   }
 })
 

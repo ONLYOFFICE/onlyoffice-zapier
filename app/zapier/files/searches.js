@@ -22,7 +22,7 @@ const samples = require("../../docspace/files/files.samples.js")
 
 const searchFile = {
   display: {
-    description: "Search a file.",
+    description: "Search for a file.",
     label: "Search File"
   },
   key: "searchFile",
@@ -31,7 +31,7 @@ const searchFile = {
     inputFields: [
       {
         dynamic: "filteredSections.id.title",
-        helpText: "Search section",
+        helpText: "Search for a section",
         key: "folderId",
         label: "Section",
         required: true,
@@ -66,7 +66,7 @@ const searchFile = {
 
 const searchFolder = {
   display: {
-    description: "Search a folder.",
+    description: "Search for a folder.",
     label: "Search Folder"
   },
   key: "searchFolder",
@@ -75,7 +75,7 @@ const searchFolder = {
     inputFields: [
       {
         dynamic: "filteredSections.id.title",
-        helpText: "Search section",
+        helpText: "Search for a section",
         key: "folderId",
         label: "Section",
         required: true,
