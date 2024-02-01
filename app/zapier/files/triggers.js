@@ -95,7 +95,7 @@ const { user } = require("../../docspace/people/people.samples.js")
 
 const fileCreated = {
   display: {
-    description: "Triggers when a file is created in room or folder.",
+    description: "Triggers when a file is created in a room or folder.",
     label: "File Created"
   },
   key: "fileCreated",
@@ -105,14 +105,14 @@ const fileCreated = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Trigger after created from a specific room",
+        helpText: "Triggers when created from a specific room",
         key: "id",
         label: "Room",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
-        helpText: "Trigger after created from a specific folder",
+        helpText: "Triggers when created from a specific folder",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -155,7 +155,7 @@ const fileCreatedInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Trigger after created from a specific folder from my documents directory (optional)",
+        helpText: "Triggers when created from a specific folder of the My Documents directory (optional)",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -181,7 +181,7 @@ const fileCreatedInMyDocuments = {
 
 const fileDeleted = {
   display: {
-    description: "Triggers when a file is deleted (from room or folder optional).",
+    description: "Triggers when a file is deleted (optionally from a room or folder).",
     label: "File Deleted"
   },
   key: "fileDeleted",
@@ -191,14 +191,14 @@ const fileDeleted = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Trigger after deleted from a specific room (optional)",
+        helpText: "Triggers when deleted from a specific room (optional)",
         key: "id",
         label: "Room",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
-        helpText: "Trigger after deleted from a specific folder (optional)",
+        helpText: "Triggers when deleted from a specific folder (optional)",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -232,8 +232,8 @@ const fileDeleted = {
 
 const fileDeletedInMyDocuments = {
   display: {
-    description: "Triggers when a file is deleted in the My Documents directory.",
-    label: "File Deleted in My Documents"
+    description: "Triggers when a file is deleted from the My Documents directory.",
+    label: "File Deleted from My Documents"
   },
   key: "fileDeletedInMyDocuments",
   noun: "File",
@@ -241,7 +241,7 @@ const fileDeletedInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Trigger after deleted from a specific folder from my documents directory (optional)",
+        helpText: "Triggers when deleted from a specific folder of the My Documents directory (optional)",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -267,9 +267,9 @@ const fileDeletedInMyDocuments = {
 
 const filesList = {
   display: {
-    description: "Hidden trigger for get files list from folder or room.",
+    description: "Hidden trigger to get a list of files from a folder or room.",
     hidden: true,
-    label: "Files List"
+    label: "List of Files"
   },
   key: "filesList",
   noun: "Files",
@@ -298,9 +298,9 @@ const filesList = {
 
 const filesListFromMyDocuments = {
   display: {
-    description: "Hidden trigger for get files list from my documents.",
+    description: "Hidden trigger to get a list of files from the My Documents directory.",
     hidden: true,
-    label: "Files List"
+    label: "List of Files from My Documents"
   },
   key: "filesListFromMyDocuments",
   noun: "Files",
@@ -325,7 +325,7 @@ const filesListFromMyDocuments = {
 
 const filteredSections = {
   display: {
-    description: "Hidden trigger for get all sections.",
+    description: "Hidden trigger to get all sections.",
     hidden: true,
     label: "Filtered Sections"
   },
@@ -352,7 +352,7 @@ const filteredSections = {
 
 const folderCreated = {
   display: {
-    description: "Triggers when a folder is created in room or folder.",
+    description: "Triggers when a folder is created in a room or folder.",
     label: "Folder Created"
   },
   key: "folderCreated",
@@ -362,14 +362,14 @@ const folderCreated = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Trigger after created from a specific room",
+        helpText: "Triggers when created from a specific room",
         key: "id",
         label: "Room",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
-        helpText: "Trigger after created from a specific folder",
+        helpText: "Triggers when created from a specific folder",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -412,7 +412,7 @@ const folderCreatedInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Trigger after deleted from a specific folder from my documents directory (optional)",
+        helpText: "Triggers when created from a specific folder of the My Documents directory (optional)",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -438,7 +438,7 @@ const folderCreatedInMyDocuments = {
 
 const folderDeleted = {
   display: {
-    description: "Triggers when a folder is deleted (from room or folder optional).",
+    description: "Triggers when a folder is deleted (optionally from a room or folder).",
     label: "Folder Deleted"
   },
   key: "folderDeleted",
@@ -448,14 +448,14 @@ const folderDeleted = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Trigger after deleted from a specific room (optional)",
+        helpText: "Triggers when deleted from a specific room (optional)",
         key: "id",
         label: "Room",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
-        helpText: "Trigger after deleted from a specific folder (optional)",
+        helpText: "Triggers when deleted from a specific folder (optional)",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -488,8 +488,8 @@ const folderDeleted = {
 
 const folderDeletedInMyDocuments = {
   display: {
-    description: "Triggers when a folder is deleted in the My Documents directory.",
-    label: "Folder Deleted in My Documents"
+    description: "Triggers when a folder is deleted from the My Documents directory.",
+    label: "Folder Deleted from My Documents"
   },
   key: "folderDeletedInMyDocuments",
   noun: "Folder",
@@ -497,7 +497,7 @@ const folderDeletedInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Trigger after deleted from a specific folder from my documents directory (optional)",
+        helpText: "Triggers when deleted from a specific folder of the My Documents directory (optional)",
         key: "folderId",
         label: "Folder",
         type: "integer"
@@ -523,9 +523,9 @@ const folderDeletedInMyDocuments = {
 
 const foldersInMyDocumentsList = {
   display: {
-    description: "Hidden trigger for get folders list from my documents section.",
+    description: "Hidden trigger to get a list of folders from the My Documents directory.",
     hidden: true,
-    label: "Folders List in My Documents"
+    label: "List of Folders from My Documents"
   },
   key: "foldersInMyDocumentsList",
   noun: "Folders",
@@ -605,7 +605,7 @@ const roomArchived = {
 
 const shareRoles = {
   display: {
-    description: "Hidden trigger for get roles for share by room id.",
+    description: "Hidden trigger to get roles to share by the room ID.",
     hidden: true,
     label: "Get Roles"
   },
@@ -635,7 +635,7 @@ const shareRoles = {
 
 const userInvited = {
   display: {
-    description: "Triggers when a user invited to Room.",
+    description: "Triggers when a user is invited to the room.",
     label: "User Joined"
   },
   key: "userInvited",
@@ -650,7 +650,7 @@ const userInvited = {
         type: "integer"
       },
       {
-        helpText: "Return only those who are active",
+        helpText: "Returns only those who are active",
         key: "active",
         label: "active",
         type: "boolean"

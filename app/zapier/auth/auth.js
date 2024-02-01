@@ -20,7 +20,7 @@ const sessionAuth = {
   connectionLabel: "{{firstName}} {{lastName}}",
   fields: [
     {
-      helpText: "Go to the [API Details](https://my.site.com/manage/api-details) screen from your. Website Dashboard to find your API Key.",
+      helpText: "Go to the [API Details](https://my.site.com/manage/api-details) screen from your Website Dashboard to find your API Key.",
       key: "baseUrl",
       label: "URL",
       required: true
