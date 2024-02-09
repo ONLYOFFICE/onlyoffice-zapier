@@ -133,7 +133,7 @@ const share = {
   "isSSO": false,
   "isVisitor": false,
   "lastName": "Doe",
-  "profileUrl": "https://alexandersalyakhov.onlyoffice.io/accounts/view/example",
+  "profileUrl": "https://example.onlyoffice.io/accounts/view/example",
   "quotaLimit": 0,
   "status": 1,
   "usedSpace": 0,
@@ -142,12 +142,12 @@ const share = {
 
 /** @type {UploadFileData} */
 const upload = {
-  file,
-  folderId: 1,
-  id: 3,
-  title: "sample.docx",
-  uploaded: true,
-  version: 1
+  bytes_total: 100,
+  created: "2023-01-01T12:00:00.0000000Z",
+  expired: "2023-01-01T12:00:00.0100000Z",
+  id: "00000000000000000000000000000000",
+  location: "https://example.onlyoffice.io/ChunkedUploader.ashx?uid=00000000000000000000000000000000",
+  path: [28788]
 }
 
 module.exports = {
