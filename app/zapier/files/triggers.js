@@ -280,17 +280,8 @@ const filesList = {
      * @returns {Promise<FileData[]>}
      */
     async perform(z, bundle) {
-      if (!bundle.inputData.id) {
-        return []
-      }
-      const refinedBundle = {
-        ...bundle,
-        inputData: {
-          ...bundle.inputData,
-          folderId: bundle.inputData.folderId || bundle.inputData.id
-        }
-      }
-      return fileCreated.operation.perform(z, refinedBundle)
+      bundle.inputData.folderId = bundle.inputData.folderId || bundle.inputData.id
+      return fileCreated.operation.perform(z, bundle)
     },
     sample: samples.file
   }
