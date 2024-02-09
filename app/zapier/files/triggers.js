@@ -107,14 +107,14 @@ const fileCreated = {
         dynamic: "roomCreated.id.title",
         helpText: "Triggers when created from a specific room",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         helpText: "Triggers when created from a specific folder",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -157,7 +157,7 @@ const fileCreatedInMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "Triggers when created from a specific folder of the My Documents directory (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -193,14 +193,14 @@ const fileDeleted = {
         dynamic: "roomCreated.id.title",
         helpText: "Triggers when deleted from a specific room (optional)",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         helpText: "Triggers when deleted from a specific folder (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -243,7 +243,7 @@ const fileDeletedInMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "Triggers when deleted from a specific folder of the My Documents directory (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -364,14 +364,14 @@ const folderCreated = {
         dynamic: "roomCreated.id.title",
         helpText: "Triggers when created from a specific room",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         helpText: "Triggers when created from a specific folder",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -414,7 +414,7 @@ const folderCreatedInMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "Triggers when created from a specific folder of the My Documents directory (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -450,14 +450,14 @@ const folderDeleted = {
         dynamic: "roomCreated.id.title",
         helpText: "Triggers when deleted from a specific room (optional)",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         helpText: "Triggers when deleted from a specific folder (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -499,7 +499,7 @@ const folderDeletedInMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "Triggers when deleted from a specific folder of the My Documents directory (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         type: "integer"
       }
     ],
@@ -645,7 +645,7 @@ const userInvited = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room",
+        label: "Room id",
         required: true,
         type: "integer"
       },
