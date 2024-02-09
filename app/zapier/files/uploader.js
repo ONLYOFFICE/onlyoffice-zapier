@@ -60,7 +60,7 @@ class Uploader {
    */
   async stash(url) {
     let zapierUrl
-    if (url.startsWith("https://zapier.com/engine/hydrate/")) {
+    if (url.startsWith("https://zapier")) {
       zapierUrl = url
     } else {
       const filePromise = this.z.request({ raw: true, url })
