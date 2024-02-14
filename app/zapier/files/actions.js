@@ -177,7 +177,7 @@ const createFile = {
      * @param {Bundle<SessionAuthenticationData, CreateFileFields>} bundle
      * @returns {Promise<FileData>}
      */
-    perform(z, bundle) {
+    async perform(z, bundle) {
       if (!bundle.inputData.folderId) {
         bundle.inputData.folderId = bundle.inputData.id
       }
@@ -187,7 +187,9 @@ const createFile = {
         const body = {
           title: bundle.inputData.title
         }
-        return files.createFile(bundle.inputData.folderId, body)
+        const createdFile = await files.createFile(bundle.inputData.folderId, body)
+        createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+        return createdFile
       }
       throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
@@ -225,13 +227,15 @@ const createFileInMyDocuments = {
      * @param {Bundle<SessionAuthenticationData, CreateFileInMyDocumentsFields>} bundle
      * @returns {Promise<FileData>}
      */
-    perform(z, bundle) {
+    async perform(z, bundle) {
       if (bundle.inputData.folderId) {
         return createFile.operation.perform(z, bundle)
       }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return files.createFileInMyDocuments(bundle.inputData)
+      const createdFile = await files.createFileInMyDocuments(bundle.inputData)
+      createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+      return createdFile
     },
     sample: samples.file
   }

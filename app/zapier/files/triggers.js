@@ -136,6 +136,9 @@ const fileCreated = {
           sortOrder: "descending"
         }
         const filesList = await files.listFiles(bundle.inputData.folderId, filters)
+        filesList.files.forEach((file) => {
+          file.title = file.title.substring(0, file.title.lastIndexOf("."))
+        })
         return filesList.files
       }
       throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
@@ -218,6 +221,9 @@ const fileDeleted = {
         sortOrder: "descending"
       }
       const trash = await files.listTrash(filters)
+      trash.files.forEach((file) => {
+        file.title = file.title.substring(0, file.title.lastIndexOf("."))
+      })
       if (bundle.inputData.id || bundle.inputData.folderId) {
         if (!bundle.inputData.folderId) {
           bundle.inputData.folderId = bundle.inputData.id

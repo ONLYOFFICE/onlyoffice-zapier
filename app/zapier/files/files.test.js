@@ -285,7 +285,7 @@ Files("creates a file in folder that is in room", async (context) => {
   const file = await tester(perform, bundle)
   context.inputData.rooms.fileId = file.id
   equal(file.folderId, inputData.folderId)
-  equal(file.title, inputData.title + ".docx")
+  equal(file.title, inputData.title)
 })
 
 Files("triggers when a file is created in folder that is in room", async (context) => {
@@ -300,7 +300,7 @@ Files("triggers when a file is created in folder that is in room", async (contex
   }
   const files = await tester(perform, bundle)
   const file = files[0]
-  equal(file.title, "Test File" + ".docx")
+  equal(file.title, "Test File")
 })
 
 Files("hidden files list trigger returned file via folder id", async (context) => {
@@ -315,7 +315,7 @@ Files("hidden files list trigger returned file via folder id", async (context) =
   }
   const files = await tester(perform, bundle)
   const file = files[0]
-  equal(file.title, "Test File.docx")
+  equal(file.title, "Test File")
 })
 
 Files("downloads file from folder that is in room", async (context) => {
@@ -429,7 +429,7 @@ Files("creates a file in the my documents", async (context) => {
   }
   const file = await tester(perform, bundle)
   context.inputData.myDocuments.fileId = file.id
-  equal(file.title, "Test File.docx")
+  equal(file.title, "Test File")
 })
 
 Files("triggers when a file is created in my documents", async (context) => {
@@ -454,7 +454,7 @@ Files("hidden files list trigger returned file via my document", async (context)
   }
   const files = await tester(perform, bundle)
   const file = files[0]
-  equal(file.title, "Test File.docx")
+  equal(file.title, "Test File")
   equal(file.id, context.inputData.myDocuments.fileId)
 })
 
@@ -497,7 +497,7 @@ Files("creates a file in the folder that is in my documents", async (context) =>
   const file = await tester(perform, bundle)
   context.inputData.myDocuments.folderId.fileId = file.id
   equal(file.folderId, context.inputData.myDocuments.folderId.id)
-  equal(file.title, "Test File.docx")
+  equal(file.title, "Test File")
 })
 
 Files("triggers when a file is created in the folder that is in my documents", async (context) => {
