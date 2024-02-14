@@ -134,7 +134,7 @@ const { Service } = require("../client/client.js")
 /**
  * @typedef {Object} RoomCreateBody
  * @property {string} title
- * @property {string} type
+ * @property {number} roomType
  */
 
 /**

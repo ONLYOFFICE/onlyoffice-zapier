@@ -6,16 +6,19 @@
 
 const {
   ACTIVATION_STATUS,
+  basicFormRoomRoles,
   Client,
+  collaborationRoomRoles,
   customRoomRoles,
+  isBasicFormRoom,
+  isCollaborationRoom,
   isCustomRoom,
-  isPublicRoom,
-  ONLY_USERS_FILTER_TYPE,
-  publicRoomRoles
+  ONLY_USERS_FILTER_TYPE
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { user } = require("../../docspace/people/people.samples.js")
+const { userAdded } = require("../people/triggers.js")
 
 /**
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
@@ -84,7 +87,8 @@ const { user } = require("../../docspace/people/people.samples.js")
 
 /**
  * @typedef {object} ShareRolesFields
- * @property {number} id
+ * @property {number} roomId
+ * @property {string=} userId
  */
 
 /**
@@ -617,14 +621,28 @@ const shareRoles = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const room = await files.roomInfo(bundle.inputData.id)
-      if (isPublicRoom(room.roomType)) {
-        return publicRoomRoles()
+      const room = await files.roomInfo(bundle.inputData.roomId)
+      const users = await userAdded.operation.perform(z, bundle)
+      var roles = []
+      if (bundle.inputData.userId) {
+        const user = users.find((user) => user.id === bundle.inputData.userId)
+        if (user?.isAdmin || user?.isRoomAdmin || user?.isCollaborator) {
+          roles.push(
+            { id: 9, name: "Room admin" },
+            { id: 11, name: "Power user" }
+          )
+        }
       }
       if (isCustomRoom(room.roomType)) {
-        return customRoomRoles()
+        roles = roles.concat(customRoomRoles())
       }
-      return []
+      if (isBasicFormRoom(room.roomType)) {
+        roles = roles.concat(basicFormRoomRoles())
+      }
+      if (isCollaborationRoom(room.roomType)) {
+        roles = roles.concat(collaborationRoomRoles())
+      }
+      return roles
     },
     sample: samples.role
   }

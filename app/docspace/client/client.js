@@ -30,7 +30,7 @@ const ONLY_USERS_FILTER_TYPE = 0
  * @returns {boolean}
  */
 function isPublicRoom(type) {
-  return type === 5
+  return type === 6
 }
 
 /**
@@ -38,17 +38,23 @@ function isPublicRoom(type) {
  * @returns {boolean}
  */
 function isCustomRoom(type) {
-  return type === 6
+  return type === 5
 }
 
 /**
- * @returns {RoleData[]}
+ * @param {number} type
+ * @returns {boolean}
  */
-function publicRoomRoles() {
-  return [
-    { id: 2, name: "Viewer" },
-    { id: 10, name: "Editor" }
-  ]
+function isCollaborationRoom(type) {
+  return type === 2
+}
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isBasicFormRoom(type) {
+  return type === 1
 }
 
 /**
@@ -56,8 +62,31 @@ function publicRoomRoles() {
  */
 function customRoomRoles() {
   return [
-    { id: 9, name: "Room admin" },
-    { id: 11, name: "Power user" }
+    { id: 10, name: "Editor" },
+    { id: 7, name: "Form filler" },
+    { id: 5, name: "Reviewer" },
+    { id: 6, name: "Commenter" },
+    { id: 2, name: "Viewer" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function basicFormRoomRoles() {
+  return [
+    { id: 2, name: "Viewer" },
+    { id: 7, name: "Form filler" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function collaborationRoomRoles() {
+  return [
+    { id: 10, name: "Editor" },
+    { id: 2, name: "Viewer" }
   ]
 }
 
@@ -190,8 +219,11 @@ module.exports = {
   ONLY_USERS_FILTER_TYPE,
   Progress,
   Service,
+  basicFormRoomRoles,
+  collaborationRoomRoles,
   customRoomRoles,
+  isBasicFormRoom,
+  isCollaborationRoom,
   isCustomRoom,
-  isPublicRoom,
-  publicRoomRoles
+  isPublicRoom
 }

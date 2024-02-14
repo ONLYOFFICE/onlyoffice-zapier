@@ -140,8 +140,8 @@ Files("create a room", async (context) => {
   const { perform } = roomCreate.operation
   /** @type {RoomCreateFields} */
   const inputData = {
-    title: "Test room",
-    type: "CustomRoom"
+    roomType: 5,
+    title: "Test room"
   }
   const bundle = {
     authData: context.authData,
@@ -166,7 +166,7 @@ Files("hidden share roles trigger return roles", async (context) => {
   const { perform } = shareRoles.operation
   /** @type {ShareRolesFields} */
   const inputData = {
-    id: context.inputData.rooms.roomId
+    roomId: context.inputData.rooms.roomId
   }
   const bundle = {
     authData: context.authData,

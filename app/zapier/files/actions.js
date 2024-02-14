@@ -83,7 +83,7 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} RoomCreateFields
  * @property {string} title
- * @property {string} type
+ * @property {number} roomType
  */
 
 /**
@@ -547,9 +547,13 @@ const roomCreate = {
         type: "string"
       },
       {
-        choices: { "CustomRoom": "Custom room", "EditingRooms": "Editing rooms" },
-        default: "CustomRoom",
-        key: "type",
+        choices: {
+          1: "Basic form room",
+          2: "Collaboration room",
+          5: "Public room",
+          6: "Custom room"
+        },
+        key: "roomType",
         label: "Type",
         required: true
       }
@@ -586,17 +590,17 @@ const shareRoom = {
         type: "integer"
       },
       {
-        dynamic: "shareRoles.id.name",
-        key: "access",
-        label: "Role",
-        required: true
-      },
-      {
         dynamic: "userAdded.id.displayName",
         key: "userId",
         label: "User id",
         required: true,
         type: "integer"
+      },
+      {
+        dynamic: "shareRoles.id.name",
+        key: "access",
+        label: "Role",
+        required: true
       }
     ],
     /**
