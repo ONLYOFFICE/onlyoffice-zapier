@@ -83,7 +83,7 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} RoomCreateFields
  * @property {string} title
- * @property {string} type
+ * @property {number} roomType
  */
 
 /**
@@ -118,7 +118,7 @@ const archiveRoom = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room",
+        label: "Room id",
         required: true,
         type: "integer"
       }
@@ -153,14 +153,14 @@ const createFile = {
         dynamic: "roomCreated.id.title",
         helpText: "The room where the file will be created",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         helpText: "The folder where the file will be created (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
@@ -177,7 +177,7 @@ const createFile = {
      * @param {Bundle<SessionAuthenticationData, CreateFileFields>} bundle
      * @returns {Promise<FileData>}
      */
-    perform(z, bundle) {
+    async perform(z, bundle) {
       if (!bundle.inputData.folderId) {
         bundle.inputData.folderId = bundle.inputData.id
       }
@@ -187,7 +187,9 @@ const createFile = {
         const body = {
           title: bundle.inputData.title
         }
-        return files.createFile(bundle.inputData.folderId, body)
+        const createdFile = await files.createFile(bundle.inputData.folderId, body)
+        createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+        return createdFile
       }
       throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
     },
@@ -208,7 +210,7 @@ const createFileInMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "The folder where the file will be created (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
@@ -225,13 +227,15 @@ const createFileInMyDocuments = {
      * @param {Bundle<SessionAuthenticationData, CreateFileInMyDocumentsFields>} bundle
      * @returns {Promise<FileData>}
      */
-    perform(z, bundle) {
+    async perform(z, bundle) {
       if (bundle.inputData.folderId) {
         return createFile.operation.perform(z, bundle)
       }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return files.createFileInMyDocuments(bundle.inputData)
+      const createdFile = await files.createFileInMyDocuments(bundle.inputData)
+      createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+      return createdFile
     },
     sample: samples.file
   }
@@ -249,13 +253,13 @@ const createFolder = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
@@ -302,7 +306,7 @@ const createFolderInMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "The folder where the folder will be created (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
@@ -344,13 +348,13 @@ const deleteFolder = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         required: true,
         search: "searchFolder.id",
         type: "integer"
@@ -384,7 +388,7 @@ const deleteFolderInMyDocuments = {
       {
         dynamic: "foldersInMyDocumentsList.id.title",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         required: true,
         search: "searchFolder.id",
         type: "integer"
@@ -416,7 +420,7 @@ const downloadFile = {
         dynamic: "roomCreated.id.title",
         helpText: "The room where the file is located",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
@@ -424,14 +428,14 @@ const downloadFile = {
         dynamic: "folderCreated.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
       {
         dynamic: "filesList.id.title",
         key: "fileId",
-        label: "File",
+        label: "File id",
         required: true,
         search: "searchFile.id",
         type: "integer"
@@ -470,14 +474,14 @@ const downloadFileFromMyDocuments = {
         dynamic: "folderCreated.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
       {
         dynamic: "filesListFromMyDocuments.id.title",
         key: "fileId",
-        label: "File",
+        label: "File id",
         required: true,
         search: "searchFile.id",
         type: "integer"
@@ -507,7 +511,7 @@ const externalLink = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room",
+        label: "Room id",
         required: true,
         type: "integer"
       }
@@ -543,9 +547,13 @@ const roomCreate = {
         type: "string"
       },
       {
-        choices: { "CustomRoom": "Custom room", "EditingRooms": "Editing rooms" },
-        default: "CustomRoom",
-        key: "type",
+        choices: {
+          1: "Basic form room",
+          2: "Collaboration room",
+          5: "Public room",
+          6: "Custom room"
+        },
+        key: "roomType",
         label: "Type",
         required: true
       }
@@ -577,7 +585,14 @@ const shareRoom = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "roomId",
-        label: "Room",
+        label: "Room id",
+        required: true,
+        type: "integer"
+      },
+      {
+        dynamic: "userAdded.id.displayName",
+        key: "userId",
+        label: "User id",
         required: true,
         type: "integer"
       },
@@ -586,13 +601,6 @@ const shareRoom = {
         key: "access",
         label: "Role",
         required: true
-      },
-      {
-        dynamic: "userAdded.id.displayName",
-        key: "userId",
-        label: "User",
-        required: true,
-        type: "integer"
       }
     ],
     /**
@@ -634,13 +642,13 @@ const uploadFile = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room",
+        label: "Room id",
         type: "integer"
       },
       {
         dynamic: "folderCreated.id.title",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },
@@ -711,7 +719,7 @@ const uploadFileToMyDocuments = {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "The folder where the file will be uploaded (optional)",
         key: "folderId",
-        label: "Folder",
+        label: "Folder id",
         search: "searchFolder.id",
         type: "integer"
       },

@@ -28,12 +28,12 @@ const FormData = require("form-data")
 
 /**
  * @typedef {Object} UploadFileData
- * @property {number} id
- * @property {number} folderId
- * @property {number} version
- * @property {string} title
- * @property {boolean} uploaded
- * @property {FileData} file
+ * @property {number} bytes_total
+ * @property {string} created
+ * @property {string} expired
+ * @property {string} id
+ * @property {string}location
+ * @property {number[]} path
  */
 
 /**
@@ -60,7 +60,7 @@ class Uploader {
    */
   async stash(url) {
     let zapierUrl
-    if (url.startsWith("https://zapier.com/engine/hydrate/")) {
+    if (url.startsWith("https://zapier")) {
       zapierUrl = url
     } else {
       const filePromise = this.z.request({ raw: true, url })

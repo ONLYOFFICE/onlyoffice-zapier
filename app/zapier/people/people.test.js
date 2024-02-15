@@ -5,7 +5,7 @@
 // @ts-check
 
 const { createAppTester } = require("zapier-platform-core")
-const { equal, not, unreachable } = require("uvu/assert")
+const { equal, not } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const { inviteUser } = require("./actions.js")
@@ -29,7 +29,7 @@ People.before(async (context) => {
   await sessionAuthPerform(tester, context)
 })
 
-People("invites a user", async (context) => {
+People("invited a user", async (context) => {
   const { perform } = inviteUser.operation
   /** @type {InviteUserFields} */
   const inputData = {
@@ -40,30 +40,9 @@ People("invites a user", async (context) => {
     authData: context.authData,
     inputData
   }
-  try {
-    const user = await tester(perform, bundle)
-    if (!user) {
-      unreachable("TODO")
-      return
-    }
-    context.inputData.userId = user.id
-    equal(user.displayName, bundle.inputData.email)
-  } catch (error) {
-    if (!(error instanceof Error && error.message)) {
-      unreachable("Expected an error but got something else.")
-      return
-    }
-
-    const response = JSON.parse(error.message)
-    if (!response.content) {
-      unreachable("Expected a content but did not get it.")
-      return
-    }
-
-    const data = JSON.parse(response.content)
-    const message = data.error.message
-    equal(message, "A user with this email is already registered.")
-  }
+  const user = await tester(perform, bundle)
+  context.inputData.userId = user.id
+  equal(user.displayName, bundle.inputData.email)
 })
 
 People("triggers when a user is added", async (context) => {
@@ -73,11 +52,7 @@ People("triggers when a user is added", async (context) => {
   }
   const users = await tester(perform, bundle)
   const user = users[0]
-  if (!user) {
-    unreachable("TODO")
-    return
-  }
-  not.equal(user.id, 0)
+  not.equal(user.id, context.inputData.userId)
 })
 
 People.run()

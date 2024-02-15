@@ -20,14 +20,14 @@ const sessionAuth = {
   connectionLabel: "{{firstName}} {{lastName}}",
   fields: [
     {
-      helpText: "Go to the [API Details](https://my.site.com/manage/api-details) screen from your Website Dashboard to find your API Key.",
+      helpText: "Enter URL of your DocSpace.",
       key: "baseUrl",
-      label: "URL",
+      label: "DocSpace Service Address",
       required: true
     },
     {
       key: "username",
-      label: "Username",
+      label: "Email",
       required: true
     },
     {
