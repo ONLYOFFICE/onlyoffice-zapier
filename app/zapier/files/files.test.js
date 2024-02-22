@@ -140,7 +140,7 @@ Files("create a room", async (context) => {
   const { perform } = roomCreate.operation
   /** @type {RoomCreateFields} */
   const inputData = {
-    roomType: 5,
+    roomType: "5",
     title: "Test room"
   }
   const bundle = {
