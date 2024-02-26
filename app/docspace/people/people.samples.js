@@ -37,18 +37,12 @@ const user = {
   isSSO: false,
   isVisitor: false,
   lastName: "Doe",
-  listAdminModules: [
-    "files",
-    "people"
-  ],
-  mobilePhone: "+555 555 1234",
   mobilePhoneActivationStatus: 0,
   profileUrl: "https://johndoe.example.io/accounts/view/john.doe",
   quotaLimit: 0,
   status: 1,
   usedSpace: 0,
-  userName: "john.doe",
-  workFrom: "2023-01-12T00:00:00.0000000+03:00"
+  userName: "john.doe"
 }
 
 module.exports = { account, user }

@@ -33,18 +33,18 @@ const { Service } = require("../client/client")
  * @property {number} status
  * @property {number} activationStatus
  * @property {string} department
- * @property {string} workFrom
+ * @property {string=} workFrom
  * @property {string} avatarMax
  * @property {string} avatarMedium
  * @property {string} avatar
  * @property {boolean} isAdmin
  * @property {boolean} isRoomAdmin
  * @property {boolean} isLDAP
- * @property {Array<string>} listAdminModules
+ * @property {Array<string>=} listAdminModules
  * @property {boolean} isOwner
  * @property {boolean} isVisitor
  * @property {boolean} isCollaborator
- * @property {string} mobilePhone
+ * @property {string=} mobilePhone
  * @property {number} mobilePhoneActivationStatus
  * @property {boolean} isSSO
  * @property {number} quotaLimit

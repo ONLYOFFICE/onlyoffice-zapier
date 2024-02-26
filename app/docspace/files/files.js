@@ -71,7 +71,7 @@ const { Service } = require("../client/client.js")
  * @property {string} updated
  * @property {number} rootFolderType
  * @property {Account} updatedBy
- * @property {number} originId
+ * @property {number=} originId
  */
 
 /**
@@ -90,7 +90,7 @@ const { Service } = require("../client/client.js")
  * @property {number} rootFolderType
  * @property {Account} updatedBy
  * @property {number=} originRoomId
- * @property {number} originId
+ * @property {number=} originId
  */
 
 /**
