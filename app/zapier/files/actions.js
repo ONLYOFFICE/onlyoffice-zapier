@@ -379,7 +379,7 @@ const deleteFolder = {
 const deleteFolderInMyDocuments = {
   display: {
     description: "Delete a folder from the My Documents directory.",
-    label: "Delete Folder from My Documents"
+    label: "Delete Folder From My Documents"
   },
   key: "deleteFolderInMyDocuments",
   noun: "Folder",
@@ -463,7 +463,7 @@ const downloadFile = {
 const downloadFileFromMyDocuments = {
   display: {
     description: "Returns a hydrated link to download a file from the My Documents directory.",
-    label: "Download File from My Documents"
+    label: "Download File From My Documents"
   },
   key: "downloadFileFromMyDocuments",
   noun: "File",

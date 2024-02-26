@@ -243,7 +243,7 @@ const fileDeleted = {
 const fileDeletedInMyDocuments = {
   display: {
     description: "Triggers when a file is deleted from the My Documents directory.",
-    label: "File Deleted from My Documents"
+    label: "File Deleted From My Documents"
   },
   key: "fileDeletedInMyDocuments",
   noun: "File",
@@ -490,7 +490,7 @@ const folderDeleted = {
 const folderDeletedInMyDocuments = {
   display: {
     description: "Triggers when a folder is deleted from the My Documents directory.",
-    label: "Folder Deleted from My Documents"
+    label: "Folder Deleted From My Documents"
   },
   key: "folderDeletedInMyDocuments",
   noun: "Folder",
