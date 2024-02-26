@@ -83,7 +83,7 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} RoomCreateFields
  * @property {string} title
- * @property {number} roomType
+ * @property {string} roomType
  */
 
 /**
@@ -267,7 +267,8 @@ const createFolder = {
         default: "Folder from Zapier",
         key: "title",
         label: "Title",
-        required: true
+        required: true,
+        type: "string"
       }
     ],
     /**
@@ -314,7 +315,8 @@ const createFolderInMyDocuments = {
         default: "Folder from Zapier",
         key: "title",
         label: "Title",
-        required: true
+        required: true,
+        type: "string"
       }
     ],
     /**
@@ -548,10 +550,10 @@ const roomCreate = {
       },
       {
         choices: {
-          1: "Basic form room",
-          2: "Collaboration room",
-          5: "Public room",
-          6: "Custom room"
+          "1": "Basic form room",
+          "2": "Collaboration room",
+          "5": "Public room",
+          "6": "Custom room"
         },
         key: "roomType",
         label: "Type",
@@ -566,7 +568,11 @@ const roomCreate = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return await files.createRoom(bundle.inputData)
+      const body = {
+        roomType: parseInt(bundle.inputData.roomType, 10),
+        title: bundle.inputData.title
+      }
+      return await files.createRoom(body)
     },
     sample: samples.room
   }
@@ -594,13 +600,14 @@ const shareRoom = {
         key: "userId",
         label: "User id",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "shareRoles.id.name",
         key: "access",
         label: "Role",
-        required: true
+        required: true,
+        type: "integer"
       }
     ],
     /**
@@ -657,7 +664,7 @@ const uploadFile = {
         key: "url",
         label: "URL or File",
         required: true,
-        type: "string"
+        type: "file"
       }
     ],
     /**
@@ -727,7 +734,8 @@ const uploadFileToMyDocuments = {
         helpText: "Download the file via direct link or hydrate the file",
         key: "url",
         label: "URL or File",
-        required: true
+        required: true,
+        type: "file"
       }
     ],
     /**
