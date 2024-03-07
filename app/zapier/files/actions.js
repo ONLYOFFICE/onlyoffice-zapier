@@ -511,7 +511,7 @@ const externalLink = {
   operation: {
     inputFields: [
       {
-        dynamic: "roomCreated.id.title",
+        dynamic: "roomsFiltered.id.title",
         key: "id",
         label: "Room id",
         required: true,

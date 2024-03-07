@@ -41,6 +41,7 @@ const {
   foldersInMyDocumentsList,
   roomArchived,
   roomCreated,
+  roomsFiltered,
   shareRoles,
   userInvited
 } = require("./zapier/files/triggers.js")
@@ -146,6 +147,11 @@ test("has the `roomArchived` trigger", () => {
 
 test("has the `roomCreated` trigger", () => {
   const has = App.triggers[roomCreated.key] === roomCreated
+  equal(has, true)
+})
+
+test("has the `roomsFiltered` trigger", () => {
+  const has = App.triggers[roomsFiltered.key] === roomsFiltered
   equal(has, true)
 })
 
