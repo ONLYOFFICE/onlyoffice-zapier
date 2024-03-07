@@ -552,8 +552,8 @@ const roomCreate = {
         choices: {
           "1": "Basic form room",
           "2": "Collaboration room",
-          "5": "Public room",
-          "6": "Custom room"
+          "5": "Custom room",
+          "6": "Public room"
         },
         key: "roomType",
         label: "Type",
