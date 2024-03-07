@@ -38,6 +38,7 @@ const {
   foldersInMyDocumentsList,
   roomArchived,
   roomCreated,
+  roomsFiltered,
   shareRoles,
   userInvited
 } = require("./zapier/files/triggers.js")
@@ -93,6 +94,7 @@ const App = {
     [foldersInMyDocumentsList.key]: foldersInMyDocumentsList,
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
+    [roomsFiltered.key]: roomsFiltered,
     [shareRoles.key]: shareRoles,
     [userAdded.key]: userAdded,
     [userInvited.key]: userInvited

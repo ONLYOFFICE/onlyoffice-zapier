@@ -604,6 +604,28 @@ const roomArchived = {
   }
 }
 
+const roomsFiltered = {
+  display: {
+    description: "Hidden trigger to returning a list of rooms without collaboration type.",
+    hidden: true,
+    label: "Rooms Without Collaboration Type"
+  },
+  key: "roomsFiltered",
+  noun: "Room",
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const rooms = await roomCreated.operation.perform(z, bundle)
+      return rooms.filter((room) => room.roomType !== 2)
+    },
+    sample: samples.room
+  }
+}
+
 const shareRoles = {
   display: {
     description: "Hidden trigger to get roles to share by the room ID.",
@@ -707,6 +729,7 @@ module.exports = {
   foldersInMyDocumentsList,
   roomArchived,
   roomCreated,
+  roomsFiltered,
   shareRoles,
   userInvited
 }
