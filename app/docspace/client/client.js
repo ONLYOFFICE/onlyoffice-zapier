@@ -30,7 +30,7 @@ const ONLY_USERS_FILTER_TYPE = 0
  * @returns {boolean}
  */
 function isPublicRoom(type) {
-  return type === 6
+  return type === 5
 }
 
 /**
@@ -38,7 +38,7 @@ function isPublicRoom(type) {
  * @returns {boolean}
  */
 function isCustomRoom(type) {
-  return type === 5
+  return type === 6
 }
 
 /**
