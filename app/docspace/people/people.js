@@ -47,7 +47,7 @@ const { Service } = require("../client/client")
  * @property {string=} mobilePhone
  * @property {number} mobilePhoneActivationStatus
  * @property {boolean} isSSO
- * @property {number} quotaLimit
+ * @property {number=} quotaLimit
  * @property {number} usedSpace
  * @property {string} id
  * @property {string} displayName

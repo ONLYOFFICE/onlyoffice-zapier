@@ -39,7 +39,6 @@ const user = {
   lastName: "Doe",
   mobilePhoneActivationStatus: 0,
   profileUrl: "https://johndoe.example.io/accounts/view/john.doe",
-  quotaLimit: 0,
   status: 1,
   usedSpace: 0,
   userName: "john.doe"
