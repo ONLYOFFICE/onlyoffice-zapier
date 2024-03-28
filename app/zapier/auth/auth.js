@@ -35,6 +35,12 @@ const sessionAuth = {
       label: "Password",
       required: true,
       type: "password"
+    },
+    {
+      key: "code",
+      label: "2FA code",
+      required: false,
+      type: "string"
     }
   ],
 

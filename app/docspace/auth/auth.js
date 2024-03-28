@@ -13,12 +13,20 @@ const { Service } = require("../client/client")
 
 /**
  * @typedef {Object} AuthenticationOptions
+ * @property {string=} code
  * @property {string} username
  * @property {string} password
  */
 
 /**
  * @typedef {Boolean} AuthenticationStatus
+ */
+
+/**
+ * @typedef {Object} PayloadData
+ * @property {string=} Code
+ * @property {string} Password
+ * @property {string} UserName
  */
 
 /**
@@ -30,6 +38,7 @@ const { Service } = require("../client/client")
 /**
  * @typedef {Object} SessionAuthenticationFields
  * @property {string} baseUrl
+ * @property {string=} code
  * @property {string} username
  * @property {string} password
  */
@@ -67,11 +76,15 @@ class AuthenticationService extends Service {
    * @returns {Promise<AuthenticationData>}
    */
   auth(data) {
+    /** @type {PayloadData} */
     const payload = {
       Password: data.password,
       UserName: data.username
     }
-    const url = this.client.url("/authentication")
+    if (data.code) {
+      payload.Code = data.code
+    }
+    const url = this.client.url("/authentication" + (data.code ? "/" + data.code : ""))
     return this.client.request("POST", url, payload)
   }
 
