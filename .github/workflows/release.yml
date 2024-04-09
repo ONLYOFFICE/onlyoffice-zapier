@@ -6,7 +6,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  audit:
+  release:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Repository
@@ -42,8 +42,4 @@ jobs:
     - name: Create Release
       env:
         GH_TOKEN: ${{ github.token }}
-      run: |
-        version="$(./makefile.js version)"
-        gh release create "$version" --notes "$(pnpm notes)"
-        # Don't enclose the `attachments` command in quotes.
-        gh release upload "$version" $(./makefile.js attachments)
+      run: pnpm release
