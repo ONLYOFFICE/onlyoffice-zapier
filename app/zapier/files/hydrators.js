@@ -18,6 +18,7 @@
 const stashFile = async (z, bundle) => {
   const filePromise = z.request({
     raw: true,
+    redirect: "error",
     url: bundle.inputData.url
   })
   return z.stashFile(filePromise)
