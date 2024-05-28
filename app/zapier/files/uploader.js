@@ -63,7 +63,11 @@ class Uploader {
     if (url.startsWith("https://zapier")) {
       zapierUrl = url
     } else {
-      const filePromise = this.z.request({ raw: true, url })
+      const filePromise = this.z.request({
+        raw: true,
+        redirect: "error",
+        url
+      })
       zapierUrl = await this.z.stashFile(filePromise)
     }
     return zapierUrl
