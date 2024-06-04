@@ -55,7 +55,7 @@ const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
 
 test("has the actual version", () => {
-  const version = "1.0.0"
+  const version = "1.0.1"
   equal(App.version, version)
   equal(pack.version, version)
 })
