@@ -24,6 +24,7 @@
 
 const ACTIVATION_STATUS = 1
 const ONLY_USERS_FILTER_TYPE = 0
+const REMOVED_USER_ID = "4A515A15-D4D6-4b8e-828E-E0586F18F3A3"
 
 /**
  * @param {number} type
@@ -218,6 +219,7 @@ module.exports = {
   Client,
   ONLY_USERS_FILTER_TYPE,
   Progress,
+  REMOVED_USER_ID,
   Service,
   basicFormRoomRoles,
   collaborationRoomRoles,
