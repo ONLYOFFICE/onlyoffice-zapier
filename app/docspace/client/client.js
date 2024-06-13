@@ -178,7 +178,7 @@ class Progress {
         }
 
         if (Object.hasOwn(progress, "progress")) {
-          if (progress.progress === 100) {
+          if (progress.progress === 100 && progress.finished) {
             return progress
           }
         }
