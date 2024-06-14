@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client } = require("../../docspace/client/client.js")
+const { Client, REMOVED_USER_ID } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const samples = require("../../docspace/people/people.samples.js")
 
@@ -29,7 +29,9 @@ const userAdded = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
-      return await people.listUsers()
+      var users = await people.listUsers()
+      users = users.filter((item) => item.id !== REMOVED_USER_ID)
+      return users
     },
     sample: samples.user
   }

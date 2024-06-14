@@ -13,7 +13,8 @@ const {
   isBasicFormRoom,
   isCollaborationRoom,
   isCustomRoom,
-  ONLY_USERS_FILTER_TYPE
+  ONLY_USERS_FILTER_TYPE,
+  REMOVED_USER_ID
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
@@ -705,6 +706,7 @@ const userInvited = {
         filterType: ONLY_USERS_FILTER_TYPE
       }
       let users = await files.listUsers(bundle.inputData.id, filters)
+      users = users.filter((item) => item.sharedTo.id !== REMOVED_USER_ID)
       if (bundle.inputData.active) {
         users = users.filter((item) => item.sharedTo.activationStatus === ACTIVATION_STATUS)
       }

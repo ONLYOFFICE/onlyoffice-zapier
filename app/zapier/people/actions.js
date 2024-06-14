@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client } = require("../../docspace/client/client.js")
+const { Client, REMOVED_USER_ID } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const samples = require("../../docspace/people/people.samples.js")
 
@@ -65,8 +65,9 @@ const inviteUser = {
       }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
-      const userList = await people.listUsers()
-      let invitedUser = findUser(bundle.inputData.email, userList)
+      let users = await people.listUsers()
+      users = users.filter((item) => item.id !== REMOVED_USER_ID)
+      let invitedUser = findUser(bundle.inputData.email, users)
       if (invitedUser) {
         return invitedUser
       }
