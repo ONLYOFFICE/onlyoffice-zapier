@@ -20,7 +20,7 @@ const sessionAuth = {
   connectionLabel: "{{firstName}} {{lastName}}",
   fields: [
     {
-      helpText: "Enter [URL](https://api.onlyoffice.com/docspace/backend/howitworks/auth) of your DocSpace.",
+      helpText: "Enter [URL](https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/passing-authentication/) of your DocSpace.",
       key: "baseUrl",
       label: "DocSpace Service Address",
       required: true
