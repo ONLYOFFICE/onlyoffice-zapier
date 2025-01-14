@@ -94,7 +94,7 @@ const Files = suite("files", {
     },
     sections: {
       archive: 0,
-      myDocuments: 0,
+      documents: 0,
       rooms: 0,
       trash: 0
     },
@@ -114,8 +114,8 @@ Files("hidden filtered sections trigger return sections", async (context) => {
   const sections = await tester(perform, bundle)
   sections.forEach((item) => {
     switch (item.title) {
-    case "My documents":
-      context.inputData.sections.myDocuments = item.id
+    case "Documents":
+      context.inputData.sections.documents = item.id
       break
     case "Trash":
       context.inputData.sections.trash = item.id
@@ -130,7 +130,7 @@ Files("hidden filtered sections trigger return sections", async (context) => {
       break
     }
   })
-  not.equal(context.inputData.sections.myDocuments, 0)
+  not.equal(context.inputData.sections.documents, 0)
   not.equal(context.inputData.sections.trash, 0)
   not.equal(context.inputData.sections.rooms, 0)
   not.equal(context.inputData.sections.archive, 0)
@@ -446,7 +446,7 @@ Files("hidden files list trigger returned file via my document", async (context)
   const { perform } = filesList.operation
   /** @type {FilesListFields} */
   const inputData = {
-    id: context.inputData.sections.myDocuments
+    id: context.inputData.sections.documents
   }
   const bundle = {
     authData: context.authData,
