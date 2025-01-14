@@ -6,15 +6,19 @@
 
 const {
   ACTIVATION_STATUS,
-  basicFormRoomRoles,
   Client,
   collaborationRoomRoles,
   customRoomRoles,
-  isBasicFormRoom,
+  fillingFormsRoomRoles,
   isCollaborationRoom,
   isCustomRoom,
+  isFillingFormsRoom,
+  isPublicRoom,
+  isVirtualDataRoom,
   ONLY_USERS_FILTER_TYPE,
-  REMOVED_USER_ID
+  REMOVED_USER_ID,
+  publicRoomRoles,
+  virtualDataRoomRoles
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
@@ -651,19 +655,24 @@ const shareRoles = {
         const user = users.find((user) => user.id === bundle.inputData.userId)
         if (user?.isAdmin || user?.isRoomAdmin || user?.isCollaborator) {
           roles.push(
-            { id: 9, name: "Room admin" },
-            { id: 11, name: "Power user" }
+            { id: 9, name: "Room manager" }
           )
         }
+      }
+      if (isPublicRoom(room.roomType)) {
+        roles = roles.concat(publicRoomRoles())
       }
       if (isCustomRoom(room.roomType)) {
         roles = roles.concat(customRoomRoles())
       }
-      if (isBasicFormRoom(room.roomType)) {
-        roles = roles.concat(basicFormRoomRoles())
+      if (isFillingFormsRoom(room.roomType)) {
+        roles = roles.concat(fillingFormsRoomRoles())
       }
       if (isCollaborationRoom(room.roomType)) {
         roles = roles.concat(collaborationRoomRoles())
+      }
+      if (isVirtualDataRoom(room.roomType)) {
+        roles = roles.concat(virtualDataRoomRoles())
       }
       return roles
     },

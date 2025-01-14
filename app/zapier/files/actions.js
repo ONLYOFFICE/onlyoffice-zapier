@@ -550,7 +550,7 @@ const roomCreate = {
       },
       {
         choices: {
-          "1": "Basic form room",
+          "1": "Form filling room",
           "2": "Collaboration room",
           "5": "Custom room",
           "6": "Public room"

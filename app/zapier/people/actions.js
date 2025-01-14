@@ -36,9 +36,8 @@ const inviteUser = {
       {
         choices: {
           "1": "Room admin",
-          "2": "User",
-          "3": "DocSpace admin",
-          "4": "Power user"
+          "4": "User",
+          "3": "DocSpace admin"
         },
         key: "type",
         label: "Role",

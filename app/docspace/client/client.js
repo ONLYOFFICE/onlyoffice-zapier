@@ -54,17 +54,25 @@ function isCollaborationRoom(type) {
  * @param {number} type
  * @returns {boolean}
  */
-function isBasicFormRoom(type) {
+function isFillingFormsRoom(type) {
   return type === 1
+}
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isVirtualDataRoom(type) {
+  return type === 8
 }
 
 /**
  * @returns {RoleData[]}
  */
-function customRoomRoles() {
+function publicRoomRoles() {
   return [
+    { id: 11, name: "Content creator" },
     { id: 10, name: "Editor" },
-    { id: 7, name: "Form filler" },
     { id: 5, name: "Reviewer" },
     { id: 6, name: "Commenter" },
     { id: 2, name: "Viewer" }
@@ -74,9 +82,22 @@ function customRoomRoles() {
 /**
  * @returns {RoleData[]}
  */
-function basicFormRoomRoles() {
+function customRoomRoles() {
   return [
-    { id: 2, name: "Viewer" },
+    { id: 11, name: "Content creator" },
+    { id: 10, name: "Editor" },
+    { id: 5, name: "Reviewer" },
+    { id: 6, name: "Commenter" },
+    { id: 2, name: "Viewer" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function fillingFormsRoomRoles() {
+  return [
+    { id: 11, name: "Content creator" },
     { id: 7, name: "Form filler" }
   ]
 }
@@ -86,6 +107,18 @@ function basicFormRoomRoles() {
  */
 function collaborationRoomRoles() {
   return [
+    { id: 11, name: "Content creator" },
+    { id: 10, name: "Editor" },
+    { id: 2, name: "Viewer" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function virtualDataRoomRoles() {
+  return [
+    { id: 11, name: "Content creator" },
     { id: 10, name: "Editor" },
     { id: 2, name: "Viewer" }
   ]
@@ -221,11 +254,14 @@ module.exports = {
   Progress,
   REMOVED_USER_ID,
   Service,
-  basicFormRoomRoles,
+  fillingFormsRoomRoles,
   collaborationRoomRoles,
   customRoomRoles,
-  isBasicFormRoom,
   isCollaborationRoom,
+  isFillingFormsRoom,
   isCustomRoom,
-  isPublicRoom
+  isPublicRoom,
+  isVirtualDataRoom,
+  publicRoomRoles,
+  virtualDataRoomRoles
 }
