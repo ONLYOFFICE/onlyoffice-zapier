@@ -1,4 +1,4 @@
-ONLYOFFICE Zapier Integration uses code from the following 3rd party projects.
+ONLYOFFICE integration for Zapier uses code from the following 3rd party projects.
 
 content-disposition  Create and parse HTTP Content-Disposition header (https://github.com/jshttp/content-disposition/blob/v0.5.4/LICENSE)
 license              MIT License

@@ -1,8 +1,8 @@
-# Zapier ONLYOFFICE integration app
+# ONLYOFFICE integration for Zapier
 
-This app allows users to create their own DocSpace integration and configure actions of the *"If X happens, then you need to do Y"* format without any programming. These interactions are called *Zaps*.
+This integration allows users to create their own DocSpace integration and configure actions of the *"If X happens, then you need to do Y"* format without any programming. These interactions are called *Zaps*.
 
-## Installing Zapier ONLYOFFICE integration app
+## Installing ONLYOFFICE integration for Zapier
 
 1. Register for a [Zapier account](https://zapier.com/sign-up) or [log in](https://zapier.com/app/login).
 2. In the top menu, go to **My Apps**.
@@ -10,7 +10,7 @@ This app allows users to create their own DocSpace integration and configure act
 4. Enter [URL](https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/passing-authentication/) to your DocSpace, email and password to connect your account.
 5. Start automating by selecting an existing Zap or creating a new one with the Zap Editor, which will guide you through each step.
 
-For examples and ideas, explore available ONLYOFFICE integrations with Zapier.
+For examples and ideas, explore available ONLYOFFICE integration with Zapier.
 
 
 ## Features
