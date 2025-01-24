@@ -7,6 +7,10 @@
 const { Service } = require("../client/client")
 
 /**
+ * @typedef {import("../client/client.js").Filters} Filters
+ */
+
+/**
  * @typedef {Object} Account
  * @property {string} id
  * @property {string} displayName
@@ -78,6 +82,18 @@ class PeopleService extends Service {
   inviteUser(body) {
     const url = this.client.url("/people/invite")
     return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /people/filter
+   * ```
+   * @param {Filters} filters
+   * @returns {Promise<User[]>}
+   */
+  listGuests(filters) {
+    const url = this.client.url("/people/filter", filters)
+    return this.client.request("GET", url)
   }
 
   /**

@@ -100,8 +100,21 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} Invitations
- * @property {string} id
+ * @property {string=} email
+ * @property {string=} id
  * @property {number} access
+ */
+
+/**
+ * @typedef {Object} InviteGuestBody
+ * @property {Invitations[]} invitations
+ * @property {boolean} notify
+ * @property {string} message
+ */
+
+/**
+ * @typedef {Object} InviteGuestData
+ * @property {string} status
  */
 
 /**

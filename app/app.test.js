@@ -20,6 +20,7 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -236,6 +237,11 @@ test("has the `externalLink` creation", () => {
 
 test("has the `inviteUser` creation", () => {
   const has = App.creates[inviteUser.key] === inviteUser
+  equal(has, true)
+})
+
+test("has the `inviteGuest` creation", () => {
+  const has = App.creates[inviteGuest.key] === inviteGuest
   equal(has, true)
 })
 

@@ -4,18 +4,21 @@
 
 // @ts-check
 
-const { Client, Progress } = require("../../docspace/client/client.js")
+const { Client, Progress, REMOVED_USER_ID } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
+const { PeopleService } = require("../../docspace/people/people.js")
 const { stashFile } = require("./hydrators.js")
 const { Uploader } = require("./uploader.js")
 
 /**
+ * @typedef {import("../../docspace/people/people.js").Account} Account
  * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
  * @typedef {import("../../docspace/files/files.js").DownloadFileData} DownloadFileData
  * @typedef {import("../../docspace/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData
@@ -78,6 +81,13 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} ExternalLinkFields
  * @property {number} id
+ */
+
+/**
+ * @typedef {Object} InviteGuestFields
+ * @property {number} roomId
+ * @property {string} email
+ * @property {number} access
  */
 
 /**
@@ -532,6 +542,109 @@ const externalLink = {
   }
 }
 
+const inviteGuest = {
+  display: {
+    description: "Invites a guest to the room.",
+    label: "Invite Guest"
+  },
+  key: "inviteGuest",
+  noun: "User",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        key: "roomId",
+        label: "Room id",
+        required: true,
+        type: "integer"
+      },
+      {
+        key: "email",
+        label: "Email",
+        required: true
+      },
+      {
+        dynamic: "shareRoles.id.name",
+        key: "access",
+        label: "Role",
+        required: true,
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, InviteGuestFields>} bundle
+     * @returns {Promise<InviteGuestData>}
+     */
+    async perform(z, bundle) {
+      /**
+       * @param {string} email
+       * @param {Account[]} accounts
+       * @returns {Account|undefined}
+       */
+      function findUser(email, accounts) {
+        for (let i = 0; i < accounts.length; i = i + 1) {
+          if (accounts[i].displayName === email) {
+            return accounts[i]
+          }
+        }
+      }
+
+      /**
+       * @param {Client} client
+       * @returns {Promise<InviteGuestData|undefined>}
+       */
+      async function existence(client) {
+        const people = new PeopleService(client)
+        const user = await people.self()
+        const filters = {
+          area: "guests",
+          inviterId: user.id
+        }
+        let guests = await people.listGuests(filters)
+        guests = guests.filter((item) => item.id !== REMOVED_USER_ID)
+        const invitedGuest = findUser(bundle.inputData.email, guests)
+        if (invitedGuest) {
+          return {
+            status: "Invited"
+          }
+        }
+        let users = await people.listUsers()
+        users = users.filter((item) => item.id !== REMOVED_USER_ID)
+        const invitedUsers = findUser(bundle.inputData.email, users)
+        if (invitedUsers) {
+          return {
+            status: "User is already a member"
+          }
+        }
+      }
+
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      let status = await existence(client)
+      if (status) {
+        return status
+      }
+      const files = new FilesService(client)
+      const body = {
+        invitations: [{
+          access: bundle.inputData.access,
+          email: bundle.inputData.email
+        }],
+        message: "Invitation from Zapier",
+        notify: true
+      }
+      await files.shareRoom(bundle.inputData.roomId, body)
+      status = await existence(client)
+      if (status) {
+        return status
+      }
+      throw new z.errors.HaltedError("Failed to invite guest")
+    },
+    sample: samples.account
+  }
+}
+
 const roomCreate = {
   display: {
     description: "Create a room.",
@@ -767,6 +880,7 @@ module.exports = {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,

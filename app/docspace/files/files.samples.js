@@ -149,6 +149,7 @@ const upload = {
 }
 
 module.exports = {
+  account,
   externalLink,
   file,
   folder,

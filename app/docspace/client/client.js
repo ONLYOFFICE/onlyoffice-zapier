@@ -20,6 +20,8 @@
  * @property {string=} filterValue
  * @property {string|number=} filterType
  * @property {string=} searchArea
+ * @property {string=} inviterId
+ * @property {string=} area
  */
 
 const ACTIVATION_STATUS = 1

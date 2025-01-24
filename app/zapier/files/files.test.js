@@ -19,6 +19,7 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -27,7 +28,7 @@ const {
 const {
   fileCreated,
   fileCreatedInMyDocuments,
-  fileDeleted,
+  //fileDeleted,
   //fileDeletedInMyDocuments, TODO:
   filesList,
   //filesListFromMyDocuments, TODO:
@@ -65,6 +66,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./triggers.js").FilesListFields} FilesListFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./triggers.js").FolderCreatedInMyDocumentsFields} FolderCreatedInMyDocumentsFields
+ * @typedef {import("./actions.js").InviteGuestFields} InviteGuestFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
  * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
@@ -222,6 +224,23 @@ Files("returns the links of a room", async (context) => {
   }
   const link = await tester(perform, bundle)
   not.equal(link.sharedTo.shareLink, null)
+})
+
+Files("invited a guest", async (context) => {
+  // TODO: add hidden action for remove guest
+  const { perform } = inviteGuest.operation
+  /** @type {InviteGuestFields} */
+  const inputData = {
+    access: 11,
+    email: "test_guest@onlyoffice.io",
+    roomId: context.inputData.rooms.roomId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.status, "Invited")
 })
 
 Files("create a folder in room", async (context) => {
