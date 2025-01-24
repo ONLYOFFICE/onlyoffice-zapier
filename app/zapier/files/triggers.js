@@ -22,6 +22,7 @@ const {
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
+const { PeopleService } = require("../../docspace/people/people.js")
 const { user } = require("../../docspace/people/people.samples.js")
 const { userAdded } = require("../people/triggers.js")
 
@@ -646,17 +647,25 @@ const shareRoles = {
      * @returns {Promise<RoleData[]>}
      */
     async perform(z, bundle) {
+      /**
+       * @type {RoleData[]}
+       */
+      var roles = []
       const client = new Client(bundle.authData.baseUrl, z.request)
+      // checking user rights
+      const people = new PeopleService(client)
+      const user = await people.self()
+      if (!user?.isAdmin && !user?.isRoomAdmin) {
+        // user not have permission to invite a user to the room
+        return roles
+      }
       const files = new FilesService(client)
       const room = await files.roomInfo(bundle.inputData.roomId)
       const users = await userAdded.operation.perform(z, bundle)
-      var roles = []
       if (bundle.inputData.userId) {
         const user = users.find((user) => user.id === bundle.inputData.userId)
-        if (user?.isAdmin || user?.isRoomAdmin || user?.isCollaborator) {
-          roles.push(
-            { id: 9, name: "Room manager" }
-          )
+        if (user?.isAdmin || user?.isRoomAdmin) {
+          roles.push({ id: 9, name: "Room manager" })
         }
       }
       if (isPublicRoom(room.roomType)) {
