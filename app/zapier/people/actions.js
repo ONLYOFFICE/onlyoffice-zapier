@@ -19,6 +19,14 @@ const samples = require("../../docspace/people/people.samples.js")
  * @property {string} type
  */
 
+/**
+ * @typedef {Object} InvitedRole
+ * @property {string[]} choices
+ * @property {string} key
+ * @property {string} label
+ * @property {boolean} required
+ */
+
 const inviteUser = {
   display: {
     description: "Invites a user to the current portal.",
@@ -33,15 +41,30 @@ const inviteUser = {
         label: "Email",
         required: true
       },
-      {
-        choices: {
-          "1": "Room admin",
-          "4": "User",
-          "3": "DocSpace admin"
-        },
-        key: "type",
-        label: "Role",
-        required: true
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData>} bundle
+       * @returns {Promise<InvitedRole[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        const choices = []
+        if (user?.isRoomAdmin) {
+          choices[4] = "User"
+        }
+        if (user?.isAdmin) {
+          choices[4] = "User"
+          choices[3] = "DocSpace admin"
+          choices[1] = "Room admin"
+        }
+        return [{
+          choices: choices,
+          key: "type",
+          label: "Role",
+          required: true
+        }]
       }
     ],
     /**
