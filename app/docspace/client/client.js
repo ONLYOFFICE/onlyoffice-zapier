@@ -73,11 +73,7 @@ function isVirtualDataRoom(type) {
  */
 function publicRoomRoles() {
   return [
-    { id: 11, name: "Content creator" },
-    { id: 10, name: "Editor" },
-    { id: 5, name: "Reviewer" },
-    { id: 6, name: "Commenter" },
-    { id: 2, name: "Viewer" }
+    { id: 11, name: "Content creator" }
   ]
 }
 
