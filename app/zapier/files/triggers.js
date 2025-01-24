@@ -16,8 +16,8 @@ const {
   isPublicRoom,
   isVirtualDataRoom,
   ONLY_USERS_FILTER_TYPE,
-  REMOVED_USER_ID,
   publicRoomRoles,
+  REMOVED_USER_ID,
   virtualDataRoomRoles
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
