@@ -29,7 +29,7 @@
     "@commitlint/config-conventional": "^18.4.3",
     "@stylistic/eslint-plugin-js": "^1.4.1",
     "@types/content-disposition": "^0.5.8",
-    "esbuild": "^0.19.5",
+    "esbuild": "^0.25.0",
     "eslint": "^8.53.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^48.0.2",
