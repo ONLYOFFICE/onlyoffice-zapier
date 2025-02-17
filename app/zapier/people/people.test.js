@@ -34,7 +34,7 @@ People("invited a user", async (context) => {
   /** @type {InviteUserFields} */
   const inputData = {
     email: "whatever@onlyoffice.io",
-    type: "2"
+    type: "4"
   }
   const bundle = {
     authData: context.authData,

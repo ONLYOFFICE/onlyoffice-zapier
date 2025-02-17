@@ -18,6 +18,7 @@ const {
   ONLY_USERS_FILTER_TYPE,
   publicRoomRoles,
   REMOVED_USER_ID,
+  ROOM_MANAGER,
   virtualDataRoomRoles
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
@@ -665,7 +666,7 @@ const shareRoles = {
       if (bundle.inputData.userId) {
         const user = users.find((user) => user.id === bundle.inputData.userId)
         if (user?.isAdmin || user?.isRoomAdmin) {
-          roles.push({ id: 9, name: "Room manager" })
+          roles.push({ id: ROOM_MANAGER, name: "Room manager" })
         }
       }
       if (isPublicRoom(room.roomType)) {

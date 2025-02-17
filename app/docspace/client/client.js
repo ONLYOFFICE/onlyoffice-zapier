@@ -28,6 +28,15 @@ const ACTIVATION_STATUS = 1
 const ONLY_USERS_FILTER_TYPE = 0
 const REMOVED_USER_ID = "4A515A15-D4D6-4b8e-828E-E0586F18F3A3"
 
+const OWNER = 1
+const CONTENT_CREATOR = 11
+const ROOM_MANAGER = 9
+const EDITOR = 10
+const REVIEWER = 5
+const COMMENTER = 6
+const VIEWER = 2
+const FORM_FILLER = 7
+
 /**
  * @param {number} type
  * @returns {boolean}
@@ -73,7 +82,7 @@ function isVirtualDataRoom(type) {
  */
 function publicRoomRoles() {
   return [
-    { id: 11, name: "Content creator" }
+    { id: CONTENT_CREATOR, name: "Content creator" }
   ]
 }
 
@@ -82,11 +91,11 @@ function publicRoomRoles() {
  */
 function customRoomRoles() {
   return [
-    { id: 11, name: "Content creator" },
-    { id: 10, name: "Editor" },
-    { id: 5, name: "Reviewer" },
-    { id: 6, name: "Commenter" },
-    { id: 2, name: "Viewer" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: EDITOR, name: "Editor" },
+    { id: REVIEWER, name: "Reviewer" },
+    { id: COMMENTER, name: "Commenter" },
+    { id: VIEWER, name: "Viewer" }
   ]
 }
 
@@ -95,8 +104,8 @@ function customRoomRoles() {
  */
 function fillingFormsRoomRoles() {
   return [
-    { id: 11, name: "Content creator" },
-    { id: 7, name: "Form filler" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: FORM_FILLER, name: "Form filler" }
   ]
 }
 
@@ -105,9 +114,9 @@ function fillingFormsRoomRoles() {
  */
 function collaborationRoomRoles() {
   return [
-    { id: 11, name: "Content creator" },
-    { id: 10, name: "Editor" },
-    { id: 2, name: "Viewer" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: EDITOR, name: "Editor" },
+    { id: VIEWER, name: "Viewer" }
   ]
 }
 
@@ -116,9 +125,9 @@ function collaborationRoomRoles() {
  */
 function virtualDataRoomRoles() {
   return [
-    { id: 11, name: "Content creator" },
-    { id: 10, name: "Editor" },
-    { id: 2, name: "Viewer" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: EDITOR, name: "Editor" },
+    { id: VIEWER, name: "Viewer" }
   ]
 }
 
@@ -247,11 +256,19 @@ class Service {
 
 module.exports = {
   ACTIVATION_STATUS,
+  COMMENTER,
+  CONTENT_CREATOR,
   Client,
+  EDITOR,
+  FORM_FILLER,
   ONLY_USERS_FILTER_TYPE,
+  OWNER,
   Progress,
   REMOVED_USER_ID,
+  REVIEWER,
+  ROOM_MANAGER,
   Service,
+  VIEWER,
   collaborationRoomRoles,
   customRoomRoles,
   fillingFormsRoomRoles,

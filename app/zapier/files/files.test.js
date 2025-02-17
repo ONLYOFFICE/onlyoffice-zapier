@@ -49,6 +49,7 @@ const {
   searchFolder
 } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
+const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
 /**
  * @typedef {import("./actions.js").ArchiveRoomFields} ArchiveRoomFields
@@ -231,7 +232,7 @@ Files("invited a guest", async (context) => {
   const { perform } = inviteGuest.operation
   /** @type {InviteGuestFields} */
   const inputData = {
-    access: 11,
+    access: CONTENT_CREATOR,
     email: "test_guest@onlyoffice.io",
     roomId: context.inputData.rooms.roomId
   }

@@ -4,12 +4,14 @@
 
 // @ts-check
 
-const { Client, Progress, REMOVED_USER_ID } = require("../../docspace/client/client.js")
+const { Client, EDITOR, OWNER, Progress, ROOM_MANAGER } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const { stashFile } = require("./hydrators.js")
+const { shareRoles } = require("./triggers.js")
 const { Uploader } = require("./uploader.js")
+const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
 /**
  * @typedef {import("../../docspace/people/people.js").Account} Account
@@ -20,9 +22,11 @@ const { Uploader } = require("./uploader.js")
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
+ * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
  * @typedef {import("./uploader.js").UploadFileData} UploadFileData
  */
 
@@ -81,6 +85,14 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} ExternalLinkFields
  * @property {number} id
+ */
+
+/**
+ * @typedef {Object} InvitedRole
+ * @property {Record<number, string>} choices
+ * @property {string} key
+ * @property {string} label
+ * @property {boolean} required
  */
 
 /**
@@ -564,12 +576,38 @@ const inviteGuest = {
         label: "Email",
         required: true
       },
-      {
-        dynamic: "shareRoles.id.name",
-        key: "access",
-        label: "Role",
-        required: true,
-        type: "integer"
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData, ShareRolesFields>} bundle
+       * @returns {Promise<InvitedRole[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        const filters = {
+          filterBy: "email",
+          filterValue: user.email
+        }
+        const users = await files.listUsers(bundle.inputData.roomId, filters)
+        /** @type {Record<number, string>} */
+        const choices = {}
+        if (users.length > 0) {
+          if (users[0].access === OWNER || users[0].access === ROOM_MANAGER || users[0].access === CONTENT_CREATOR) {
+            const roles = await shareRoles.operation.perform(z, bundle)
+            for (let i = 0; i < roles.length; i = i + 1) {
+              const role = roles[i]
+              choices[role.id] = role.name
+            }
+          }
+        }
+        return [{
+          choices: choices,
+          key: "access",
+          label: "Role",
+          required: true
+        }]
       }
     ],
     /**
@@ -578,54 +616,18 @@ const inviteGuest = {
      * @returns {Promise<InviteGuestData>}
      */
     async perform(z, bundle) {
-      /**
-       * @param {string} email
-       * @param {Account[]} accounts
-       * @returns {Account|undefined}
-       */
-      function findUser(email, accounts) {
-        for (let i = 0; i < accounts.length; i = i + 1) {
-          if (accounts[i].displayName === email) {
-            return accounts[i]
-          }
-        }
-      }
-
-      /**
-       * @param {Client} client
-       * @returns {Promise<InviteGuestData|undefined>}
-       */
-      async function existence(client) {
-        const people = new PeopleService(client)
-        const user = await people.self()
-        const filters = {
-          area: "guests",
-          inviterId: user.id
-        }
-        let guests = await people.listGuests(filters)
-        guests = guests.filter((item) => item.id !== REMOVED_USER_ID)
-        const invitedGuest = findUser(bundle.inputData.email, guests)
-        if (invitedGuest) {
-          return {
-            status: "Invited"
-          }
-        }
-        let users = await people.listUsers()
-        users = users.filter((item) => item.id !== REMOVED_USER_ID)
-        const invitedUsers = findUser(bundle.inputData.email, users)
-        if (invitedUsers) {
-          return {
-            status: "User is already a member"
-          }
-        }
-      }
-
       const client = new Client(bundle.authData.baseUrl, z.request)
-      let status = await existence(client)
-      if (status) {
-        return status
-      }
       const files = new FilesService(client)
+      const filters = {
+        filterBy: "email",
+        filterValue: bundle.inputData.email
+      }
+      let guest = await files.listUsers(bundle.inputData.roomId, filters)
+      if (guest.length !== 0) {
+        return {
+          status: "User is already a member"
+        }
+      }
       const body = {
         invitations: [{
           access: bundle.inputData.access,
@@ -635,9 +637,11 @@ const inviteGuest = {
         notify: true
       }
       await files.shareRoom(bundle.inputData.roomId, body)
-      status = await existence(client)
-      if (status) {
-        return status
+      guest = await files.listUsers(bundle.inputData.roomId, filters)
+      if (guest.length !== 0) {
+        return {
+          status: "Invited"
+        }
       }
       throw new z.errors.HaltedError("Failed to invite guest")
     },
@@ -682,7 +686,7 @@ const roomCreate = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const body = {
-        roomType: parseInt(bundle.inputData.roomType, 10),
+        roomType: parseInt(bundle.inputData.roomType, EDITOR),
         title: bundle.inputData.title
       }
       return await files.createRoom(body)
