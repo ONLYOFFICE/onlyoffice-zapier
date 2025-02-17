@@ -21,7 +21,7 @@ const samples = require("../../docspace/people/people.samples.js")
 
 /**
  * @typedef {Object} InvitedRole
- * @property {string[]} choices
+ * @property {Record<number, string>} choices
  * @property {string} key
  * @property {string} label
  * @property {boolean} required
@@ -50,7 +50,8 @@ const inviteUser = {
         const client = new Client(bundle.authData.baseUrl, z.request)
         const people = new PeopleService(client)
         const user = await people.self()
-        const choices = []
+        /** @type {Record<number, string>} */
+        const choices = {}
         if (user?.isRoomAdmin) {
           choices[4] = "User"
         }
