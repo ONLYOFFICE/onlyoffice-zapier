@@ -29,7 +29,7 @@ const hydratedFile = {
 
 /** @type {FileData} */
 const file = {
-  created: "2023-01-01T12:00:00.0000000+03:00",
+  created: "2023-01-01T06:50:30-0500",
   createdBy: account,
   fileExst: ".docx",
   fileType: 7,
@@ -38,7 +38,7 @@ const file = {
   rootFolderId: 1,
   rootFolderType: 14,
   title: "README.docx",
-  updated: "2023-01-01T12:00:00.0000000+03:00",
+  updated: "2023-01-01T06:50:30-0500",
   updatedBy: account,
   viewUrl: "https://example.onlyoffice.io/filehandler.ashx?action=download&fileid=2",
   webUrl: "https://example.onlyoffice.io/doceditor?fileid=2&version=1"
@@ -46,13 +46,13 @@ const file = {
 
 /** @type {FolderData} */
 const folder = {
-  created: "2023-01-01T13:00:00.0000000+03:00",
+  created: "2023-01-01T06:50:30-0500",
   createdBy: account,
   id: 2,
   parentId: 1,
   rootFolderType: 14,
   title: "Test Folder",
-  updated: "2023-01-01T13:00:00.0000000+03:00",
+  updated: "2023-01-01T06:50:30-0500",
   updatedBy: account
 }
 
@@ -101,7 +101,7 @@ const role = {
 
 /** @type {RoomData} */
 const room = {
-  created: "2023-01-01T13:00:00.0000000+03:00",
+  created: "2023-01-01T06:50:30-0500",
   createdBy: account,
   filesCount: 1,
   foldersCount: 1,
@@ -112,7 +112,7 @@ const room = {
   rootFolderId: 1,
   rootFolderType: 14,
   title: "My Room",
-  updated: "2023-01-01T13:00:00.0000000+03:00",
+  updated: "2023-01-01T06:50:30-0500",
   updatedBy: account
 }
 
@@ -141,8 +141,8 @@ const share = {
 /** @type {UploadFileData} */
 const upload = {
   bytes_total: 100,
-  created: "2023-01-01T12:00:00.0000000Z",
-  expired: "2023-01-01T12:00:00.0100000Z",
+  created: "2023-01-01T06:50:30-0500",
+  expired: "2023-01-01T06:50:30-0500",
   id: "00000000000000000000000000000000",
   location: "https://example.onlyoffice.io/ChunkedUploader.ashx?uid=00000000000000000000000000000000",
   path: [28788]
