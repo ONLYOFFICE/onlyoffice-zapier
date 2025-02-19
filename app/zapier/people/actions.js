@@ -57,6 +57,10 @@ const inviteUser = {
         }
         if (user?.isAdmin) {
           choices[4] = "User"
+          choices[1] = "Room admin"
+        }
+        if (user?.isOwner) {
+          choices[4] = "User"
           choices[3] = "DocSpace admin"
           choices[1] = "Room admin"
         }
