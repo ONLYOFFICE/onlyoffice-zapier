@@ -1,10 +1,10 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
 
-const { Client } = require("../../docspace/client/client.js")
+const { Client, REMOVED_USER_ID } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const samples = require("../../docspace/people/people.samples.js")
 
@@ -17,6 +17,14 @@ const samples = require("../../docspace/people/people.samples.js")
  * @typedef {Object} InviteUserFields
  * @property {string} email
  * @property {string} type
+ */
+
+/**
+ * @typedef {Object} InvitedRole
+ * @property {Record<number, string>} choices
+ * @property {string} key
+ * @property {string} label
+ * @property {boolean} required
  */
 
 const inviteUser = {
@@ -33,16 +41,35 @@ const inviteUser = {
         label: "Email",
         required: true
       },
-      {
-        choices: {
-          "1": "Room admin",
-          "2": "User",
-          "3": "DocSpace admin",
-          "4": "Power user"
-        },
-        key: "type",
-        label: "Role",
-        required: true
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData>} bundle
+       * @returns {Promise<InvitedRole[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        /** @type {Record<number, string>} */
+        const choices = {}
+        if (user?.isRoomAdmin) {
+          choices[4] = "User"
+        }
+        if (user?.isAdmin) {
+          choices[4] = "User"
+          choices[1] = "Room admin"
+        }
+        if (user?.isOwner) {
+          choices[4] = "User"
+          choices[3] = "DocSpace admin"
+          choices[1] = "Room admin"
+        }
+        return [{
+          choices: choices,
+          key: "type",
+          label: "Role",
+          required: true
+        }]
       }
     ],
     /**
@@ -65,8 +92,9 @@ const inviteUser = {
       }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
-      const userList = await people.listUsers()
-      let invitedUser = findUser(bundle.inputData.email, userList)
+      let users = await people.listUsers()
+      users = users.filter((item) => item.id !== REMOVED_USER_ID)
+      let invitedUser = findUser(bundle.inputData.email, users)
       if (invitedUser) {
         return invitedUser
       }

@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -154,13 +154,17 @@ test("progress breaks if the response contains an error", async () => {
 test("progress completes when the response contains 100 progress", async () => {
   let i = 0
   let p = 0
+  let finished = false
   async function endpoint() {
     i += 1
     p += 50
+    if (p === 100) {
+      finished = true
+    }
     return [
       {
         error: "",
-        finished: false,
+        finished: finished,
         id: "00000000-1111-2222-3333-444444444444",
         operation: 0,
         percents: 0,
@@ -175,6 +179,7 @@ test("progress completes when the response contains 100 progress", async () => {
 
   equal(i, 2)
   equal(p, 100)
+  equal(finished, true)
   equal(response.error, "")
   equal(response.progress, 100)
 })

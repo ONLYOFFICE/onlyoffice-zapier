@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -24,7 +24,7 @@ async function invitedUser(authData) {
   /** @type {InviteUserFields} */
   const inputData = {
     email: "whatever@onlyoffice.io",
-    type: "2"
+    type: "4" // User
   }
   const bundle = {
     authData: authData,

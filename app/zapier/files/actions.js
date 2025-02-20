@@ -1,25 +1,32 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
 
-const { Client, Progress } = require("../../docspace/client/client.js")
+const { Client, EDITOR, OWNER, Progress, ROOM_MANAGER } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
+const { PeopleService } = require("../../docspace/people/people.js")
 const { stashFile } = require("./hydrators.js")
+const { shareRoles } = require("./triggers.js")
 const { Uploader } = require("./uploader.js")
+const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
 /**
+ * @typedef {import("../../docspace/people/people.js").Account} Account
  * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
  * @typedef {import("../../docspace/files/files.js").DownloadFileData} DownloadFileData
  * @typedef {import("../../docspace/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
+ * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
  * @typedef {import("./uploader.js").UploadFileData} UploadFileData
  */
 
@@ -78,6 +85,21 @@ const { Uploader } = require("./uploader.js")
 /**
  * @typedef {Object} ExternalLinkFields
  * @property {number} id
+ */
+
+/**
+ * @typedef {Object} InvitedRole
+ * @property {Record<number, string>} choices
+ * @property {string} key
+ * @property {string} label
+ * @property {boolean} required
+ */
+
+/**
+ * @typedef {Object} InviteGuestFields
+ * @property {number} roomId
+ * @property {string} email
+ * @property {number} access
  */
 
 /**
@@ -532,6 +554,101 @@ const externalLink = {
   }
 }
 
+const inviteGuest = {
+  display: {
+    description: "Invites a guest to the room.",
+    label: "Invite Guest"
+  },
+  key: "inviteGuest",
+  noun: "User",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        key: "roomId",
+        label: "Room id",
+        required: true,
+        type: "integer"
+      },
+      {
+        key: "email",
+        label: "Email",
+        required: true
+      },
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData, ShareRolesFields>} bundle
+       * @returns {Promise<InvitedRole[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        const filters = {
+          filterBy: "email",
+          filterValue: user.email
+        }
+        const users = await files.listUsers(bundle.inputData.roomId, filters)
+        /** @type {Record<number, string>} */
+        const choices = {}
+        if (users.length > 0) {
+          if (users[0].access === OWNER || users[0].access === ROOM_MANAGER || users[0].access === CONTENT_CREATOR) {
+            const roles = await shareRoles.operation.perform(z, bundle)
+            for (let i = 0; i < roles.length; i = i + 1) {
+              const role = roles[i]
+              choices[role.id] = role.name
+            }
+          }
+        }
+        return [{
+          choices: choices,
+          key: "access",
+          label: "Role",
+          required: true
+        }]
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, InviteGuestFields>} bundle
+     * @returns {Promise<InviteGuestData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        filterBy: "email",
+        filterValue: bundle.inputData.email
+      }
+      let guest = await files.listUsers(bundle.inputData.roomId, filters)
+      if (guest.length !== 0) {
+        return {
+          status: "User is already a member"
+        }
+      }
+      const body = {
+        invitations: [{
+          access: bundle.inputData.access,
+          email: bundle.inputData.email
+        }],
+        message: "Invitation from Zapier",
+        notify: true
+      }
+      await files.shareRoom(bundle.inputData.roomId, body)
+      guest = await files.listUsers(bundle.inputData.roomId, filters)
+      if (guest.length !== 0) {
+        return {
+          status: "Invited"
+        }
+      }
+      throw new z.errors.HaltedError("Failed to invite guest")
+    },
+    sample: samples.account
+  }
+}
+
 const roomCreate = {
   display: {
     description: "Create a room.",
@@ -550,7 +667,7 @@ const roomCreate = {
       },
       {
         choices: {
-          "1": "Basic form room",
+          "1": "Form filling room",
           "2": "Collaboration room",
           "5": "Custom room",
           "6": "Public room"
@@ -569,7 +686,7 @@ const roomCreate = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const body = {
-        roomType: parseInt(bundle.inputData.roomType, 10),
+        roomType: parseInt(bundle.inputData.roomType, EDITOR),
         title: bundle.inputData.title
       }
       return await files.createRoom(body)
@@ -767,6 +884,7 @@ module.exports = {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,

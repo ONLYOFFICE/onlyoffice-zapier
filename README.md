@@ -1,16 +1,16 @@
-# Zapier ONLYOFFICE integration app
+# ONLYOFFICE integration for Zapier
 
-This app allows users to create their own DocSpace integration and configure actions of the *"If X happens, then you need to do Y"* format without any programming. These interactions are called *Zaps*.
+This integration allows users to create their own DocSpace integration and configure actions of the *"If X happens, then you need to do Y"* format without any programming. These interactions are called *Zaps*.
 
-## Installing Zapier ONLYOFFICE integration app
+## Installing ONLYOFFICE integration for Zapier
 
 1. Register for a [Zapier account](https://zapier.com/sign-up) or [log in](https://zapier.com/app/login).
 2. In the top menu, go to **My Apps**.
 3. Click **Connect a new account...** and find ONLYOFFICE DocSpace.
-4. Enter [URL](https://api.onlyoffice.com/docspace/backend/howitworks/auth) to your DocSpace, email and password to connect your account.
+4. Enter [URL](https://api.onlyoffice.com/docspace/api-backend/get-started/how-it-works/passing-authentication/) to your DocSpace, email and password to connect your account.
 5. Start automating by selecting an existing Zap or creating a new one with the Zap Editor, which will guide you through each step.
 
-For examples and ideas, explore available ONLYOFFICE integrations with Zapier.
+For examples and ideas, explore available ONLYOFFICE integration with Zapier.
 
 
 ## Features
@@ -50,21 +50,21 @@ At the moment, the following actions are available in DocSpace:
 
 | Actions | API method | Fields |
 | ------------- | ------------- | ------------- |
-| Archive Room | [PUT api/2.0/files/rooms/{id}/archive](https://api.onlyoffice.com/docspace/method/files/put/api/2.0/files/rooms/%7bid%7d/archive) | Room id |
-| Create File | [POST api/2.0/files/{folderId}/file](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/%7bfolderid%7d/file) | Room id, Folder id, Title |
-| Create File in My Documents | [POST api/2.0/files/@my/file](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/%40my/file) | Folder id, Title |
-| Create Folder | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/folder/%7bfolderid%7d) | Room id, Folder id, Title |
-| Create Folder in My Documents | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/folder/%7bfolderid%7d) | Folder id, Title |
-| Delete Folder | [DELETE api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/method/files/delete/api/2.0/files/folder/%7bfolderid%7d) | Room id, Folder id |
-| Delete Folder from My Documents | [DELETE api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/method/files/delete/api/2.0/files/folder/%7bfolderid%7d) | Folder id |
-| Download File | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/method/files/get/api/2.0/files/file/%7bfileid%7d/presigned) | Room id, Folder id, File id |
-| Download File from My Documents | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/method/files/get/api/2.0/files/file/%7bfileid%7d/presigned) | Folder id, File id |
-| Get External Link | [GET api/2.0/files/rooms/{id}/link](https://api.onlyoffice.com/docspace/method/files/get/api/2.0/files/rooms/%7bid%7d/link) | Room id |
-| Create Room | [POST api/2.0/files/rooms](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/rooms) | Title, Type |
-| Share Room | [GET api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/method/files/get/api/2.0/files/rooms/%7Bid%7D/share) | Room id, User id, Role |
-| Upload File | [POST api/2.0/files/{folderId}/upload/create_session](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/%7bfolderid%7d/upload/create_session) | Room id, Folder id, URL or File |
-| Upload File to My Documents | [POST api/2.0/files/{folderId}/upload/create_session](https://api.onlyoffice.com/docspace/method/files/post/api/2.0/files/%7bfolderid%7d/upload/create_session) | Folder id, URL or File |
-| Invite User | [POST api/2.0/people/invite](https://api.onlyoffice.com/docspace/method/people/post/api/2.0/people/invite) | Email, Role |
+| Archive Room | [PUT api/2.0/files/rooms/{id}/archive](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/rooms/archive-a-room/) | Room id |
+| Create File | [POST api/2.0/files/{folderId}/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-a-file/) | Room id, Folder id, Title |
+| Create File in My Documents | [POST api/2.0/files/@my/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-a-file-in-the-my-documents-section/) | Folder id, Title |
+| Create Folder | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/create-a-folder/) | Room id, Folder id, Title |
+| Create Folder in My Documents | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/create-a-folder/) | Folder id, Title |
+| Delete Folder | [DELETE api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/delete-a-folder/) | Room id, Folder id |
+| Delete Folder from My Documents | [DELETE api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/delete-a-folder/) | Folder id |
+| Download File | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-file-download-link-asynchronously/) | Room id, Folder id, File id |
+| Download File from My Documents | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-file-download-link-asynchronously/) | Folder id, File id |
+| Get External Link | [GET api/2.0/files/rooms/{id}/link](https://legacy-api.onlyoffice.com/docspace/method/files/get/api/2.0/files/file/%7bid%7d/link) | Room id |
+| Create Room | [POST api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/rooms/create-a-room/) | Title, Type |
+| Share Room | [GET api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/rooms/get-room-access-rights/) | Room id, User id, Role |
+| Upload File | [POST api/2.0/files/{folderId}/upload/create_session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/chunked-upload/) | Room id, Folder id, URL or File |
+| Upload File to My Documents | [POST api/2.0/files/{folderId}/upload/create_session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/chunked-upload/) | Folder id, URL or File |
+| Invite User | [POST api/2.0/people/invite](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/profiles/invite-users/) | Email, Role |
 
 When creating a new Zap, we set up a chain of actions that follows the trigger. Zapier automatically performs these actions on new data when the trigger fires. You can manually start the Zap by clicking the **Run Zap** button.
 
