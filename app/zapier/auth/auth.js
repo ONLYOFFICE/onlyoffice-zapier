@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 const normalizeUrl = require("normalize-url")
@@ -45,6 +45,12 @@ const sessionAuth = {
      * @returns {Promise<SessionAuthenticationData>}
      */
     async perform(z, bundle) {
+      if (!/^(https?):\/\/[^\s/$.?#].[^\s]*$/i.test(bundle.authData.baseUrl)) {
+        throw new Error("Invalid DocSpace Service Address format")
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bundle.authData.username)) {
+        throw new Error("Invalid Email format")
+      }
       const baseUrl = normalizeUrl(bundle.authData.baseUrl)
       const client = new Client(baseUrl, z.request)
       const auth = new AuthenticationService(client)

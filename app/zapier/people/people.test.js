@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -34,7 +34,7 @@ People("invited a user", async (context) => {
   /** @type {InviteUserFields} */
   const inputData = {
     email: "whatever@onlyoffice.io",
-    type: "2"
+    type: "4"
   }
   const bundle = {
     authData: context.authData,

@@ -1,23 +1,29 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
 
 const {
   ACTIVATION_STATUS,
-  basicFormRoomRoles,
   Client,
   collaborationRoomRoles,
   customRoomRoles,
-  isBasicFormRoom,
+  fillingFormsRoomRoles,
   isCollaborationRoom,
   isCustomRoom,
+  isFillingFormsRoom,
+  isPublicRoom,
+  isVirtualDataRoom,
   ONLY_USERS_FILTER_TYPE,
-  REMOVED_USER_ID
+  publicRoomRoles,
+  REMOVED_USER_ID,
+  ROOM_MANAGER,
+  virtualDataRoomRoles
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
+const { PeopleService } = require("../../docspace/people/people.js")
 const { user } = require("../../docspace/people/people.samples.js")
 const { userAdded } = require("../people/triggers.js")
 
@@ -642,28 +648,41 @@ const shareRoles = {
      * @returns {Promise<RoleData[]>}
      */
     async perform(z, bundle) {
+      /**
+       * @type {RoleData[]}
+       */
+      var roles = []
       const client = new Client(bundle.authData.baseUrl, z.request)
+      // checking user rights
+      const people = new PeopleService(client)
+      const user = await people.self()
+      if (!user?.isAdmin && !user?.isRoomAdmin) {
+        // user not have permission to invite a user to the room
+        return roles
+      }
       const files = new FilesService(client)
       const room = await files.roomInfo(bundle.inputData.roomId)
       const users = await userAdded.operation.perform(z, bundle)
-      var roles = []
       if (bundle.inputData.userId) {
         const user = users.find((user) => user.id === bundle.inputData.userId)
-        if (user?.isAdmin || user?.isRoomAdmin || user?.isCollaborator) {
-          roles.push(
-            { id: 9, name: "Room admin" },
-            { id: 11, name: "Power user" }
-          )
+        if (user?.isAdmin || user?.isRoomAdmin) {
+          roles.push({ id: ROOM_MANAGER, name: "Room manager" })
         }
+      }
+      if (isPublicRoom(room.roomType)) {
+        roles = roles.concat(publicRoomRoles())
       }
       if (isCustomRoom(room.roomType)) {
         roles = roles.concat(customRoomRoles())
       }
-      if (isBasicFormRoom(room.roomType)) {
-        roles = roles.concat(basicFormRoomRoles())
+      if (isFillingFormsRoom(room.roomType)) {
+        roles = roles.concat(fillingFormsRoomRoles())
       }
       if (isCollaborationRoom(room.roomType)) {
         roles = roles.concat(collaborationRoomRoles())
+      }
+      if (isVirtualDataRoom(room.roomType)) {
+        roles = roles.concat(virtualDataRoomRoles())
       }
       return roles
     },

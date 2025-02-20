@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -17,6 +17,7 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -67,6 +68,7 @@ const App = {
     [downloadFile.key]: downloadFile,
     [downloadFileFromMyDocuments.key]: downloadFileFromMyDocuments,
     [externalLink.key]: externalLink,
+    [inviteGuest.key]: inviteGuest,
     [inviteUser.key]: inviteUser,
     [roomCreate.key]: roomCreate,
     [shareRoom.key]: shareRoom,

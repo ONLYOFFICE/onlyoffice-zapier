@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -19,6 +19,7 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -27,7 +28,7 @@ const {
 const {
   fileCreated,
   fileCreatedInMyDocuments,
-  fileDeleted,
+  //fileDeleted,
   //fileDeletedInMyDocuments, TODO:
   filesList,
   //filesListFromMyDocuments, TODO:
@@ -48,6 +49,7 @@ const {
   searchFolder
 } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
+const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
 /**
  * @typedef {import("./actions.js").ArchiveRoomFields} ArchiveRoomFields
@@ -65,6 +67,7 @@ const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture
  * @typedef {import("./triggers.js").FilesListFields} FilesListFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
  * @typedef {import("./triggers.js").FolderCreatedInMyDocumentsFields} FolderCreatedInMyDocumentsFields
+ * @typedef {import("./actions.js").InviteGuestFields} InviteGuestFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
  * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
@@ -94,7 +97,7 @@ const Files = suite("files", {
     },
     sections: {
       archive: 0,
-      myDocuments: 0,
+      documents: 0,
       rooms: 0,
       trash: 0
     },
@@ -114,8 +117,8 @@ Files("hidden filtered sections trigger return sections", async (context) => {
   const sections = await tester(perform, bundle)
   sections.forEach((item) => {
     switch (item.title) {
-    case "My documents":
-      context.inputData.sections.myDocuments = item.id
+    case "Documents":
+      context.inputData.sections.documents = item.id
       break
     case "Trash":
       context.inputData.sections.trash = item.id
@@ -130,7 +133,7 @@ Files("hidden filtered sections trigger return sections", async (context) => {
       break
     }
   })
-  not.equal(context.inputData.sections.myDocuments, 0)
+  not.equal(context.inputData.sections.documents, 0)
   not.equal(context.inputData.sections.trash, 0)
   not.equal(context.inputData.sections.rooms, 0)
   not.equal(context.inputData.sections.archive, 0)
@@ -222,6 +225,23 @@ Files("returns the links of a room", async (context) => {
   }
   const link = await tester(perform, bundle)
   not.equal(link.sharedTo.shareLink, null)
+})
+
+Files("invited a guest", async (context) => {
+  // TODO: add hidden action for remove guest
+  const { perform } = inviteGuest.operation
+  /** @type {InviteGuestFields} */
+  const inputData = {
+    access: CONTENT_CREATOR,
+    email: "test_guest@onlyoffice.io",
+    roomId: context.inputData.rooms.roomId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.status, "Invited")
 })
 
 Files("create a folder in room", async (context) => {
@@ -446,7 +466,7 @@ Files("hidden files list trigger returned file via my document", async (context)
   const { perform } = filesList.operation
   /** @type {FilesListFields} */
   const inputData = {
-    id: context.inputData.sections.myDocuments
+    id: context.inputData.sections.documents
   }
   const bundle = {
     authData: context.authData,

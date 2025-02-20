@@ -143,7 +143,7 @@ async function loadEnvironment(directory) {
 async function generateNotes(directory) {
   const file = join(directory, "CHANGELOG.md")
   const content = await readFile(file, { encoding: "utf-8" })
-  const version = pack.version.replace(/\./g, "\\.")
+  const version = pack.version.replace(/[\\]/g, "\\\\").replace(/\./g, "\\.")
   const pattern = new RegExp(`^## ${version} \\(\\d{4}-\\d{2}-\\d{2}\\)([\\S\\s](?!(?:##)))*$`, "m")
   const result = content.match(pattern)
   if (!result) {

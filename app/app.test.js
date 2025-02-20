@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -20,6 +20,7 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  inviteGuest,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -55,7 +56,7 @@ const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
 
 test("has the actual version", () => {
-  const version = "1.0.1"
+  const version = "1.0.2"
   equal(App.version, version)
   equal(pack.version, version)
 })
@@ -236,6 +237,11 @@ test("has the `externalLink` creation", () => {
 
 test("has the `inviteUser` creation", () => {
   const has = App.creates[inviteUser.key] === inviteUser
+  equal(has, true)
+})
+
+test("has the `inviteGuest` creation", () => {
+  const has = App.creates[inviteGuest.key] === inviteGuest
   equal(has, true)
 })
 

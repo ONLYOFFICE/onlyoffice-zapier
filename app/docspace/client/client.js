@@ -1,5 +1,5 @@
 //
-// (c) Copyright Ascensio System SIA 2024
+// (c) Copyright Ascensio System SIA 2025
 //
 
 // @ts-check
@@ -20,11 +20,22 @@
  * @property {string=} filterValue
  * @property {string|number=} filterType
  * @property {string=} searchArea
+ * @property {string=} inviterId
+ * @property {string=} area
  */
 
 const ACTIVATION_STATUS = 1
 const ONLY_USERS_FILTER_TYPE = 0
 const REMOVED_USER_ID = "4A515A15-D4D6-4b8e-828E-E0586F18F3A3"
+
+const OWNER = 1
+const CONTENT_CREATOR = 11
+const ROOM_MANAGER = 9
+const EDITOR = 10
+const REVIEWER = 5
+const COMMENTER = 6
+const VIEWER = 2
+const FORM_FILLER = 7
 
 /**
  * @param {number} type
@@ -54,8 +65,25 @@ function isCollaborationRoom(type) {
  * @param {number} type
  * @returns {boolean}
  */
-function isBasicFormRoom(type) {
+function isFillingFormsRoom(type) {
   return type === 1
+}
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isVirtualDataRoom(type) {
+  return type === 8
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function publicRoomRoles() {
+  return [
+    { id: CONTENT_CREATOR, name: "Content creator" }
+  ]
 }
 
 /**
@@ -63,21 +91,21 @@ function isBasicFormRoom(type) {
  */
 function customRoomRoles() {
   return [
-    { id: 10, name: "Editor" },
-    { id: 7, name: "Form filler" },
-    { id: 5, name: "Reviewer" },
-    { id: 6, name: "Commenter" },
-    { id: 2, name: "Viewer" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: EDITOR, name: "Editor" },
+    { id: REVIEWER, name: "Reviewer" },
+    { id: COMMENTER, name: "Commenter" },
+    { id: VIEWER, name: "Viewer" }
   ]
 }
 
 /**
  * @returns {RoleData[]}
  */
-function basicFormRoomRoles() {
+function fillingFormsRoomRoles() {
   return [
-    { id: 2, name: "Viewer" },
-    { id: 7, name: "Form filler" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: FORM_FILLER, name: "Form filler" }
   ]
 }
 
@@ -86,8 +114,20 @@ function basicFormRoomRoles() {
  */
 function collaborationRoomRoles() {
   return [
-    { id: 10, name: "Editor" },
-    { id: 2, name: "Viewer" }
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: EDITOR, name: "Editor" },
+    { id: VIEWER, name: "Viewer" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function virtualDataRoomRoles() {
+  return [
+    { id: CONTENT_CREATOR, name: "Content creator" },
+    { id: EDITOR, name: "Editor" },
+    { id: VIEWER, name: "Viewer" }
   ]
 }
 
@@ -216,16 +256,27 @@ class Service {
 
 module.exports = {
   ACTIVATION_STATUS,
+  COMMENTER,
+  CONTENT_CREATOR,
   Client,
+  EDITOR,
+  FORM_FILLER,
   ONLY_USERS_FILTER_TYPE,
+  OWNER,
   Progress,
   REMOVED_USER_ID,
+  REVIEWER,
+  ROOM_MANAGER,
   Service,
-  basicFormRoomRoles,
+  VIEWER,
   collaborationRoomRoles,
   customRoomRoles,
-  isBasicFormRoom,
+  fillingFormsRoomRoles,
   isCollaborationRoom,
   isCustomRoom,
-  isPublicRoom
+  isFillingFormsRoom,
+  isPublicRoom,
+  isVirtualDataRoom,
+  publicRoomRoles,
+  virtualDataRoomRoles
 }
