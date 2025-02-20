@@ -1,4 +1,4 @@
-## 1.0.2
+## 1.1.0
 - new inviteGuest action
 - updated room type
 - updated role list for inviting users
