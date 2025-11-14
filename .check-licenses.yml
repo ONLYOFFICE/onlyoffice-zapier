@@ -1,0 +1,13 @@
+---
+- - :approve
+  - zapier-platform-core
+  - :who:
+    :why: https://github.com/zapier/zapier-platform/blob/main/LICENSE
+    :versions: []
+    :when: 2025-11-07 09:55:31.982492900 Z
+- - :approve
+  - zapier-platform-schema
+  - :who:
+    :why: https://github.com/zapier/zapier-platform/blob/main/LICENSE
+    :versions: []
+    :when: 2025-11-07 09:55:31.982492900 Z
