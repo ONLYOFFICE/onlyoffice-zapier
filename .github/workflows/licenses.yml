@@ -1,0 +1,27 @@
+name: Licenses
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  licences:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version-file: "package.json"
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v2
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Check Licenses
+        uses: ONLYOFFICE/check-licenses@v1
+        with:
+          project_license: Apache-2.0
