@@ -46,11 +46,14 @@ People("invited a user", async (context) => {
 })
 
 People("triggers when a user is added", async (context) => {
-  const { perform } = userAdded.operation
+  const { performList } = userAdded.operation
+  if (!performList) {
+    throw new Error("performList is required")
+  }
   const bundle = {
     authData: context.authData
   }
-  const users = await tester(perform, bundle)
+  const users = await tester(performList, bundle)
   const user = users[0]
   not.equal(user.id, context.inputData.userId)
 })

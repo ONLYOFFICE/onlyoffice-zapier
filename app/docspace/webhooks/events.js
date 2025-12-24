@@ -1,0 +1,66 @@
+//
+// (c) Copyright Ascensio System SIA 2025
+//
+
+// @ts-check
+
+// File events
+const FILE_CREATED = 1
+const FILE_UPDATED = 2
+const FILE_DELETED = 3
+const FILE_RENAMED = 4
+const FILE_MOVED = 5
+const FILE_COPIED = 6
+
+// Folder events
+const FOLDER_CREATED = 7
+const FOLDER_UPDATED = 8
+const FOLDER_DELETED = 9
+const FOLDER_RENAMED = 10
+const FOLDER_MOVED = 11
+const FOLDER_COPIED = 12
+
+// Room events
+const ROOM_CREATED = 13
+const ROOM_UPDATED = 14
+const ROOM_DELETED = 15
+const ROOM_RENAMED = 16
+const ROOM_ARCHIVED = 17
+const ROOM_UNARCHIVED = 18
+
+// User events
+const USER_ADDED = 19
+const USER_UPDATED = 20
+const USER_DELETED = 21
+
+// Room user events
+const ROOM_USER_ADDED = 22
+const ROOM_USER_UPDATED = 23
+const ROOM_USER_DELETED = 24
+
+module.exports = {
+  FILE_COPIED,
+  FILE_CREATED,
+  FILE_DELETED,
+  FILE_MOVED,
+  FILE_RENAMED,
+  FILE_UPDATED,
+  FOLDER_COPIED,
+  FOLDER_CREATED,
+  FOLDER_DELETED,
+  FOLDER_MOVED,
+  FOLDER_RENAMED,
+  FOLDER_UPDATED,
+  ROOM_ARCHIVED,
+  ROOM_CREATED,
+  ROOM_DELETED,
+  ROOM_RENAMED,
+  ROOM_UNARCHIVED,
+  ROOM_UPDATED,
+  ROOM_USER_ADDED,
+  ROOM_USER_DELETED,
+  ROOM_USER_UPDATED,
+  USER_ADDED,
+  USER_DELETED,
+  USER_UPDATED
+}

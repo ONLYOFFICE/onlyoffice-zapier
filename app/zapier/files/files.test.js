@@ -117,7 +117,7 @@ Files("hidden filtered sections trigger return sections", async (context) => {
   const sections = await tester(perform, bundle)
   sections.forEach((item) => {
     switch (item.title) {
-    case "Documents":
+    case "My documents":
       context.inputData.sections.documents = item.id
       break
     case "Trash":
@@ -156,11 +156,14 @@ Files("create a room", async (context) => {
 })
 
 Files("triggers when a room is created", async (context) => {
-  const { perform } = roomCreated.operation
+  const { performList } = roomCreated.operation
+  if (!performList) {
+    throw new Error("performList is required")
+  }
   const bundle = {
     authData: context.authData
   }
-  const rooms = await tester(perform, bundle)
+  const rooms = await tester(performList, bundle)
   const room = rooms[0]
   equal(room.id, context.inputData.rooms.roomId)
 })
@@ -198,7 +201,7 @@ Files("user is invited to the room", async (context) => {
 })
 
 Files("triggers when a user invited to room", async (context) => {
-  const { perform } = userInvited.operation
+  const { performList } = userInvited.operation
   /** @type {UserInvitedFields} */
   const inputData = {
     active: false, // invited user is not active
@@ -208,7 +211,10 @@ Files("triggers when a user invited to room", async (context) => {
     authData: context.authData,
     inputData
   }
-  const users = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const users = await tester(performList, bundle)
   const user = users[1] // first user - me
   equal(user.id, context.inputData.user)
 })
@@ -261,7 +267,7 @@ Files("create a folder in room", async (context) => {
 })
 
 Files("triggers when a folder is created in room", async (context) => {
-  const { perform } = folderCreated.operation
+  const { performList } = folderCreated.operation
   /** @type {FolderCreatedFields} */
   const inputData = {
     id: context.inputData.rooms.roomId
@@ -270,7 +276,10 @@ Files("triggers when a folder is created in room", async (context) => {
     authData: context.authData,
     inputData
   }
-  const folders = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
   const folder = folders[0]
   equal(folder.id, context.inputData.rooms.folderId)
 })
@@ -309,7 +318,7 @@ Files("creates a file in folder that is in room", async (context) => {
 })
 
 Files("triggers when a file is created in folder that is in room", async (context) => {
-  const { perform } = fileCreated.operation
+  const { performList } = fileCreated.operation
   /** @type {FileCreatedFields} */
   const inputData = {
     folderId: context.inputData.rooms.folderId
@@ -318,8 +327,11 @@ Files("triggers when a file is created in folder that is in room", async (contex
     authData: context.authData,
     inputData
   }
-  const files = await tester(perform, bundle)
-  const file = files[0]
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const files = await tester(performList, bundle)
+  const file = /** @type {import("../../docspace/files/files.js").FileData} */ (files[0])
   equal(file.title, "Test File")
 })
 
@@ -400,7 +412,7 @@ Files("delete a folder from room", async (context) => {
 // TODO: Add test for delete file action and trigger
 
 Files("triggers when a folder is deleted", async (context) => {
-  const { perform } = folderDeleted.operation
+  const { performList } = folderDeleted.operation
   const inputData = {
     id: context.inputData.rooms.roomId // Check triggers to delete a folder from a specific room
   }
@@ -408,7 +420,10 @@ Files("triggers when a folder is deleted", async (context) => {
     authData: context.authData,
     inputData
   }
-  const folders = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
   const folder = folders[0]
   equal(folder.id, context.inputData.rooms.folderId)
 })
@@ -428,11 +443,14 @@ Files("archive the room", async (context) => {
 })
 
 Files("triggers when a room is archived", async (context) => {
-  const { perform } = roomArchived.operation
+  const { performList } = roomArchived.operation
   const bundle = {
     authData: context.authData
   }
-  const folders = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
   const room = folders[0]
   equal(room.id, context.inputData.rooms.roomId)
 })
@@ -453,11 +471,14 @@ Files("creates a file in the my documents", async (context) => {
 })
 
 Files("triggers when a file is created in my documents", async (context) => {
-  const { perform } = fileCreatedInMyDocuments.operation
+  const { performList } = fileCreatedInMyDocuments.operation
   const bundle = {
     authData: context.authData
   }
-  const files = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const files = await tester(performList, bundle)
   const file = files[0]
   equal(file.id, context.inputData.myDocuments.fileId)
 })
@@ -494,11 +515,14 @@ Files("create a folder in the my documents", async (context) => {
 })
 
 Files("triggers when a folder is created in the my documents", async (context) => {
-  const { perform } = folderCreatedInMyDocuments.operation
+  const { performList } = folderCreatedInMyDocuments.operation
   const bundle = {
     authData: context.authData
   }
-  const folders = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
   const folder = folders[0]
   equal(folder.id, context.inputData.myDocuments.folderId.id)
 })
@@ -521,7 +545,7 @@ Files("creates a file in the folder that is in my documents", async (context) =>
 })
 
 Files("triggers when a file is created in the folder that is in my documents", async (context) => {
-  const { perform } = fileCreatedInMyDocuments.operation
+  const { performList } = fileCreatedInMyDocuments.operation
   /** @type {FileCreatedInMyDocumentsFields} */
   const inputData = {
     folderId: context.inputData.myDocuments.folderId.id
@@ -530,8 +554,11 @@ Files("triggers when a file is created in the folder that is in my documents", a
     authData: context.authData,
     inputData
   }
-  const files = await tester(perform, bundle)
-  const file = files[0]
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const files = await tester(performList, bundle)
+  const file = /** @type {import("../../docspace/files/files.js").FileData} */ (files[0])
   equal(file.id, context.inputData.myDocuments.folderId.fileId)
   equal(file.folderId, context.inputData.myDocuments.folderId.id)
 })
@@ -580,11 +607,14 @@ Files("delete a folder from my documents", async (context) => {
 })
 
 Files("triggers when a folder from my documents is deleted", async (context) => {
-  const { perform } = folderDeletedInMyDocuments.operation
+  const { performList } = folderDeletedInMyDocuments.operation
   const bundle = {
     authData: context.authData
   }
-  const folders = await tester(perform, bundle)
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
   const folder = folders[0]
   equal(folder.id, context.inputData.myDocuments.folderId.id)
 })
