@@ -6,6 +6,13 @@ const pluginRequireSort = require("eslint-plugin-require-sort")
 const stylistic = require("@stylistic/eslint-plugin-js")
 
 module.exports = [
+  {
+    ignores: [
+      "dist/",
+      "build/",
+      "node_modules/"
+    ]
+  },
   eslint.configs.recommended,
   {
     languageOptions: {
