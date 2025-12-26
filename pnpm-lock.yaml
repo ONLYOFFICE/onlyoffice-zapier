@@ -11,9 +11,6 @@ dependencies:
   form-data:
     specifier: ^4.0.4
     version: registry.npmjs.org/form-data@4.0.5
-  js-yaml:
-    specifier: ^4.1.1
-    version: registry.npmjs.org/js-yaml@4.1.1
   normalize-url:
     specifier: 6.1.0
     version: registry.npmjs.org/normalize-url@6.1.0
@@ -873,6 +870,7 @@ packages:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==, tarball: https://registry.npmjs.org/argparse/-/argparse-2.0.1.tgz}
     name: argparse
     version: 2.0.1
+    dev: true
 
   registry.npmjs.org/array-buffer-byte-length@1.0.2:
     resolution: {integrity: sha512-LHE+8BuR7RYGDKvnrmcuSq3tDcKv9OFEXQt/HpbZhY7V6h0zlUXutnAD82GiFx9rdieCMjkvtcsPqBwgUl1Iiw==, tarball: https://registry.npmjs.org/array-buffer-byte-length/-/array-buffer-byte-length-1.0.2.tgz}
@@ -2617,6 +2615,7 @@ packages:
     hasBin: true
     dependencies:
       argparse: registry.npmjs.org/argparse@2.0.1
+    dev: true
 
   registry.npmjs.org/jsdoc-type-pratt-parser@4.0.0:
     resolution: {integrity: sha512-YtOli5Cmzy3q4dP26GraSOeAhqecewG04hoO8DY56CH4KJ9Fvv5qKWUCCo3HZob7esJQHCv6/+bnTy72xZZaVQ==, tarball: https://registry.npmjs.org/jsdoc-type-pratt-parser/-/jsdoc-type-pratt-parser-4.0.0.tgz}
