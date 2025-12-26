@@ -125,7 +125,7 @@ class Uploader {
   }
 
   /**
-   * @param {ArrayBuffer} data
+   * @param {Buffer} data
    * @param {string} filename
    * @returns {FormData}
    */
