@@ -39,9 +39,9 @@
   },
   "dependencies": {
     "content-disposition": "^0.5.4",
-    "form-data": "^4.0.0",
+    "form-data": "^4.0.4",
     "normalize-url": "6.1.0",
-    "zapier-platform-core": "15.5.0"
+    "zapier-platform-core": "18.0.5"
   },
   "devDependencies": {
     "@commitlint/cli": "^18.4.3",
