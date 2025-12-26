@@ -11,3 +11,9 @@
     :why: https://github.com/zapier/zapier-platform/blob/main/LICENSE
     :versions: []
     :when: 2025-11-07 09:55:31.982492900 Z
+- - :approve
+  - urlsafe-base64
+  - :who:
+    :why: Dependency of zapier-platform-core, https://github.com/RGBboy/urlsafe-base64
+    :versions: []
+    :when: 2025-12-26 13:00:00.000000000 Z
