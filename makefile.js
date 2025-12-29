@@ -167,6 +167,16 @@ async function copyMeta(input, output) {
   await copyFile(from, to)
 }
 
+/**
+ * @param {string} directory
+ * @returns {Promise<void>}
+ */
+async function createGitignore(directory) {
+  const content = "node_modules\n"
+  const file = join(directory, ".gitignore")
+  await writeFile(file, content)
+}
+
 app
   .command("all")
   .describe("Run an audit of the app and then build it")
@@ -185,6 +195,7 @@ app
     await buildEntry(root, dist)
     await buildPackage(pack, dist)
     await copyMeta(root, dist)
+    await createGitignore(dist)
     chdir(dist)
     // We don't use the `--frozen-lockfile` option here because we assume that
     // all dependencies, except for the `zapier-platform-core`, have already

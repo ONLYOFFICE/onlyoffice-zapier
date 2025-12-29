@@ -4,7 +4,7 @@ Before making or requesting any changes, please make sure to read the contributi
 
 ## Requirements
 
-To continue with the development, it's necessary to install [NodeJS 18.18.2](https://nodejs.org) along with [pnpm 8.10.4](https://pnpm.io) as the package manager. With NodeJS 18 we're following [Zapier requirements](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#requirements).
+To continue with the development, it's necessary to install [NodeJS 22.12.0](https://nodejs.org) along with [pnpm 8.10.4](https://pnpm.io) as the package manager. With NodeJS 18 we're following [Zapier requirements](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#requirements).
 
 If you intend to run tests, you'll also need to install [Zapier CLI 15.5.0](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md) and request a DocSpace test environment from @LinneyS (available only for company employees) or register for a [production environment](https://www.onlyoffice.com/docspace-registration.aspx).
 

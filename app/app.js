@@ -75,6 +75,9 @@ const App = {
     [uploadFile.key]: uploadFile,
     [uploadFileToMyDocuments.key]: uploadFileToMyDocuments
   },
+  flags: {
+    cleanInputData: false
+  },
   hydrators,
   platformVersion,
   searches: {
