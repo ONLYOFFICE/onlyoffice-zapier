@@ -1,3 +1,5 @@
+- add webhooks
+
 ## 1.1.0
 - new inviteGuest action
 - updated room type
