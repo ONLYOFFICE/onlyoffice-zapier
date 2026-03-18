@@ -44,10 +44,18 @@ const { WebhooksService } = require("../../docspace/webhooks/webhooks.js")
 
 /**
  * Generate random secret key
+ * Requirements: 8-30 chars, only latin letters, no spaces
  * @returns {string}
  */
 function generateSecretKey() {
-  return crypto.randomBytes(32).toString("hex")
+  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+  const length = 24
+  let result = ""
+  const randomBytes = crypto.randomBytes(length)
+  for (let i = 0; i < length; i += 1) {
+    result += chars[randomBytes[i] % chars.length]
+  }
+  return result
 }
 
 /**
@@ -90,10 +98,14 @@ async function subscribeWebhook(z, bundle, eventIds) {
   const secretKey = generateSecretKey()
 
   const targetUrl = bundle.targetUrl || ""
+  // Generate short name (max 50 chars)
+  const timestamp = Date.now().toString(36)
+  const name = `Zapier-${timestamp}`
+
   const subscription = await webhooks.createWebhook({
     enabled: true,
     eventIds,
-    name: `Zapier - ${targetUrl}`,
+    name,
     secretKey,
     ssl: true,
     uri: targetUrl
