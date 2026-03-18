@@ -133,8 +133,9 @@ async function performFileCreated(z, bundle) {
     const filesList = await files.listFiles(bundle.inputData.folderId, filters)
     filesList.files.forEach((file) => {
       file.title = file.title.substring(0, file.title.lastIndexOf("."))
+      file.id = Number(file.id)
     })
-    return filesList.files
+    return filesList.files.slice(0, 100)
   }
   throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
 }
@@ -220,6 +221,7 @@ async function performFileDeleted(z, bundle) {
   const trash = await files.listTrash(filters)
   trash.files.forEach((file) => {
     file.title = file.title.substring(0, file.title.lastIndexOf("."))
+    file.id = Number(file.id)
   })
   if (bundle.inputData.id || bundle.inputData.folderId) {
     if (!bundle.inputData.folderId) {
@@ -363,7 +365,7 @@ const filteredSections = {
       const files = new FilesService(client)
       const sections = await files.listSections()
       return sections.map((section) => ({
-        id: section.pathParts[0].id,
+        id: Number(section.pathParts[0].id),
         title: section.pathParts[0].title
       }))
     },
@@ -389,7 +391,10 @@ async function performFolderCreated(z, bundle) {
       sortOrder: "descending"
     }
     const folders = await files.listFolders(bundle.inputData.id, filters)
-    return folders.folders
+    folders.folders.forEach((folder) => {
+      folder.id = Number(folder.id)
+    })
+    return folders.folders.slice(0, 100)
   }
   throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
 }
@@ -473,6 +478,9 @@ async function performFolderDeleted(z, bundle) {
     sortOrder: "descending"
   }
   const trash = await files.listTrash(filters)
+  trash.folders.forEach((folder) => {
+    folder.id = Number(folder.id)
+  })
   if (bundle.inputData.folderId) {
     return trash.folders.filter((item) => item.originId === bundle.inputData.folderId)
   } else if (bundle.inputData.id) {
@@ -586,7 +594,10 @@ async function performRoomCreated(z, bundle) {
   const client = new Client(bundle.authData.baseUrl, z.request)
   const files = new FilesService(client)
   const rooms = await files.listRooms()
-  return rooms.folders
+  rooms.folders.forEach((room) => {
+    room.id = Number(room.id)
+  })
+  return rooms.folders.slice(0, 100)
 }
 
 const roomCreated = createWebhookTrigger(
@@ -615,6 +626,9 @@ async function performRoomArchived(z, bundle) {
     sortOrder: "descending"
   }
   const rooms = await files.listRooms(filters)
+  rooms.folders.forEach((room) => {
+    room.id = Number(room.id)
+  })
   return rooms.folders
 }
 
@@ -705,6 +719,9 @@ const shareRoles = {
       if (isVirtualDataRoom(room.roomType)) {
         roles = roles.concat(virtualDataRoomRoles())
       }
+      roles.forEach((role) => {
+        role.id = Number(role.id)
+      })
       return roles
     },
     sample: samples.role
@@ -727,7 +744,9 @@ async function performUserInvited(z, bundle) {
   if (bundle.inputData.active) {
     users = users.filter((item) => item.sharedTo.activationStatus === ACTIVATION_STATUS)
   }
-  return users.map((item) => item.sharedTo)
+  return users.map((item) => {
+    return item.sharedTo
+  })
 }
 
 const userInvited = createWebhookTrigger(

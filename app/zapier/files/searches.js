@@ -58,7 +58,11 @@ const searchFile = {
         withSubfolders: true
       }
       const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-      return filesList.files.filter((file) => file.title.includes(bundle.inputData.title))
+      const results = filesList.files.filter((file) => file.title.includes(bundle.inputData.title))
+      results.forEach((file) => {
+        file.id = Number(file.id)
+      })
+      return results
     },
     sample: samples.file
   }
@@ -102,7 +106,11 @@ const searchFolder = {
         withSubfolders: true
       }
       const folderList = await files.listFolders(bundle.inputData.folderId, filters)
-      return folderList.folders.filter((folder) => folder.title.includes(bundle.inputData.title))
+      const results = folderList.folders.filter((folder) => folder.title.includes(bundle.inputData.title))
+      results.forEach((folder) => {
+        folder.id = Number(folder.id)
+      })
+      return results
     },
     sample: samples.folder
   }
