@@ -157,7 +157,67 @@ function performWebhook(z, bundle) {
     }
   }
 
-  return [bundle.cleanedRequest]
+  const event = bundle.cleanedRequest
+  const inputData = bundle.inputData || {}
+
+  // Filter by room id if specified
+  // Check rootFolderId for files/folders, or id for rooms, or roomId for room-user events
+  if (inputData.id !== undefined) {
+    let eventRoomId
+
+    // For room events, check event.id directly
+    if (event.roomType !== undefined) {
+      eventRoomId = event.id
+    } else if (event.rootFolderId !== undefined) {
+      // For file/folder events, check rootFolderId
+      eventRoomId = event.rootFolderId
+    } else if (event.roomId !== undefined) {
+      // For room-user events, check roomId or parentId
+      eventRoomId = event.roomId
+    } else if (event.parentId !== undefined) {
+      eventRoomId = event.parentId
+    }
+
+    if (eventRoomId !== undefined && eventRoomId !== inputData.id) {
+      return []
+    }
+  }
+
+  // Filter by folderId if specified
+  // For deleted items, check originId; for active items, check folderId or parentId
+  if (inputData.folderId !== undefined) {
+    let eventFolderId
+
+    // For deleted items, use originId
+    if (event.originId !== undefined) {
+      eventFolderId = event.originId
+    } else if (event.folderId !== undefined) {
+      // For active items, use folderId or parentId
+      eventFolderId = event.folderId
+    } else if (event.parentId !== undefined) {
+      eventFolderId = event.parentId
+    }
+
+    if (eventFolderId !== undefined && eventFolderId !== inputData.folderId) {
+      return []
+    }
+  }
+
+  // Filter by active status if specified (for user events)
+  if (inputData.active !== undefined && event.activationStatus !== undefined) {
+    // activationStatus === 2 means active
+    const isActive = event.activationStatus === 2
+    if (isActive !== inputData.active) {
+      return []
+    }
+  }
+
+  // Ensure id is a number for Zapier deduplication
+  if (event.id !== undefined) {
+    event.id = Number(event.id)
+  }
+
+  return [event]
 }
 
 /**
