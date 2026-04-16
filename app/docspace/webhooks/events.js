@@ -1,6 +1,6 @@
 /* eslint-disable sort-keys */
 //
-// (c) Copyright Ascensio System SIA 2025
+// (c) Copyright Ascensio System SIA 2026
 //
 
 // @ts-check
