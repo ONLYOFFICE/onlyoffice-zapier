@@ -146,6 +146,7 @@ const fileCreated = createWebhookTrigger(
   "Triggers when a file is created in a room or folder.",
   [FILE_CREATED],
   {
+    filters: { rootFolderType: 14 },
     inputFields: [
       {
         altersDynamicFields: true,
@@ -190,6 +191,7 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
   "Triggers when a file is created in the My Documents directory.",
   [FILE_CREATED],
   {
+    filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
@@ -405,6 +407,7 @@ const folderCreated = createWebhookTrigger(
   "Triggers when a folder is created in a room or folder.",
   [FOLDER_CREATED],
   {
+    filters: { rootFolderType: 14 },
     inputFields: [
       {
         altersDynamicFields: true,
@@ -449,6 +452,7 @@ const folderCreatedInMyDocuments = createWebhookTrigger(
   "Triggers when a folder is created in the My Documents directory.",
   [FOLDER_CREATED],
   {
+    filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",

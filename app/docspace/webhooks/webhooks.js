@@ -12,7 +12,7 @@ const { Service } = require("../client/client.js")
  * @property {string} uri
  * @property {string} secretKey
  * @property {boolean} enabled
- * @property {number[]} eventIds
+ * @property {number} triggers
  * @property {string} name
  */
 
@@ -21,7 +21,7 @@ const { Service } = require("../client/client.js")
  * @property {string} name
  * @property {string} uri
  * @property {string} secretKey
- * @property {number[]} eventIds
+ * @property {number} triggers
  * @property {boolean=} enabled
  * @property {boolean=} ssl
  */

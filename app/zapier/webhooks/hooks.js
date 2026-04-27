@@ -7,6 +7,7 @@
 const crypto = require("crypto")
 const { Client } = require("../../docspace/client/client.js")
 const { WebhooksService } = require("../../docspace/webhooks/webhooks.js")
+const { WEBHOOK_TRIGGER_NAMES } = require("../../docspace/webhooks/events.js")
 
 /**
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
@@ -102,12 +103,14 @@ async function subscribeWebhook(z, bundle, eventIds) {
   const timestamp = Date.now().toString(36)
   const name = `Zapier-${timestamp}`
 
+  const triggers = eventIds.reduce((mask, id) => mask | id, 0)
+
   const subscription = await webhooks.createWebhook({
     enabled: true,
-    eventIds,
     name,
     secretKey,
     ssl: true,
+    triggers,
     uri: targetUrl
   })
 
@@ -136,9 +139,12 @@ async function unsubscribeWebhook(z, bundle) {
  * Handle webhook request
  * @param {ZObject} z
  * @param {Bundle<SessionAuthenticationData>} bundle
+ * @param {Object} [filters]
+ * @param {number} [filters.rootFolderType]
+ * @param {number[]} [eventIds]
  * @returns {WebhookEventData[]}
  */
-function performWebhook(z, bundle) {
+function performWebhook(z, bundle, filters = {}, eventIds = []) {
   const subscribeData = /** @type {WebhookSubscriptionData} */ (/** @type {unknown} */ (bundle.subscribeData))
   if (subscribeData && subscribeData.secretKey) {
     const signature = bundle.rawRequest?.headers?.["x-docspace-signature-256"]
@@ -157,62 +163,97 @@ function performWebhook(z, bundle) {
     }
   }
 
-  const event = bundle.cleanedRequest
+  const webhookBody = bundle.cleanedRequest
+  const event = webhookBody.payload || webhookBody
   const inputData = bundle.inputData || {}
 
-  // Filter by room id if specified
-  // Check rootFolderId for files/folders, or id for rooms, or roomId for room-user events
-  if (inputData.id !== undefined) {
-    let eventRoomId
-
-    // For room events, check event.id directly
-    if (event.roomType !== undefined) {
-      eventRoomId = event.id
-    } else if (event.rootFolderId !== undefined) {
-      // For file/folder events, check rootFolderId
-      eventRoomId = event.rootFolderId
-    } else if (event.roomId !== undefined) {
-      // For room-user events, check roomId or parentId
-      eventRoomId = event.roomId
-    } else if (event.parentId !== undefined) {
-      eventRoomId = event.parentId
-    }
-
-    if (eventRoomId !== undefined && eventRoomId !== inputData.id) {
+  // Filter by event trigger name
+  if (eventIds.length > 0 && webhookBody.event && webhookBody.event.trigger) {
+    const expectedTriggers = eventIds
+      .map((id) => WEBHOOK_TRIGGER_NAMES[id])
+      .filter(Boolean)
+    if (
+      expectedTriggers.length > 0 &&
+      !expectedTriggers.includes(webhookBody.event.trigger)
+    ) {
       return []
     }
   }
 
-  // Filter by folderId if specified
-  // For deleted items, check originId; for active items, check folderId or parentId
-  if (inputData.folderId !== undefined) {
+  // Filter by rootFolderType
+  if (filters.rootFolderType !== undefined) {
+    if (
+      event.rootFolderType === undefined ||
+      Number(event.rootFolderType) !== Number(filters.rootFolderType)
+    ) {
+      return []
+    }
+  }
+
+  // Filter by room id if specified
+  if (inputData.id !== undefined) {
+    let eventRoomId
+
+    if (event.roomType !== undefined) {
+      eventRoomId = event.id
+    } else if (event.rootFolderId !== undefined) {
+      eventRoomId = event.rootFolderId
+    } else if (event.roomId !== undefined) {
+      eventRoomId = event.roomId
+    }
+
+    if (
+      eventRoomId !== undefined &&
+      Number(eventRoomId) !== Number(inputData.id)
+    ) {
+      return []
+    }
+  }
+
+  // Filter by folder id
+  const effectiveFolderId =
+    inputData.folderId !== undefined ? inputData.folderId : inputData.id
+
+  if (effectiveFolderId !== undefined) {
     let eventFolderId
 
-    // For deleted items, use originId
     if (event.originId !== undefined) {
       eventFolderId = event.originId
     } else if (event.folderId !== undefined) {
-      // For active items, use folderId or parentId
       eventFolderId = event.folderId
     } else if (event.parentId !== undefined) {
       eventFolderId = event.parentId
     }
 
-    if (eventFolderId !== undefined && eventFolderId !== inputData.folderId) {
-      return []
+    if (inputData.folderId !== undefined) {
+      // Explicit folderId: require match
+      if (
+        eventFolderId === undefined ||
+        Number(eventFolderId) !== Number(effectiveFolderId)
+      ) {
+        return []
+      }
+    } else if (eventFolderId !== undefined) {
+      // Room ID fallback: skip events without folder data
+      if (Number(eventFolderId) !== Number(effectiveFolderId)) {
+        return []
+      }
     }
   }
 
   // Filter by active status if specified (for user events)
-  if (inputData.active !== undefined && event.activationStatus !== undefined) {
-    // activationStatus === 2 means active
+  if (inputData.active !== undefined) {
+    if (event.activationStatus === undefined) {
+      return []
+    }
     const isActive = event.activationStatus === 2
-    if (isActive !== inputData.active) {
+    const expectedActive = String(inputData.active) === "true"
+    if (isActive !== expectedActive) {
       return []
     }
   }
 
-  // Ensure id is a number for Zapier deduplication
+  // Coerce id to number for Zapier dedup
   if (event.id !== undefined) {
     event.id = Number(event.id)
   }
@@ -242,6 +283,7 @@ async function performList(z, bundle, pollingFunction) {
  * @param {Function=} options.pollingFallback
  * @param {Object=} options.sample
  * @param {string=} options.noun
+ * @param {{rootFolderType?: number}=} options.filters
  * @returns {WebhookTrigger}
  */
 function createWebhookTrigger(key, label, description, eventIds, options = {}) {
@@ -261,7 +303,7 @@ function createWebhookTrigger(key, label, description, eventIds, options = {}) {
        * @returns {WebhookEventData[]}
        */
       perform: (z, bundle) => {
-        return performWebhook(z, bundle)
+        return performWebhook(z, bundle, options.filters, eventIds)
       },
 
       /**
