@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "content-disposition": "^0.5.4",
-    "form-data": "^4.0.0",
+    "form-data": "^4.0.6",
     "normalize-url": "6.1.0",
     "zapier-platform-core": "15.5.0"
   },
