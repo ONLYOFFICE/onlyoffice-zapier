@@ -14,7 +14,7 @@ declare global {
   }
 
   /**
-   * [Zapier Reference](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#triggerssearchescreates)
+   * [Zapier Reference](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4019.0.0/packages/cli/README.md#triggerssearchescreates)
    */
   type TriggerConfig = {
     key: string

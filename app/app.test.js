@@ -62,7 +62,7 @@ test("has the actual version", () => {
 })
 
 test("has the actual platform version", async () => {
-  const version = "18.0.5"
+  const version = "19.0.0"
   const file = join(__dirname, "../.zapier-version")
   const content = await readFile(file, { encoding: "utf-8" })
   equal(App.platformVersion, version)

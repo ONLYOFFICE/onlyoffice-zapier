@@ -4,9 +4,9 @@ Before making or requesting any changes, please make sure to read the contributi
 
 ## Requirements
 
-To continue with the development, it's necessary to install [NodeJS 22.12.0](https://nodejs.org) along with [pnpm 8.10.4](https://pnpm.io) as the package manager. With NodeJS 18 we're following [Zapier requirements](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#requirements).
+To continue with the development, it's necessary to install [NodeJS 22.13.0](https://nodejs.org) along with [pnpm 8.10.4](https://pnpm.io) as the package manager. With NodeJS 22 we're following [Zapier requirements](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4019.0.0/packages/cli/README.md#requirements).
 
-If you intend to run tests, you'll also need to install [Zapier CLI 15.5.0](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md) and request a DocSpace test environment from @LinneyS (available only for company employees) or register for a [production environment](https://www.onlyoffice.com/docspace-registration.aspx).
+If you intend to run tests, you'll also need to install [Zapier Platform CLI 19.0.0](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4019.0.0/packages/cli/README.md) and request a DocSpace test environment from @LinneyS (available only for company employees) or register for a [production environment](https://www.onlyoffice.com/docspace-registration.aspx).
 
 If you plan to upload the new version of the application, you'll also require Zapier CLI.
 
@@ -91,7 +91,7 @@ The deploy key from developer.zapier.com for testing purposes (ZAPIER_DEPLOY_KEY
 
 ## Project Structure
 
-Instead of the project structure [recommended by the Zapier team](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#local-project-structure), we use a different one that we find more convenient.
+Instead of the project structure [recommended by the Zapier team](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4019.0.0/packages/cli/README.md#local-project-structure), we use a different one that we find more convenient.
 
 ```sh
 $ tree . --dirsfirst
@@ -105,7 +105,7 @@ $ tree . --dirsfirst
 
 The entry point of the application is [`index.js`](./index.js).
 
-The [`app`](./app) directory contains two modules: the [`docspace`](./app/docspace) module and the [`zapier`](./app/zapier) module. The `docspace` module is a wrapper for the DocSpace REST API, while the `zapier` module may contain [triggers, searches, creates, and other resources](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/cli/README.md#triggerssearchescreates) for building applications on the Zapier platform.
+The [`app`](./app) directory contains two modules: the [`docspace`](./app/docspace) module and the [`zapier`](./app/zapier) module. The `docspace` module is a wrapper for the DocSpace REST API, while the `zapier` module may contain [triggers, searches, creates, and other resources](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4019.0.0/packages/cli/README.md#triggerssearchescreates) for building applications on the Zapier platform.
 
 To provide sample data, we follow the naming pattern `module.samples.js`. In addition, there is a `module.test.js` file that contains test cases for the module, and a `module.fixture.js` file that contains shared resources for different test files, such as authentication hooks.
 
@@ -156,5 +156,5 @@ $ gh workflow run release.yml
 ## Resources
 
 - [Zapier CLI Documentation](https://github.com/zapier/zapier-platform/blob/main/packages/cli/README.md)
-- [Zapier Schemas Documentation](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4015.5.0/packages/schema/docs/build/schema.md)
+- [Zapier Schemas Documentation](https://github.com/zapier/zapier-platform/blob/zapier-platform-schema%4019.0.0/packages/schema/docs/build/schema.md)
 - [Best practices for working with AWS Lambda](https://docs.aws.amazon.com/lambda/latest/dg/best-practices.html)

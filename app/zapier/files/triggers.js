@@ -693,12 +693,13 @@ const shareRoles = {
       // checking user rights
       const people = new PeopleService(client)
       const user = await people.self()
-      if (!user?.isAdmin && !user?.isRoomAdmin) {
+      if (!user?.isAdmin && !user?.isRoomAdmin && !user?.isOwner) {
         // user not have permission to invite a user to the room
         return roles
       }
       const files = new FilesService(client)
       const room = await files.roomInfo(bundle.inputData.roomId)
+      const roomType = Number(room.roomType)
       const people2 = new PeopleService(client)
       var users = await people2.listUsers()
       users = users.filter((item) => item.id !== REMOVED_USER_ID)
@@ -708,19 +709,19 @@ const shareRoles = {
           roles.push({ id: ROOM_MANAGER, name: "Room manager" })
         }
       }
-      if (isPublicRoom(room.roomType)) {
+      if (isPublicRoom(roomType)) {
         roles = roles.concat(publicRoomRoles())
       }
-      if (isCustomRoom(room.roomType)) {
+      if (isCustomRoom(roomType)) {
         roles = roles.concat(customRoomRoles())
       }
-      if (isFillingFormsRoom(room.roomType)) {
+      if (isFillingFormsRoom(roomType)) {
         roles = roles.concat(fillingFormsRoomRoles())
       }
-      if (isCollaborationRoom(room.roomType)) {
+      if (isCollaborationRoom(roomType)) {
         roles = roles.concat(collaborationRoomRoles())
       }
-      if (isVirtualDataRoom(room.roomType)) {
+      if (isVirtualDataRoom(roomType)) {
         roles = roles.concat(virtualDataRoomRoles())
       }
       roles.forEach((role) => {
