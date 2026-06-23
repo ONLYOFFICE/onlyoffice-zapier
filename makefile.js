@@ -69,7 +69,7 @@ async function buildEntry(input, output) {
     minify: true,
     outdir: output,
     platform: "node",
-    target: "node18"
+    target: "node22"
   })
 }
 
@@ -201,7 +201,7 @@ app
     // all dependencies, except for the `zapier-platform-core`, have already
     // been bundled.
     exec("pnpm install --prod")
-    exec("zapier build")
+    exec("zapier-platform build")
   })
 
 app
@@ -223,7 +223,7 @@ app
   .command("promote")
   .describe("Promote the current version of the app")
   .action(() => {
-    exec(`zapier promote ${pack.version} --yes`)
+    exec(`zapier-platform promote ${pack.version} --yes`)
   })
 
 app
@@ -267,7 +267,7 @@ app
   .describe("Run validation with tests")
   .action(async () => {
     await loadEnvironment(root)
-    exec("zapier test")
+    exec("zapier-platform test")
   })
 
 app
@@ -276,7 +276,7 @@ app
   .option("--force")
   .action((options) => {
     if (!options.force) {
-      const rawVersions = execSync("zapier versions --format json", { encoding: "utf-8" })
+      const rawVersions = execSync("zapier-platform versions --format json", { encoding: "utf-8" })
       /** @type {Version[]} */
       const versions = JSON.parse(rawVersions)
       const current = versions.find((version) => (
@@ -292,7 +292,7 @@ app
     }
 
     chdir(dist)
-    exec("zapier upload")
+    exec("zapier-platform upload")
   })
 
 app.parse(argv)
