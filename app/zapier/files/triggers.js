@@ -187,15 +187,15 @@ async function performFileCreatedInMyDocuments(z, bundle) {
 
 const fileCreatedInMyDocuments = createWebhookTrigger(
   "fileCreatedInMyDocuments",
-  "File Created in My Documents",
-  "Triggers when a file is created in the My Documents directory.",
+  "File Created in Files Section",
+  "Triggers when a file is created in the Files section.",
   [FILE_CREATED],
   {
     filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when created from a specific folder of the My Documents directory (optional)",
+        helpText: "Triggers when created from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
         type: "integer"
@@ -280,14 +280,14 @@ async function performFileDeletedInMyDocuments(z, bundle) {
 
 const fileDeletedInMyDocuments = createWebhookTrigger(
   "fileDeletedInMyDocuments",
-  "File Deleted From My Documents",
-  "Triggers when a file is deleted from the My Documents directory.",
+  "File Deleted From Files Section",
+  "Triggers when a file is deleted from the Files section.",
   [FILE_DELETED],
   {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when deleted from a specific folder of the My Documents directory (optional)",
+        helpText: "Triggers when deleted from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
         type: "integer"
@@ -323,9 +323,9 @@ const filesList = {
 
 const filesListFromMyDocuments = {
   display: {
-    description: "Hidden trigger to get a list of files from the My Documents directory.",
+    description: "Hidden trigger to get a list of files from the Files section.",
     hidden: true,
-    label: "List of Files from My Documents"
+    label: "List of Files from Files Section"
   },
   key: "filesListFromMyDocuments",
   noun: "Files",
@@ -448,15 +448,15 @@ async function performFolderCreatedInMyDocuments(z, bundle) {
 
 const folderCreatedInMyDocuments = createWebhookTrigger(
   "folderCreatedInMyDocuments",
-  "Folder Created in My Documents",
-  "Triggers when a folder is created in the My Documents directory.",
+  "Folder Created in Files Section",
+  "Triggers when a folder is created in the Files section.",
   [FOLDER_CREATED],
   {
     filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when created from a specific folder of the My Documents directory (optional)",
+        helpText: "Triggers when created from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
         type: "integer"
@@ -539,14 +539,14 @@ async function performFolderDeletedInMyDocuments(z, bundle) {
 
 const folderDeletedInMyDocuments = createWebhookTrigger(
   "folderDeletedInMyDocuments",
-  "Folder Deleted From My Documents",
-  "Triggers when a folder is deleted from the My Documents directory.",
+  "Folder Deleted From Files Section",
+  "Triggers when a folder is deleted from the Files section.",
   [FOLDER_DELETED],
   {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when deleted from a specific folder of the My Documents directory (optional)",
+        helpText: "Triggers when deleted from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
         type: "integer"
@@ -560,9 +560,9 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
 
 const foldersInMyDocumentsList = {
   display: {
-    description: "Hidden trigger to get a list of folders from the My Documents directory.",
+    description: "Hidden trigger to get a list of folders from the Files section.",
     hidden: true,
-    label: "List of Folders from My Documents"
+    label: "List of Folders from Files Section"
   },
   key: "foldersInMyDocumentsList",
   noun: "Folders",

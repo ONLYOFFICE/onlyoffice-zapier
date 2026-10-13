@@ -1,7 +1,7 @@
 {
   "name": "onlyoffice-zapier",
   "version": "1.1.1",
-  "description": "This integration allows users to create their own DocSpace integration",
+  "description": "This integration allows users to create their own ONLYOFFICE Apps integration",
   "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/ONLYOFFICE/onlyoffice-zapier/issues",
@@ -18,7 +18,7 @@
   ],
   "keywords": [
     "onlyoffice",
-    "docspacec"
+    "docspace"
   ],
   "private": true,
   "type": "commonjs",

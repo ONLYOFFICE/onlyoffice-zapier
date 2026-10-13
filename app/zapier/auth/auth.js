@@ -20,9 +20,9 @@ const sessionAuth = {
   connectionLabel: "{{firstName}} {{lastName}}",
   fields: [
     {
-      helpText: "Enter [URL](https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/basic-authentication/) of your DocSpace.",
+      helpText: "Enter [URL](https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/basic-authentication/) of your ONLYOFFICE Apps workspace.",
       key: "baseUrl",
-      label: "DocSpace Service Address",
+      label: "Workspace Address",
       required: true
     },
     {
@@ -46,7 +46,7 @@ const sessionAuth = {
      */
     async perform(z, bundle) {
       if (!/^(https?):\/\/[^\s/$.?#].[^\s]*$/i.test(bundle.authData.baseUrl)) {
-        throw new Error("Invalid DocSpace Service Address format")
+        throw new Error("Invalid Workspace Address format")
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bundle.authData.username)) {
         throw new Error("Invalid Email format")
