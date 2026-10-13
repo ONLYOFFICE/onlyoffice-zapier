@@ -1,9 +1,10 @@
 const eslint = require("@eslint/js")
+const { fixupPluginRules } = require("@eslint/compat")
 const globals = require("globals")
 const jsdoc = require("eslint-plugin-jsdoc")
-const pluginImport = require("eslint-plugin-import")
+const pluginImport = require("eslint-plugin-import-x")
 const pluginRequireSort = require("eslint-plugin-require-sort")
-const stylistic = require("@stylistic/eslint-plugin-js")
+const stylistic = require("@stylistic/eslint-plugin")
 
 module.exports = [
   {
@@ -19,7 +20,7 @@ module.exports = [
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.es6,
+        ...globals.es2015,
         ...globals.commonjs
       },
       parserOptions: {
@@ -31,7 +32,8 @@ module.exports = [
       "@stylistic": stylistic,
       import: pluginImport,
       jsdoc,
-      "require-sort": pluginRequireSort
+      // The plugin relies on the context API that was removed in ESLint 10.
+      "require-sort": fixupPluginRules(pluginRequireSort)
     },
     rules: {
       "@stylistic/array-bracket-newline": [
@@ -102,6 +104,7 @@ module.exports = [
           },
           "ImportDeclaration": "first",
           "ObjectExpression": "first",
+          "SwitchCase": 0,
           "VariableDeclarator": "first",
           "flatTernaryExpressions": true
         }

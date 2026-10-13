@@ -85,6 +85,9 @@ async function buildPackage(pack, directory) {
     },
     main: pack.main,
     name: pack.name,
+    // The `zapier-platform-core` pins some vulnerable dependencies, so we
+    // have to keep the overrides in the package that is uploaded to Zapier.
+    pnpm: pack.pnpm,
     type: pack.type,
     version: pack.version
   }

@@ -117,7 +117,7 @@ Files("hidden filtered sections trigger return sections", async (context) => {
   const sections = await tester(perform, bundle)
   sections.forEach((item) => {
     switch (item.title) {
-    case "My documents":
+    case "Files":
       context.inputData.sections.documents = item.id
       break
     case "Trash":

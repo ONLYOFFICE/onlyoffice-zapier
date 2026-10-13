@@ -29,7 +29,7 @@ const samples = require("../../docspace/people/people.samples.js")
 
 const inviteUser = {
   display: {
-    description: "Invites a user to the current portal.",
+    description: "Invites a user to the current workspace.",
     label: "Invite User"
   },
   key: "inviteUser",
@@ -61,7 +61,7 @@ const inviteUser = {
         }
         if (user?.isOwner) {
           choices[4] = "User"
-          choices[3] = "DocSpace admin"
+          choices[3] = "Full admin"
           choices[1] = "Room admin"
         }
         return [{

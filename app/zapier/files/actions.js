@@ -221,8 +221,8 @@ const createFile = {
 
 const createFileInMyDocuments = {
   display: {
-    description: "Create a file in the My Documents directory.",
-    label: "Create File in My Documents"
+    description: "Create a file in the Files section.",
+    label: "Create File in Files Section"
   },
   key: "createFileInMyDocuments",
   noun: "File",
@@ -318,8 +318,8 @@ const createFolder = {
 
 const createFolderInMyDocuments = {
   display: {
-    description: "Create a folder in the My Documents directory.",
-    label: "Create Folder in My Documents"
+    description: "Create a folder in the Files section.",
+    label: "Create Folder in Files Section"
   },
   key: "createFolderInMyDocuments",
   noun: "Folder",
@@ -402,8 +402,8 @@ const deleteFolder = {
 
 const deleteFolderInMyDocuments = {
   display: {
-    description: "Delete a folder from the My Documents directory.",
-    label: "Delete Folder From My Documents"
+    description: "Delete a folder from the Files section.",
+    label: "Delete Folder From Files Section"
   },
   key: "deleteFolderInMyDocuments",
   noun: "Folder",
@@ -486,8 +486,8 @@ const downloadFile = {
 
 const downloadFileFromMyDocuments = {
   display: {
-    description: "Returns a hydrated link to download a file from the My Documents directory.",
-    label: "Download File From My Documents"
+    description: "Returns a hydrated link to download a file from the Files section.",
+    label: "Download File From Files Section"
   },
   key: "downloadFileFromMyDocuments",
   noun: "File",
@@ -832,8 +832,8 @@ const uploadFile = {
 
 const uploadFileToMyDocuments = {
   display: {
-    description: "Upload a file to the My Documents directory.",
-    label: "Upload File to My Documents"
+    description: "Upload a file to the Files section.",
+    label: "Upload File to Files Section"
   },
   key: "uploadFileToMyDocuments",
   noun: "File",
