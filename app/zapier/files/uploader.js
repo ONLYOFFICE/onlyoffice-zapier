@@ -46,6 +46,23 @@ const FormData = require("form-data")
  * @typedef {import("./actions.js").FileData} FileData
  */
 
+/**
+ * Files from previous Zap steps are hosted by Zapier and can be read directly.
+ * Other URLs are downloaded with `z.request`, which doesn't follow redirects.
+ * The host is parsed, because a prefix check also matches hosts like
+ * `zapier.example.com`.
+ * @param {string} url
+ * @returns {boolean}
+ */
+function isZapierUrl(url) {
+  try {
+    const { hostname, protocol } = new URL(url)
+    return protocol === "https:" && (hostname === "zapier.com" || hostname.endsWith(".zapier.com"))
+  } catch {
+    return false
+  }
+}
+
 class Uploader {
   /**
    * @param {ZObject} z
@@ -60,7 +77,7 @@ class Uploader {
    */
   async stash(url) {
     let zapierUrl
-    if (url.startsWith("https://zapier")) {
+    if (isZapierUrl(url)) {
       zapierUrl = url
     } else {
       const filePromise = this.z.request({
@@ -137,5 +154,6 @@ class Uploader {
 }
 
 module.exports = {
-  Uploader
+  Uploader,
+  isZapierUrl
 }

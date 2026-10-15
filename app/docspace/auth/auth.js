@@ -40,16 +40,34 @@ const { Service } = require("../client/client")
  * @property {string=} sessionKey
  */
 
+/**
+ * @param {string | undefined} url
+ * @param {string | undefined} baseUrl
+ * @returns {boolean}
+ */
+function isSameOrigin(url, baseUrl) {
+  if (!url || !baseUrl) {
+    return false
+  }
+  try {
+    return new URL(url).origin === new URL(baseUrl).origin
+  } catch {
+    return false
+  }
+}
+
 const beforeSessionAuthRequest = [
   /**
+   * Send the session key only to the workspace, because it gives full access
+   * to it.
    * @param {HttpRequestOptions} request
    * @param {ZObject} _
    * @param {Bundle<SessionAuthenticationUnapprovedData>} bundle
    * @returns {HttpRequestOptions}
    */
   function appendSessionAuthHeader(request, _, bundle) {
-    const { sessionKey } = bundle.authData
-    if (sessionKey) {
+    const { baseUrl, sessionKey } = bundle.authData
+    if (sessionKey && isSameOrigin(request.url, baseUrl)) {
       const headers = request.headers || {}
       headers["Authorization"] = sessionKey
       request.headers = headers
@@ -89,5 +107,6 @@ class AuthenticationService extends Service {
 
 module.exports = {
   AuthenticationService,
-  beforeSessionAuthRequest
+  beforeSessionAuthRequest,
+  isSameOrigin
 }
