@@ -38,8 +38,10 @@ const {
   folderDeleted,
   folderDeletedInMyDocuments,
   //foldersInMyDocumentsList, TODO:
+  foldersList,
   roomArchived,
   roomCreated,
+  roomsFiltered,
   shareRoles,
   userInvited
 } = require("./triggers.js")
@@ -165,6 +167,22 @@ Files("triggers when a room is created", async (context) => {
   equal(room.id, context.inputData.rooms.roomId)
 })
 
+Files("hidden rooms filtered trigger returns rooms with external links", async (context) => {
+  const { perform } = roomsFiltered.operation
+  const bundle = {
+    authData: context.authData
+  }
+  const rooms = await tester(perform, bundle)
+  const room = rooms.find((item) => item.id === context.inputData.rooms.roomId)
+  not.equal(room, undefined)
+  const withoutLinks = [
+    2,
+    8,
+    9
+  ]
+  equal(rooms.some((item) => withoutLinks.includes(Number(item.roomType))), false)
+})
+
 Files("hidden share roles trigger return roles", async (context) => {
   const { perform } = shareRoles.operation
   /** @type {ShareRolesFields} */
@@ -244,6 +262,22 @@ Files("invited a guest", async (context) => {
   equal(result.status, "Invited")
 })
 
+Files("doesn't invite a guest twice", async (context) => {
+  const { perform } = inviteGuest.operation
+  /** @type {InviteGuestFields} */
+  const inputData = {
+    access: CONTENT_CREATOR,
+    email: "TEST_GUEST@onlyoffice.io",
+    roomId: context.inputData.rooms.roomId
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const result = await tester(perform, bundle)
+  equal(result.status, "User is already a member")
+})
+
 Files("create a folder in room", async (context) => {
   const { perform } = createFolder.operation
   /** @type {CreateFolderFields} */
@@ -276,6 +310,20 @@ Files("triggers when a folder is created in room", async (context) => {
   const folders = await tester(performList, bundle)
   const folder = folders[0]
   equal(folder.id, context.inputData.rooms.folderId)
+})
+
+Files("hidden folders list trigger returns folders of the room", async (context) => {
+  const { perform } = foldersList.operation
+  const empty = await tester(perform, { authData: context.authData, inputData: {} })
+  equal(empty, [])
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  const folders = await tester(perform, bundle)
+  equal(folders[0].id, context.inputData.rooms.folderId)
 })
 
 Files("search a folder in room", async (context) => {
@@ -356,6 +404,7 @@ Files("downloads file from folder that is in room", async (context) => {
   }
   const result = await tester(perform, bundle)
   match(result.file, "hydrate|||")
+  match(result.file, "hydrators.downloadFile")
 })
 
 Files("upload a file", async (context) => {
@@ -388,6 +437,21 @@ Files("search a file in room", async (context) => {
   const files = await tester(perform, bundle)
   const file = files[0]
   equal(file.folderId, context.inputData.rooms.folderId)
+})
+
+Files("search a file ignoring the case of the title", async (context) => {
+  const { perform } = searchFile.operation
+  /** @type {SearchFields} */
+  const inputData = {
+    folderId: context.inputData.sections.documents,
+    title: "test file"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const files = await tester(perform, bundle)
+  not.equal(files.length, 0)
 })
 
 Files("delete a folder from room", async (context) => {

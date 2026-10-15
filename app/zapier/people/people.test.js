@@ -45,6 +45,21 @@ People("invited a user", async (context) => {
   equal(user.displayName, bundle.inputData.email)
 })
 
+People("returns an invited user without inviting them again", async (context) => {
+  const { perform } = inviteUser.operation
+  /** @type {InviteUserFields} */
+  const inputData = {
+    email: "whatever@onlyoffice.io",
+    type: "4"
+  }
+  const bundle = {
+    authData: context.authData,
+    inputData
+  }
+  const user = await tester(perform, bundle)
+  equal(user.id, context.inputData.userId)
+})
+
 People("triggers when a user is added", async (context) => {
   const { perform } = userAdded.operation
   const bundle = {
