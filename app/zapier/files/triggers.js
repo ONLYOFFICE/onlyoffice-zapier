@@ -21,6 +21,7 @@ const {
   publicRoomRoles,
   REMOVED_USER_ID,
   ROOM_MANAGER,
+  stripExtension,
   virtualDataRoomRoles
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
@@ -120,7 +121,7 @@ const {
  * @returns {FileData}
  */
 function normalizeFile(file) {
-  file.title = file.title.substring(0, file.title.lastIndexOf("."))
+  file.title = stripExtension(file.title)
   file.id = normalizeId(file.id)
   return file
 }

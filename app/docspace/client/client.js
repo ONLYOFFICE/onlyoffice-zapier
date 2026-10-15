@@ -23,6 +23,7 @@
  * @property {string=} inviterId
  * @property {string=} area
  * @property {string=} email
+ * @property {boolean=} withSubfolders
  */
 
 const ACTIVATION_STATUS = 1
@@ -188,6 +189,20 @@ function normalizeId(id) {
   return id
 }
 
+/**
+ * Removes the extension from a file title. A title without an extension stays
+ * as is.
+ * @param {string} title
+ * @returns {string}
+ */
+function stripExtension(title) {
+  const index = title.lastIndexOf(".")
+  if (index <= 0) {
+    return title
+  }
+  return title.substring(0, index)
+}
+
 class Client {
   /**
    * @param {string} baseUrl
@@ -235,16 +250,22 @@ class Client {
    * @returns {Promise<T>}
    */
   async request(method, url, body = {}, headers = {}) {
-    const response = await this.zrequest({ body, headers, method, url })
+    const response = await this.zrequest({
+      body: method === "GET" ? undefined : body,
+      headers,
+      method,
+      url
+    })
 
     const { data } = response
     if (!data) {
-      throw Error("TODO")
+      throw Error(`Unexpected response from the workspace: ${method} ${url}`)
     }
 
     const { status, success } = data
     if (status !== 0 && success !== true) {
-      throw Error("TODO")
+      const message = data.error && data.error.message
+      throw Error(message || `The workspace returned an error: ${method} ${url}`)
     }
 
     return data.response || data.data
@@ -263,7 +284,7 @@ class Progress {
 
   async complete(delay = 100, limit = 20) {
     if (limit <= 0) {
-      throw new Error("todo")
+      throw new Error("The limit of status checks must be greater than zero")
     }
     let progress = this.operation
     while (limit > 0) {
@@ -338,5 +359,6 @@ module.exports = {
   normalizeId,
   publicRoomRoles,
   responseStatus,
+  stripExtension,
   virtualDataRoomRoles
 }

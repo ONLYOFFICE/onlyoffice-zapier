@@ -132,7 +132,7 @@ class PeopleService extends Service {
    * @returns {Promise<User>}
    */
   user(userId) {
-    const url = this.client.url(`/people/${userId}`)
+    const url = this.client.url(`/people/${encodeURIComponent(userId)}`)
     return this.client.request("GET", url)
   }
 }

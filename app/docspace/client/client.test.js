@@ -6,7 +6,7 @@
 
 const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
-const { Client, isNotFoundError, normalizeId, Progress } = require("./client.js")
+const { Client, isNotFoundError, normalizeId, Progress, stripExtension } = require("./client.js")
 const samples = require("../../docspace/files/files.samples.js")
 
 /**
@@ -224,6 +224,13 @@ test("normalizes numeric ids only", () => {
   equal(normalizeId(15), 15)
   equal(normalizeId("sbox-1-abc"), "sbox-1-abc")
   equal(normalizeId("11111111-2222-3333-4444-555555555555"), "11111111-2222-3333-4444-555555555555")
+})
+
+test("strips the extension from a file title", () => {
+  equal(stripExtension("Report.docx"), "Report")
+  equal(stripExtension("archive.tar.gz"), "archive.tar")
+  equal(stripExtension("README"), "README")
+  equal(stripExtension(".env"), ".env")
 })
 
 test.run()

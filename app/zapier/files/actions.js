@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, Progress, ROOM_MANAGER } = require("../../docspace/client/client.js")
+const { Client, Progress, ROOM_MANAGER, stripExtension } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
@@ -226,7 +226,7 @@ const createFile = {
           title: bundle.inputData.title
         }
         const createdFile = await files.createFile(bundle.inputData.folderId, body)
-        createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+        createdFile.title = stripExtension(createdFile.title)
         return createdFile
       }
       throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
@@ -272,7 +272,7 @@ const createFileInMyDocuments = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const createdFile = await files.createFileInMyDocuments(bundle.inputData)
-      createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+      createdFile.title = stripExtension(createdFile.title)
       return createdFile
     },
     sample: samples.file

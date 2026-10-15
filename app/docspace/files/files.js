@@ -289,7 +289,7 @@ class FilesService extends Service {
    * @returns {Promise<ProgressData>}
    */
   archiveRoom(id) {
-    const url = this.client.url(`/files/rooms/${id}/archive`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/archive`)
     return this.client.request("PUT", url)
   }
 
@@ -302,7 +302,7 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   createFile(folderId, body) {
-    const url = this.client.url(`/files/${folderId}/file`)
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}/file`)
     return this.client.request("POST", url, body)
   }
 
@@ -327,7 +327,7 @@ class FilesService extends Service {
    * @returns {Promise<FolderData>}
    */
   createFolder(folderId, body) {
-    const url = this.client.url(`/files/folder/${folderId}`)
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("POST", url, body)
   }
 
@@ -352,7 +352,7 @@ class FilesService extends Service {
    * @returns {Promise<Session>}
    */
   createSession(folderId, body) {
-    const url = this.client.url(`/files/${folderId}/session`)
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}/session`)
     return this.client.request("POST", url, body)
   }
 
@@ -364,7 +364,7 @@ class FilesService extends Service {
    * @returns {Promise<ProgressData[]>}
    */
   deleteFolder(folderId) {
-    const url = this.client.url(`/files/folder/${folderId}`)
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("DELETE", url)
   }
 
@@ -376,7 +376,7 @@ class FilesService extends Service {
    * @returns {Promise<DownloadLinkData>}
    */
   downloadLink(fileId) {
-    const url = this.client.url(`/files/file/${fileId}/presigned`)
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/presigned`)
     return this.client.request("GET", url)
   }
 
@@ -388,7 +388,7 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   fileInfo(fileId) {
-    const url = this.client.url(`/files/file/${fileId}`)
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}`)
     return this.client.request("GET", url)
   }
 
@@ -400,7 +400,7 @@ class FilesService extends Service {
    * @returns {Promise<FolderData>}
    */
   folderInfo(folderId) {
-    const url = this.client.url(`/files/folder/${folderId}`)
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("GET", url)
   }
 
@@ -412,7 +412,7 @@ class FilesService extends Service {
    * @returns {Promise<ExternalLinkData>}
    */
   externalLink(id) {
-    const url = this.client.url(`/files/rooms/${id}/link`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/link`)
     return this.client.request("GET", url)
   }
 
@@ -425,7 +425,7 @@ class FilesService extends Service {
    * @returns {Promise<ShareList>}
    */
   shareRoom(id, data) {
-    const url = this.client.url(`/files/rooms/${id}/share`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/share`)
     return this.client.request("PUT", url, data)
   }
 
@@ -438,7 +438,7 @@ class FilesService extends Service {
    * @returns {Promise<FilesList>}
    */
   listFiles(folderId, filters) {
-    const url = this.client.url(`/files/${folderId}`, filters)
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}`, filters)
     return this.client.request("GET", url)
   }
 
@@ -451,7 +451,7 @@ class FilesService extends Service {
    * @returns {Promise<FoldersList>}
    */
   listFolders(id, filters) {
-    const url = this.client.url(`/files/${id}`, filters)
+    const url = this.client.url(`/files/${encodeURIComponent(id)}`, filters)
     return this.client.request("GET", url)
   }
 
@@ -510,7 +510,7 @@ class FilesService extends Service {
    * @returns {Promise<UsersList>}
    */
   listUsers(id, filters) {
-    const url = this.client.url(`/files/rooms/${id}/share`, filters)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/share`, filters)
     return this.client.request("GET", url)
   }
 
@@ -533,7 +533,7 @@ class FilesService extends Service {
    * @returns {Promise<RoomData>}
    */
   roomInfo(folderId) {
-    const url = this.client.url(`/files/rooms/${folderId}`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(folderId)}`)
     return this.client.request("GET", url)
   }
 
@@ -557,7 +557,7 @@ class FilesService extends Service {
    * @returns {Promise<UploadFileData>}
    */
   uploadChunk(sessionId, chunkData) {
-    const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${sessionId}`
+    const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${encodeURIComponent(sessionId)}`
     return this.client.request("POST", url, chunkData.body, chunkData.headers)
   }
 }
