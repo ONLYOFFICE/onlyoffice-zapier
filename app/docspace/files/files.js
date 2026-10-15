@@ -275,7 +275,8 @@ const { Service } = require("../client/client.js")
  * @property {boolean} canEditAccess
  * @property {boolean} isLocked
  * @property {boolean} isOwner
- * @property {User} sharedTo
+ * @property {User} sharedTo Obsolete, use `sharedToUser`.
+ * @property {User=} sharedToUser
  */
 
 /**
@@ -379,6 +380,30 @@ class FilesService extends Service {
    */
   downloadLink(fileId) {
     const url = this.client.url(`/files/file/${fileId}/presigned`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{fileId}}
+   * ```
+   * @param {number|string} fileId
+   * @returns {Promise<FileData>}
+   */
+  fileInfo(fileId) {
+    const url = this.client.url(`/files/file/${fileId}`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/folder/{{folderId}}
+   * ```
+   * @param {number|string} folderId
+   * @returns {Promise<FolderData>}
+   */
+  folderInfo(folderId) {
+    const url = this.client.url(`/files/folder/${folderId}`)
     return this.client.request("GET", url)
   }
 

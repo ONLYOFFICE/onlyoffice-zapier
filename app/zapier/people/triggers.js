@@ -7,8 +7,6 @@
 const { Client, REMOVED_USER_ID } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const samples = require("../../docspace/people/people.samples.js")
-const { createWebhookTrigger } = require("../webhooks/hooks.js")
-const { USER_ADDED } = require("../../docspace/webhooks/events.js")
 
 /**
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
@@ -28,17 +26,20 @@ async function performUserAdded(z, bundle) {
   return users
 }
 
-const userAdded = createWebhookTrigger(
-  "userAdded",
-  "User Added",
-  "Triggers when a user is added.",
-  [USER_ADDED],
-  {
-    noun: "Users",
-    pollingFallback: performUserAdded,
+// Only Full admins and Room admins can subscribe to the `user.created` event,
+// so this trigger uses polling.
+const userAdded = {
+  display: {
+    description: "Triggers when a user is added.",
+    label: "User Added"
+  },
+  key: "userAdded",
+  noun: "Users",
+  operation: {
+    perform: performUserAdded,
     sample: samples.user
   }
-)
+}
 
 module.exports = {
   userAdded

@@ -15,7 +15,6 @@ const {
   isFillingFormsRoom,
   isPublicRoom,
   isVirtualDataRoom,
-  ONLY_USERS_FILTER_TYPE,
   publicRoomRoles,
   REMOVED_USER_ID,
   ROOM_MANAGER,
@@ -29,11 +28,10 @@ const { createWebhookTrigger } = require("../webhooks/hooks.js")
 const {
   FILE_CREATED,
   FILE_DELETED,
+  FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
-  ROOM_ARCHIVED,
-  ROOM_CREATED,
-  ROOM_USER_ADDED
+  ROOM_ARCHIVED
 } = require("../../docspace/webhooks/events.js")
 
 /**
@@ -114,6 +112,16 @@ const {
  */
 
 /**
+ * @param {FileData} file
+ * @returns {FileData}
+ */
+function normalizeFile(file) {
+  file.title = file.title.substring(0, file.title.lastIndexOf("."))
+  file.id = Number(file.id)
+  return file
+}
+
+/**
  * @param {ZObject} z
  * @param {Bundle<SessionAuthenticationData, FileCreatedFields>} bundle
  * @returns {Promise<FileData[]>}
@@ -131,11 +139,7 @@ async function performFileCreated(z, bundle) {
       sortOrder: "descending"
     }
     const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-    filesList.files.forEach((file) => {
-      file.title = file.title.substring(0, file.title.lastIndexOf("."))
-      file.id = Number(file.id)
-    })
-    return filesList.files.slice(0, 100)
+    return filesList.files.slice(0, 100).map(normalizeFile)
   }
   throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
 }
@@ -144,7 +148,10 @@ const fileCreated = createWebhookTrigger(
   "fileCreated",
   "File Created",
   "Triggers when a file is created in a room or folder.",
-  [FILE_CREATED],
+  [
+    FILE_CREATED,
+    FILE_UPLOADED
+  ],
   {
     filters: { rootFolderType: 14 },
     inputFields: [
@@ -164,6 +171,7 @@ const fileCreated = createWebhookTrigger(
         type: "integer"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileCreated,
     sample: samples.file
@@ -189,7 +197,10 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
   "fileCreatedInMyDocuments",
   "File Created in Files Section",
   "Triggers when a file is created in the Files section.",
-  [FILE_CREATED],
+  [
+    FILE_CREATED,
+    FILE_UPLOADED
+  ],
   {
     filters: { rootFolderType: 5 },
     inputFields: [
@@ -201,6 +212,7 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
         type: "integer"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileCreatedInMyDocuments,
     sample: samples.file
@@ -221,10 +233,7 @@ async function performFileDeleted(z, bundle) {
     sortOrder: "descending"
   }
   const trash = await files.listTrash(filters)
-  trash.files.forEach((file) => {
-    file.title = file.title.substring(0, file.title.lastIndexOf("."))
-    file.id = Number(file.id)
-  })
+  trash.files.forEach(normalizeFile)
   if (bundle.inputData.id || bundle.inputData.folderId) {
     if (!bundle.inputData.folderId) {
       bundle.inputData.folderId = bundle.inputData.id
@@ -257,6 +266,7 @@ const fileDeleted = createWebhookTrigger(
         type: "integer"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileDeleted,
     sample: samples.file
@@ -284,6 +294,7 @@ const fileDeletedInMyDocuments = createWebhookTrigger(
   "Triggers when a file is deleted from the Files section.",
   [FILE_DELETED],
   {
+    filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
@@ -293,6 +304,7 @@ const fileDeletedInMyDocuments = createWebhookTrigger(
         type: "integer"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileDeletedInMyDocuments,
     sample: samples.file
@@ -543,6 +555,7 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
   "Triggers when a folder is deleted from the Files section.",
   [FOLDER_DELETED],
   {
+    filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
@@ -604,17 +617,20 @@ async function performRoomCreated(z, bundle) {
   return rooms.folders.slice(0, 100)
 }
 
-const roomCreated = createWebhookTrigger(
-  "roomCreated",
-  "Room Created",
-  "Triggers when a room is created.",
-  [ROOM_CREATED],
-  {
-    noun: "Room",
-    pollingFallback: performRoomCreated,
+// Only Full admins and Room admins can subscribe to the `room.created` event,
+// so this trigger uses polling.
+const roomCreated = {
+  display: {
+    description: "Triggers when a room is created.",
+    label: "Room Created"
+  },
+  key: "roomCreated",
+  noun: "Room",
+  operation: {
+    perform: performRoomCreated,
     sample: samples.room
   }
-)
+}
 
 /**
  * @param {ZObject} z
@@ -741,25 +757,33 @@ const shareRoles = {
 async function performUserInvited(z, bundle) {
   const client = new Client(bundle.authData.baseUrl, z.request)
   const files = new FilesService(client)
-  const filters = {
-    filterType: ONLY_USERS_FILTER_TYPE
-  }
-  let users = await files.listUsers(bundle.inputData.id, filters)
-  users = users.filter((item) => item.sharedTo.id !== REMOVED_USER_ID)
-  if (bundle.inputData.active) {
-    users = users.filter((item) => item.sharedTo.activationStatus === ACTIVATION_STATUS)
-  }
-  return users.map((item) => {
-    return item.sharedTo
+  const members = await files.listUsers(bundle.inputData.id, {})
+  // The list has users and groups. Only users have `sharedToUser`.
+  /** @type {User[]} */
+  let users = []
+  members.forEach((item) => {
+    if (item.sharedToUser && item.sharedToUser.id !== REMOVED_USER_ID) {
+      users.push(item.sharedToUser)
+    }
   })
+  // Boolean fields may come from Zapier as strings.
+  if (String(bundle.inputData.active) === "true") {
+    users = users.filter((item) => item.activationStatus === ACTIVATION_STATUS)
+  }
+  return users
 }
 
-const userInvited = createWebhookTrigger(
-  "userInvited",
-  "User Joined",
-  "Triggers when a user is invited to the room.",
-  [ROOM_USER_ADDED],
-  {
+// DocSpace has no webhook event for adding a user to a room. The
+// `user.invited` event is about invitations to the workspace, so this trigger
+// uses polling.
+const userInvited = {
+  display: {
+    description: "Triggers when a user is invited to the room.",
+    label: "User Joined"
+  },
+  key: "userInvited",
+  noun: "User",
+  operation: {
     inputFields: [
       {
         dynamic: "roomCreated.id.title",
@@ -775,11 +799,10 @@ const userInvited = createWebhookTrigger(
         type: "boolean"
       }
     ],
-    noun: "User",
-    pollingFallback: performUserInvited,
+    perform: performUserInvited,
     sample: user
   }
-)
+}
 
 module.exports = {
   fileCreated,

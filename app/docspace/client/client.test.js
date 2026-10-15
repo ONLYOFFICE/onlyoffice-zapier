@@ -6,7 +6,7 @@
 
 const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
-const { Client, Progress } = require("./client.js")
+const { Client, isNotFoundError, normalizeId, Progress } = require("./client.js")
 const samples = require("../../docspace/files/files.samples.js")
 
 /**
@@ -210,6 +210,20 @@ test("progress completes when the response contains 100 percents", async () => {
   equal(p, 100)
   equal(response.error, "")
   equal(response.percents, 100)
+})
+
+test("detects not found errors of z.request", () => {
+  equal(isNotFoundError(new Error(JSON.stringify({ status: 404 }))), true)
+  equal(isNotFoundError(new Error(JSON.stringify({ status: 500 }))), false)
+  equal(isNotFoundError(new Error("not json")), false)
+  equal(isNotFoundError("404"), false)
+})
+
+test("normalizes numeric ids only", () => {
+  equal(normalizeId("15"), 15)
+  equal(normalizeId(15), 15)
+  equal(normalizeId("sbox-1-abc"), "sbox-1-abc")
+  equal(normalizeId("11111111-2222-3333-4444-555555555555"), "11111111-2222-3333-4444-555555555555")
 })
 
 test.run()

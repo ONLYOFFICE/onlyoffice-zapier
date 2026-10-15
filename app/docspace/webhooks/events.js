@@ -79,9 +79,6 @@ const WEBHOOK_TRIGGER_NAMES = {
   [ROOM_COPIED]: "room.copied"
 }
 
-// Alias: triggers.js imports ROOM_USER_ADDED
-const ROOM_USER_ADDED = USER_INVITED
-
 module.exports = {
   FILE_COPIED,
   FILE_CREATED,
@@ -107,7 +104,6 @@ module.exports = {
   ROOM_DELETED,
   ROOM_RESTORED,
   ROOM_UPDATED,
-  ROOM_USER_ADDED,
   USER_ADDED,
   USER_DELETED,
   USER_INVITED,

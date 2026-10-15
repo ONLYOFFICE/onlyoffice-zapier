@@ -5,7 +5,8 @@
 // @ts-check
 
 const crypto = require("crypto")
-const { Client } = require("../../docspace/client/client.js")
+const { Client, isNotFoundError, normalizeId, responseStatus } = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
 const { WebhooksService } = require("../../docspace/webhooks/webhooks.js")
 const { WEBHOOK_TRIGGER_NAMES } = require("../../docspace/webhooks/events.js")
 
@@ -25,7 +26,7 @@ const { WEBHOOK_TRIGGER_NAMES } = require("../../docspace/webhooks/events.js")
 /**
  * @typedef {Object} WebhookTriggerOperation
  * @property {Object[]} inputFields
- * @property {function(ZObject, Bundle<SessionAuthenticationData>): WebhookEventData[]} perform
+ * @property {function(ZObject, Bundle<SessionAuthenticationData>): Promise<WebhookEventData[]>} perform
  * @property {function(ZObject, Bundle<SessionAuthenticationData>): Promise<WebhookEventData[]>} [performList]
  * @property {function(ZObject, Bundle<SessionAuthenticationData>): Promise<WebhookSubscriptionData>} performSubscribe
  * @property {function(ZObject, Bundle<SessionAuthenticationData>): Promise<void>} performUnsubscribe
@@ -43,20 +44,66 @@ const { WEBHOOK_TRIGGER_NAMES } = require("../../docspace/webhooks/events.js")
  * @property {WebhookTriggerOperation} operation
  */
 
+// DocSpace passwords have at most 30 characters, and the minimum length of the
+// password policy can't be more. So a key of 30 characters fits any policy.
+const SECRET_KEY_LENGTH = 30
+
+const SECRET_KEY_CHARACTER_SETS = [
+  "abcdefghijklmnopqrstuvwxyz",
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "0123456789",
+  "!#$%&*+-=?@^_"
+]
+
 /**
- * Generate random secret key
- * Requirements: 8-30 chars, only latin letters, no spaces
+ * @param {string} chars
+ * @returns {string}
+ */
+function randomChar(chars) {
+  return chars[crypto.randomInt(chars.length)]
+}
+
+/**
+ * Generates a random secret key. DocSpace checks it with the password policy,
+ * so the key always has lowercase and uppercase letters, digits and special
+ * characters.
  * @returns {string}
  */
 function generateSecretKey() {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  const length = 24
-  let result = ""
-  const randomBytes = crypto.randomBytes(length)
-  for (let i = 0; i < length; i += 1) {
-    result += chars[randomBytes[i] % chars.length]
+  const all = SECRET_KEY_CHARACTER_SETS.join("")
+  const chars = SECRET_KEY_CHARACTER_SETS.map((set) => randomChar(set))
+  while (chars.length < SECRET_KEY_LENGTH) {
+    chars.push(randomChar(all))
   }
-  return result
+  for (let i = chars.length - 1; i > 0; i -= 1) {
+    const j = crypto.randomInt(i + 1)
+    const char = chars[i]
+    chars[i] = chars[j]
+    chars[j] = char
+  }
+  return chars.join("")
+}
+
+const SIGNATURE_HEADER = "x-docspace-signature-256"
+
+/**
+ * Finds a header of the webhook request. Zapier adds the `Http-` prefix to the
+ * headers and changes their case, so the search ignores both.
+ * @param {Record<string, string> | undefined} headers
+ * @param {string} name
+ * @returns {string | undefined}
+ */
+function findHeader(headers, name) {
+  if (!headers) {
+    return
+  }
+  const expected = name.toLowerCase()
+  const key = Object.keys(headers).find((item) => (
+    item.toLowerCase().replace(/^http-/, "") === expected
+  ))
+  if (key) {
+    return headers[key]
+  }
 }
 
 /**
@@ -74,15 +121,30 @@ function validateWebhookSignature(payload, signature, secret) {
     .toUpperCase()
 
   const expectedSignature = `sha256=${expectedHash}`
+  const separator = signature.indexOf("=")
+  const prefix = signature.substring(0, separator).trim().toLowerCase()
+  const hash = signature.substring(separator + 1).trim().toUpperCase()
+  const actualSignature = `${prefix}=${hash}`
 
   try {
     return crypto.timingSafeEqual(
-      Buffer.from(signature),
+      Buffer.from(actualSignature),
       Buffer.from(expectedSignature)
     )
   } catch {
     return false
   }
+}
+
+/**
+ * Builds the trigger bitmask. Some flags don't fit in 32 bits (for example,
+ * `agent.created` is 2^31), so the bitwise OR can't be used. The flags are
+ * different powers of two, so their sum gives the same result.
+ * @param {number[]} eventIds
+ * @returns {number}
+ */
+function triggersMask(eventIds) {
+  return [...new Set(eventIds)].reduce((mask, id) => mask + id, 0)
 }
 
 /**
@@ -103,7 +165,7 @@ async function subscribeWebhook(z, bundle, eventIds) {
   const timestamp = Date.now().toString(36)
   const name = `Zapier-${timestamp}`
 
-  const triggers = eventIds.reduce((mask, id) => mask | id, 0)
+  const triggers = triggersMask(eventIds)
 
   const subscription = await webhooks.createWebhook({
     enabled: true,
@@ -131,134 +193,151 @@ async function unsubscribeWebhook(z, bundle) {
   const webhooks = new WebhooksService(client)
 
   if (bundle.subscribeData && bundle.subscribeData.id) {
-    await webhooks.deleteWebhook(Number(bundle.subscribeData.id))
+    try {
+      await webhooks.deleteWebhook(Number(bundle.subscribeData.id))
+    } catch (error) {
+      // DocSpace can remove a webhook by itself, for example, when the target
+      // responds with 410 Gone.
+      if (!isNotFoundError(error)) {
+        throw error
+      }
+    }
   }
+}
+
+/**
+ * @typedef {Object} WebhookFilters
+ * @property {number=} rootFolderType
+ */
+
+/**
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+function isSet(value) {
+  return value !== undefined && value !== null && value !== ""
+}
+
+/**
+ * A webhook sends the internal DocSpace entry, which has other fields than the
+ * API response that polling returns. Request the API response, so that both
+ * return the same fields. If the entry is deleted or the user has no access to
+ * it, return the webhook payload.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData>} bundle
+ * @param {string | undefined} trigger
+ * @param {any} payload
+ * @returns {Promise<any>}
+ */
+async function fetchEntry(z, bundle, trigger, payload) {
+  if (!trigger || !isSet(payload.id)) {
+    return payload
+  }
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const type = trigger.split(".")[0]
+  try {
+    if (type === "file") {
+      return await files.fileInfo(payload.id)
+    }
+    if (type === "folder") {
+      return await files.folderInfo(payload.id)
+    }
+    if (type === "room") {
+      return await files.roomInfo(payload.id)
+    }
+  } catch (error) {
+    // Other errors, like an expired session, must fail the run.
+    const status = responseStatus(error)
+    if (status === 403 || status === 404) {
+      return payload
+    }
+    throw error
+  }
+  return payload
 }
 
 /**
  * Handle webhook request
  * @param {ZObject} z
  * @param {Bundle<SessionAuthenticationData>} bundle
- * @param {Object} [filters]
- * @param {number} [filters.rootFolderType]
+ * @param {WebhookFilters} [filters]
  * @param {number[]} [eventIds]
- * @returns {WebhookEventData[]}
+ * @param {function(any): any} [normalize]
+ * @returns {Promise<WebhookEventData[]>}
  */
-function performWebhook(z, bundle, filters = {}, eventIds = []) {
+async function performWebhook(z, bundle, filters = {}, eventIds = [], normalize) {
   const subscribeData = /** @type {WebhookSubscriptionData} */ (/** @type {unknown} */ (bundle.subscribeData))
+  // DocSpace sends an empty request when it checks the address of a new
+  // webhook. It has no event, so there is nothing to check or return.
+  if (bundle.rawRequest && !bundle.rawRequest.content) {
+    return []
+  }
   if (subscribeData && subscribeData.secretKey) {
-    const signature = bundle.rawRequest?.headers?.["x-docspace-signature-256"]
+    const signature = findHeader(bundle.rawRequest?.headers, SIGNATURE_HEADER)
     const rawBody = bundle.rawRequest?.content
 
-    if (signature && rawBody) {
-      const isValid = validateWebhookSignature(
-        rawBody,
-        signature,
-        subscribeData.secretKey
-      )
+    const isValid = !!signature && rawBody !== undefined && validateWebhookSignature(
+      rawBody,
+      signature,
+      subscribeData.secretKey
+    )
 
-      if (!isValid) {
-        throw new z.errors.Error("Invalid webhook signature", "InvalidSignature", 401)
-      }
+    if (!isValid) {
+      throw new z.errors.Error("Invalid webhook signature", "InvalidSignature", 401)
     }
   }
 
   const webhookBody = bundle.cleanedRequest
-  const event = webhookBody.payload || webhookBody
+  const trigger = webhookBody.event && webhookBody.event.trigger
   const inputData = bundle.inputData || {}
 
   // Filter by event trigger name
-  if (eventIds.length > 0 && webhookBody.event && webhookBody.event.trigger) {
+  if (eventIds.length > 0 && trigger) {
     const expectedTriggers = eventIds
       .map((id) => WEBHOOK_TRIGGER_NAMES[id])
       .filter(Boolean)
     if (
       expectedTriggers.length > 0 &&
-      !expectedTriggers.includes(webhookBody.event.trigger)
+      !expectedTriggers.includes(trigger)
     ) {
       return []
     }
   }
+
+  // The filters use the webhook payload, because it keeps the place of the
+  // entry before the event. For example, the API response of a file moved to
+  // the trash from a room doesn't have the room anymore.
+  const payload = webhookBody.payload || webhookBody
 
   // Filter by rootFolderType
   if (filters.rootFolderType !== undefined) {
     if (
-      event.rootFolderType === undefined ||
-      Number(event.rootFolderType) !== Number(filters.rootFolderType)
+      payload.rootFolderType === undefined ||
+      Number(payload.rootFolderType) !== Number(filters.rootFolderType)
     ) {
       return []
     }
   }
 
-  // Filter by room id if specified
-  if (inputData.id !== undefined) {
-    let eventRoomId
-
-    if (event.roomType !== undefined) {
-      eventRoomId = event.id
-    } else if (event.rootFolderId !== undefined) {
-      eventRoomId = event.rootFolderId
-    } else if (event.roomId !== undefined) {
-      eventRoomId = event.roomId
-    }
-
-    if (
-      eventRoomId !== undefined &&
-      Number(eventRoomId) !== Number(inputData.id)
-    ) {
+  // Like polling, the trigger fires only for direct children of the selected
+  // folder, or of the room if no folder is selected.
+  const expectedParentId = isSet(inputData.folderId) ? inputData.folderId : inputData.id
+  if (isSet(expectedParentId)) {
+    if (!isSet(payload.parentId) || String(payload.parentId) !== String(expectedParentId)) {
       return []
     }
   }
 
-  // Filter by folder id
-  const effectiveFolderId =
-    inputData.folderId !== undefined ? inputData.folderId : inputData.id
+  const event = await fetchEntry(z, bundle, trigger, payload)
+  const result = normalize ? normalize(event) : event
 
-  if (effectiveFolderId !== undefined) {
-    let eventFolderId
-
-    if (event.originId !== undefined) {
-      eventFolderId = event.originId
-    } else if (event.folderId !== undefined) {
-      eventFolderId = event.folderId
-    } else if (event.parentId !== undefined) {
-      eventFolderId = event.parentId
-    }
-
-    if (inputData.folderId !== undefined) {
-      // Explicit folderId: require match
-      if (
-        eventFolderId === undefined ||
-        Number(eventFolderId) !== Number(effectiveFolderId)
-      ) {
-        return []
-      }
-    } else if (eventFolderId !== undefined) {
-      // Room ID fallback: skip events without folder data
-      if (Number(eventFolderId) !== Number(effectiveFolderId)) {
-        return []
-      }
-    }
+  // Convert numeric ids to numbers for Zapier deduplication
+  if (result.id !== undefined) {
+    result.id = normalizeId(result.id)
   }
 
-  // Filter by active status if specified (for user events)
-  if (inputData.active !== undefined) {
-    if (event.activationStatus === undefined) {
-      return []
-    }
-    const isActive = event.activationStatus === 2
-    const expectedActive = String(inputData.active) === "true"
-    if (isActive !== expectedActive) {
-      return []
-    }
-  }
-
-  // Coerce id to number for Zapier dedup
-  if (event.id !== undefined) {
-    event.id = Number(event.id)
-  }
-
-  return [event]
+  return [result]
 }
 
 /**
@@ -283,7 +362,8 @@ async function performList(z, bundle, pollingFunction) {
  * @param {Function=} options.pollingFallback
  * @param {Object=} options.sample
  * @param {string=} options.noun
- * @param {{rootFolderType?: number}=} options.filters
+ * @param {WebhookFilters=} options.filters
+ * @param {function(any): any=} options.normalize
  * @returns {WebhookTrigger}
  */
 function createWebhookTrigger(key, label, description, eventIds, options = {}) {
@@ -300,10 +380,10 @@ function createWebhookTrigger(key, label, description, eventIds, options = {}) {
       /**
        * @param {ZObject} z
        * @param {Bundle<SessionAuthenticationData>} bundle
-       * @returns {WebhookEventData[]}
+       * @returns {Promise<WebhookEventData[]>}
        */
       perform: (z, bundle) => {
-        return performWebhook(z, bundle, options.filters, eventIds)
+        return performWebhook(z, bundle, options.filters, eventIds, options.normalize)
       },
 
       /**
@@ -345,10 +425,12 @@ function createWebhookTrigger(key, label, description, eventIds, options = {}) {
 
 module.exports = {
   createWebhookTrigger,
+  findHeader,
   generateSecretKey,
   performList,
   performWebhook,
   subscribeWebhook,
+  triggersMask,
   unsubscribeWebhook,
   validateWebhookSignature
 }

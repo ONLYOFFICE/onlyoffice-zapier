@@ -25,7 +25,6 @@
  */
 
 const ACTIVATION_STATUS = 1
-const ONLY_USERS_FILTER_TYPE = 0
 const REMOVED_USER_ID = "4A515A15-D4D6-4b8e-828E-E0586F18F3A3"
 
 const OWNER = 1
@@ -129,6 +128,45 @@ function virtualDataRoomRoles() {
     { id: EDITOR, name: "Editor" },
     { id: VIEWER, name: "Viewer" }
   ]
+}
+
+/**
+ * Returns the status of an error of `z.request`. Zapier puts the status in the
+ * error message.
+ * @param {unknown} error
+ * @returns {number | undefined}
+ */
+function responseStatus(error) {
+  if (!(error instanceof Error)) {
+    return undefined
+  }
+  try {
+    return JSON.parse(error.message).status
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isNotFoundError(error) {
+  return responseStatus(error) === 404
+}
+
+/**
+ * Converts numeric ids to numbers. Other ids, like user GUIDs or ids of files
+ * in third-party storages, stay as is.
+ * @template T
+ * @param {T} id
+ * @returns {T | number}
+ */
+function normalizeId(id) {
+  if (typeof id === "string" && /^\d+$/.test(id)) {
+    return Number(id)
+  }
+  return id
 }
 
 class Client {
@@ -261,7 +299,6 @@ module.exports = {
   Client,
   EDITOR,
   FORM_FILLER,
-  ONLY_USERS_FILTER_TYPE,
   OWNER,
   Progress,
   REMOVED_USER_ID,
@@ -275,8 +312,11 @@ module.exports = {
   isCollaborationRoom,
   isCustomRoom,
   isFillingFormsRoom,
+  isNotFoundError,
   isPublicRoom,
   isVirtualDataRoom,
+  normalizeId,
   publicRoomRoles,
+  responseStatus,
   virtualDataRoomRoles
 }

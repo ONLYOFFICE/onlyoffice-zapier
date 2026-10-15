@@ -156,14 +156,11 @@ Files("create a room", async (context) => {
 })
 
 Files("triggers when a room is created", async (context) => {
-  const { performList } = roomCreated.operation
-  if (!performList) {
-    throw new Error("performList is required")
-  }
+  const { perform } = roomCreated.operation
   const bundle = {
     authData: context.authData
   }
-  const rooms = await tester(performList, bundle)
+  const rooms = await tester(perform, bundle)
   const room = rooms[0]
   equal(room.id, context.inputData.rooms.roomId)
 })
@@ -201,7 +198,7 @@ Files("user is invited to the room", async (context) => {
 })
 
 Files("triggers when a user invited to room", async (context) => {
-  const { performList } = userInvited.operation
+  const { perform } = userInvited.operation
   /** @type {UserInvitedFields} */
   const inputData = {
     active: false, // invited user is not active
@@ -211,10 +208,7 @@ Files("triggers when a user invited to room", async (context) => {
     authData: context.authData,
     inputData
   }
-  if (!performList) {
-    throw new Error("performList is required")
-  }
-  const users = await tester(performList, bundle)
+  const users = await tester(perform, bundle)
   const user = users[1] // first user - me
   equal(user.id, context.inputData.user)
 })
