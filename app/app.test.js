@@ -40,6 +40,7 @@ const {
   folderDeleted,
   folderDeletedInMyDocuments,
   foldersInMyDocumentsList,
+  foldersList,
   roomArchived,
   roomCreated,
   roomsFiltered,
@@ -138,6 +139,11 @@ test("has the `folderDeletedInMyDocuments` trigger", () => {
 
 test("has the `foldersInMyDocumentsList` trigger", () => {
   const has = App.triggers[foldersInMyDocumentsList.key] === foldersInMyDocumentsList
+  equal(has, true)
+})
+
+test("has the `foldersList` trigger", () => {
+  const has = App.triggers[foldersList.key] === foldersList
   equal(has, true)
 })
 

@@ -6,6 +6,7 @@
 
 const { Client, REMOVED_USER_ID } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
+const { pageFilters } = require("../pagination.js")
 const samples = require("../../docspace/people/people.samples.js")
 
 /**
@@ -21,7 +22,7 @@ const samples = require("../../docspace/people/people.samples.js")
 async function performUserAdded(z, bundle) {
   const client = new Client(bundle.authData.baseUrl, z.request)
   const people = new PeopleService(client)
-  var users = await people.listUsers()
+  var users = await people.listUsers(pageFilters(bundle))
   users = users.filter((item) => item.id !== REMOVED_USER_ID)
   return users
 }
@@ -36,6 +37,7 @@ const userAdded = {
   key: "userAdded",
   noun: "Users",
   operation: {
+    canPaginate: true,
     perform: performUserAdded,
     sample: samples.user
   }

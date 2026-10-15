@@ -142,7 +142,7 @@ const archiveRoom = {
         key: "id",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -176,15 +176,15 @@ const createFile = {
         helpText: "The room where the file will be created",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "The folder where the file will be created (optional)",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "File from Zapier",
@@ -234,7 +234,7 @@ const createFileInMyDocuments = {
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "README",
@@ -276,14 +276,14 @@ const createFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "Folder from Zapier",
@@ -331,7 +331,7 @@ const createFolderInMyDocuments = {
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "Folder from Zapier",
@@ -373,15 +373,15 @@ const deleteFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         key: "folderId",
         label: "Folder id",
         required: true,
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -415,7 +415,7 @@ const deleteFolderInMyDocuments = {
         label: "Folder id",
         required: true,
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -445,16 +445,16 @@ const downloadFile = {
         helpText: "The room where the file is located",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
         altersDynamicFields: true,
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "filesList.id.title",
@@ -462,7 +462,7 @@ const downloadFile = {
         label: "File id",
         required: true,
         search: "searchFile.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -495,12 +495,12 @@ const downloadFileFromMyDocuments = {
     inputFields: [
       {
         altersDynamicFields: true,
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "filesListFromMyDocuments.id.title",
@@ -508,7 +508,7 @@ const downloadFileFromMyDocuments = {
         label: "File id",
         required: true,
         search: "searchFile.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -537,7 +537,7 @@ const externalLink = {
         key: "id",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -569,7 +569,7 @@ const inviteGuest = {
         key: "roomId",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         key: "email",
@@ -710,7 +710,7 @@ const shareRoom = {
         key: "roomId",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "userAdded.id.displayName",
@@ -767,14 +767,14 @@ const uploadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Download the file via direct link or hydrate the file",
@@ -845,7 +845,7 @@ const uploadFileToMyDocuments = {
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Download the file via direct link or hydrate the file",

@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client } = require("../../docspace/client/client.js")
+const { Client, normalizeId } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 
@@ -35,7 +35,7 @@ const searchFile = {
         key: "folderId",
         label: "Section",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "File title or extension",
@@ -60,7 +60,7 @@ const searchFile = {
       const filesList = await files.listFiles(bundle.inputData.folderId, filters)
       const results = filesList.files.filter((file) => file.title.includes(bundle.inputData.title))
       results.forEach((file) => {
-        file.id = Number(file.id)
+        file.id = normalizeId(file.id)
       })
       return results
     },
@@ -83,7 +83,7 @@ const searchFolder = {
         key: "folderId",
         label: "Section",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Folder title",
@@ -108,7 +108,7 @@ const searchFolder = {
       const folderList = await files.listFolders(bundle.inputData.folderId, filters)
       const results = folderList.folders.filter((folder) => folder.title.includes(bundle.inputData.title))
       results.forEach((folder) => {
-        folder.id = Number(folder.id)
+        folder.id = normalizeId(folder.id)
       })
       return results
     },
