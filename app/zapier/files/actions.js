@@ -8,7 +8,7 @@ const { Client, EDITOR, OWNER, Progress, ROOM_MANAGER } = require("../../docspac
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
-const { stashFile } = require("./hydrators.js")
+const { downloadFile: downloadFileHydrator } = require("./hydrators.js")
 const { shareRoles } = require("./triggers.js")
 const { Uploader } = require("./uploader.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
@@ -471,10 +471,7 @@ const downloadFile = {
      * @returns {Promise<DownloadFileData>}
      */
     async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const result = await files.downloadLink(bundle.inputData.fileId)
-      const hydrate = await z.dehydrateFile(stashFile, { url: result.url })
+      const hydrate = z.dehydrateFile(downloadFileHydrator, { fileId: bundle.inputData.fileId })
       return {
         file: hydrate,
         id: bundle.inputData.fileId
@@ -801,20 +798,20 @@ const uploadFile = {
           const fileStash = await uploader.stash(bundle.inputData.url)
           const headers = await uploader.headers(fileStash)
           const bodySession = {
-            CreateOn: new Date().toISOString(),
-            FileName: headers.fileName,
-            FileSize: headers.fileSize,
-            folderId: bundle.inputData.folderId
+            createOn: new Date().toISOString(),
+            fileName: headers.fileName,
+            fileSize: headers.fileSize
           }
           const session = await files.createSession(bundle.inputData.folderId, bodySession)
           const bodyUpload = {
+            data: headers.data,
             fileName: headers.fileName,
             fileSize: headers.fileSize,
             fileStash
           }
           return await uploader.upload(
             bodyUpload,
-            (chunkData) => files.uploadChunk(session.data.id, chunkData)
+            (chunkData) => files.uploadChunk(session.id, chunkData)
           )
         } catch (error) {
           let message = "Unknown error"

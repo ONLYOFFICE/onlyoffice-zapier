@@ -244,23 +244,19 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} Session
- * @property {boolean} success
- * @property {Object} data
- * @property {string} data.id
- * @property {number[]} data.path
- * @property {string} data.created
- * @property {string} data.expired
- * @property {string} data.location
- * @property {number} data.bytes_uploaded
- * @property {number} data.bytes_total
+ * @property {string} id
+ * @property {number[]} path
+ * @property {string} created
+ * @property {string} expired
+ * @property {string} location
+ * @property {number} bytes_total
  */
 
 /**
  * @typedef {Object} SessionData
- * @property {number} folderId
- * @property {string} FileName
- * @property {number} FileSize
- * @property {string} CreateOn
+ * @property {string} fileName
+ * @property {number} fileSize
+ * @property {string} createOn
  */
 
 /**
@@ -348,14 +344,14 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * POST /files/{{folderId}}/upload/create_session
+   * POST /files/{{folderId}}/session
    * ```
    * @param {number} folderId
    * @param {SessionData} body
    * @returns {Promise<Session>}
    */
   createSession(folderId, body) {
-    const url = this.client.url(`/files/${folderId}/upload/create_session`)
+    const url = this.client.url(`/files/${folderId}/session`)
     return this.client.request("POST", url, body)
   }
 
@@ -553,7 +549,7 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * POST /files/{{folderId}}/upload/create_session
+   * POST /ChunkedUploader.ashx?uid={{sessionId}}
    * ```
    * @param {string} sessionId
    * @param {ChunkData} chunkData
