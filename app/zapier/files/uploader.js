@@ -28,13 +28,14 @@ const FormData = require("form-data")
  */
 
 /**
+ * The response to the last chunk of a file.
  * @typedef {Object} UploadFileData
- * @property {number} bytes_total
- * @property {string} created
- * @property {string} expired
- * @property {string} id
- * @property {string}location
- * @property {number[]} path
+ * @property {number} id
+ * @property {number} folderId
+ * @property {number} version
+ * @property {string} title
+ * @property {boolean} uploaded
+ * @property {import("../../docspace/files/files.js").FileData} file
  */
 
 /**

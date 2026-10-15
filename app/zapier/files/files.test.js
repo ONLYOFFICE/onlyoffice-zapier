@@ -370,7 +370,8 @@ Files("upload a file", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
-  not.equal(result.bytes_total, 0)
+  equal(result.uploaded, true)
+  not.equal(result.id, 0)
 })
 
 Files("search a file in room", async (context) => {
@@ -583,7 +584,8 @@ Files("upload a file to My Documents", async (context) => {
     inputData
   }
   const result = await tester(perform, bundle)
-  not.equal(result.bytes_total, 0)
+  equal(result.uploaded, true)
+  not.equal(result.id, 0)
 })
 
 Files("delete a folder from my documents", async (context) => {

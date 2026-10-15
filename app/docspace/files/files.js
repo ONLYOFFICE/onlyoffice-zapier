@@ -51,19 +51,33 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} ExternalLinkData
  * @property {number} access
  * @property {boolean} canEditAccess
+ * @property {boolean=} canEditDenyDownload
+ * @property {boolean=} canEditExpirationDate
+ * @property {boolean=} canEditInternal
+ * @property {boolean=} canRevoke
  * @property {boolean} isLocked
  * @property {boolean} isOwner
- * @property {SharedTo} sharedTo
+ * @property {SharedTo=} sharedLink
+ * @property {SharedTo} sharedTo Obsolete, use `sharedLink`.
+ * @property {number=} subjectType
  */
 
 /**
  * @typedef {Object} FileData
  * @property {number} rootFolderId
  * @property {number} folderId
+ * @property {number=} version
+ * @property {number=} versionGroup
+ * @property {string=} contentLength
+ * @property {number=} pureContentLength
+ * @property {number=} fileStatus
+ * @property {string=} comment
+ * @property {number=} thumbnailStatus
  * @property {string} viewUrl
  * @property {string} webUrl
  * @property {number} fileType
  * @property {string} fileExst
+ * @property {number=} fileEntryType
  * @property {number} id
  * @property {string} title
  * @property {string} created
@@ -72,6 +86,7 @@ const { Service } = require("../client/client.js")
  * @property {number} rootFolderType
  * @property {Account} updatedBy
  * @property {number=} originId
+ * @property {string=} originTitle
  */
 
 /**
@@ -82,6 +97,11 @@ const { Service } = require("../client/client.js")
 /**
  * @typedef {Object} FolderData
  * @property {number} parentId
+ * @property {number=} rootFolderId
+ * @property {number=} filesCount
+ * @property {number=} foldersCount
+ * @property {number=} new
+ * @property {number=} fileEntryType
  * @property {number} id
  * @property {string} title
  * @property {string} created
@@ -136,12 +156,15 @@ const { Service } = require("../client/client.js")
  *
  * @typedef {Object} ProgressData
  * @property {string} id
- * @property {number} operation
+ * @property {number} Operation
  * @property {number=} progress
  * @property {string} error
  * @property {string} processed
  * @property {boolean} finished
  * @property {number=} percents
+ * @property {number=} status
+ * @property {Object[]=} files
+ * @property {Object[]=} folders
  */
 
 /**
@@ -158,6 +181,13 @@ const { Service } = require("../client/client.js")
  * @property {number} foldersCount
  * @property {number} new
  * @property {number} roomType
+ * @property {string[]=} tags
+ * @property {boolean=} private
+ * @property {boolean=} indexing
+ * @property {boolean=} denyDownload
+ * @property {boolean=} inRoom
+ * @property {number=} usedSpace
+ * @property {number=} fileEntryType
  * @property {number} id
  * @property {string} title
  * @property {string} created
@@ -188,6 +218,7 @@ const { Service } = require("../client/client.js")
  * @property {boolean} denyDownload
  * @property {boolean} isExpired
  * @property {boolean} primary
+ * @property {boolean=} internal
  * @property {string} requestToken
  */
 
@@ -206,11 +237,21 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isVisitor
  * @property {boolean} isCollaborator
  * @property {boolean} isSSO
- * @property {number} quotaLimit
- * @property {number} usedSpace
+ * @property {number=} quotaLimit
+ * @property {number=} usedSpace
+ * @property {string=} department
+ * @property {number=} mobilePhoneActivationStatus
+ * @property {string=} registrationDate
  * @property {string} id
  * @property {string} displayName
+ * @property {string=} avatar
+ * @property {string=} avatarOriginal
+ * @property {string=} avatarMax
+ * @property {string=} avatarMedium
+ * @property {string=} avatarSmall
  * @property {string} profileUrl
+ * @property {boolean=} hasAvatar
+ * @property {boolean=} isAnonim
  */
 
 /**

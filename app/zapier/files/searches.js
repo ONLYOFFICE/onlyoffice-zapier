@@ -96,7 +96,7 @@ const searchFile = {
       })
       return results
     },
-    sample: samples.file
+    sample: samples.foundFile
   }
 }
 

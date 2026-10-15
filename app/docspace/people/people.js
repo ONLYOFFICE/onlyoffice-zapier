@@ -14,7 +14,14 @@ const { Service } = require("../client/client")
  * @typedef {Object} Account
  * @property {string} id
  * @property {string} displayName
+ * @property {string=} avatar
+ * @property {string=} avatarOriginal
+ * @property {string=} avatarMax
+ * @property {string=} avatarMedium
+ * @property {string=} avatarSmall
  * @property {string} profileUrl
+ * @property {boolean=} hasAvatar
+ * @property {boolean=} isAnonim
  */
 
 /**

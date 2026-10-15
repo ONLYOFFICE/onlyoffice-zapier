@@ -27,7 +27,6 @@ const {
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
-const { user } = require("../../docspace/people/people.samples.js")
 const { createWebhookTrigger } = require("../webhooks/hooks.js")
 const { pageFilters } = require("../pagination.js")
 const {
@@ -634,7 +633,7 @@ const foldersInMyDocumentsList = {
       }
       return await performFolderCreated(z, refinedBundle)
     },
-    sample: samples.file
+    sample: samples.folder
   }
 }
 
@@ -715,7 +714,7 @@ const roomArchived = createWebhookTrigger(
   {
     noun: "Room",
     pollingFallback: performRoomArchived,
-    sample: samples.folder
+    sample: samples.room
   }
 )
 
@@ -868,7 +867,7 @@ const userInvited = {
       }
     ],
     perform: performUserInvited,
-    sample: user
+    sample: samples.share
   }
 }
 

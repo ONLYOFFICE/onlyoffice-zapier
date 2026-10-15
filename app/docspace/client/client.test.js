@@ -7,7 +7,16 @@
 const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
 const { Client, isNotFoundError, normalizeId, Progress, stripExtension } = require("./client.js")
-const samples = require("../../docspace/files/files.samples.js")
+
+/** @type {import("../files/files.js").ProgressData} */
+const operation = {
+  Operation: 0,
+  error: "",
+  finished: false,
+  id: "00000000-1111-2222-3333-444444444444",
+  processed: "0",
+  progress: 0
+}
 
 /**
  * @typedef {import("./client.js").Filters} Filters
@@ -51,24 +60,24 @@ test("url generate a valid URL without filters", () => {
 
 test("progress initializes with the endpoint", async () => {
   async function endpoint() {
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.endpoint()
   equal(response.length, 1)
-  equal(response[0].error, samples.progress.error)
-  equal(response[0].progress, samples.progress.progress)
-  equal(response[0].percents, samples.progress.percents)
+  equal(response[0].error, operation.error)
+  equal(response[0].progress, operation.progress)
+  equal(response[0].percents, operation.percents)
 })
 
 test("progress initializes with the endpoint and it's operation", async () => {
   async function endpoint() {
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
-  equal(progress.operation, samples.progress)
+  const progress = new Progress(endpoint, operation)
+  equal(progress.operation, operation)
 })
 
 test("progress completes with a default delay", async () => {
@@ -83,10 +92,10 @@ test("progress completes with a default limit", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   await progress.complete()
 
   equal(i, 20)
@@ -96,10 +105,10 @@ test("progress completes with the custom limit", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   await progress.complete(100, 10)
 
   equal(i, 10)
@@ -107,10 +116,10 @@ test("progress completes with the custom limit", async () => {
 
 test("progress throws an error if the limit is negative or zero", async () => {
   async function endpoint() {
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
 
   try {
     await progress.complete(100, 0)
@@ -133,10 +142,10 @@ test("progress breaks if the response contains an error", async () => {
     i += 1
     return [
       {
+        Operation: 0,
         error: "hola",
         finished: false,
         id: "00000000-1111-2222-3333-444444444444",
-        operation: 0,
         percents: 0,
         processed: "0",
         progress: 0
@@ -144,7 +153,7 @@ test("progress breaks if the response contains an error", async () => {
     ]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.complete()
 
   equal(i, 1)
@@ -163,10 +172,10 @@ test("progress completes when the response contains 100 progress", async () => {
     }
     return [
       {
+        Operation: 0,
         error: "",
         finished: finished,
         id: "00000000-1111-2222-3333-444444444444",
-        operation: 0,
         percents: 0,
         processed: "0",
         progress: p
@@ -174,7 +183,7 @@ test("progress completes when the response contains 100 progress", async () => {
     ]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.complete()
 
   equal(i, 2)
@@ -192,10 +201,10 @@ test("progress completes when the response contains 100 percents", async () => {
     p += 50
     return [
       {
+        Operation: 0,
         error: "",
         finished: false,
         id: "00000000-1111-2222-3333-444444444444",
-        operation: 0,
         percents: p,
         processed: "0",
         progress: 0
@@ -203,7 +212,7 @@ test("progress completes when the response contains 100 percents", async () => {
     ]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.complete()
 
   equal(i, 2)

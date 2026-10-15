@@ -675,7 +675,7 @@ const inviteGuest = {
       }
       throw new z.errors.HaltedError("Failed to invite guest")
     },
-    sample: samples.account
+    sample: samples.inviteGuest
   }
 }
 
