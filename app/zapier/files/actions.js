@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, EDITOR, OWNER, Progress, ROOM_MANAGER } = require("../../docspace/client/client.js")
+const { Client, Progress, ROOM_MANAGER } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
@@ -24,6 +24,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
  * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
+ * @typedef {import("../../docspace/files/files.js").UserData} UserData
  * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
@@ -128,6 +129,21 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @property {string} url
  */
 
+/**
+ * Waits for an operation and fails the action if the operation fails. If the
+ * operation is still running after the wait, its current state is returned.
+ * @param {ZObject} z
+ * @param {Progress} progress
+ * @returns {Promise<ProgressData>}
+ */
+async function completeOperation(z, progress) {
+  const result = await progress.complete()
+  if (result.error) {
+    throw new z.errors.HaltedError(result.error)
+  }
+  return result
+}
+
 const archiveRoom = {
   display: {
     description: "Archive a room.",
@@ -155,7 +171,7 @@ const archiveRoom = {
       const files = new FilesService(client)
       const operation = await files.archiveRoom(bundle.inputData.id)
       const progress = new Progress(files.listOperations.bind(files), operation)
-      return await progress.complete()
+      return completeOperation(z, progress)
     },
     sample: samples.progress
   }
@@ -394,7 +410,7 @@ const deleteFolder = {
       const files = new FilesService(client)
       const operation = await files.deleteFolder(bundle.inputData.folderId)
       const progress = new Progress(files.listOperations.bind(files), operation[0])
-      return await progress.complete()
+      return completeOperation(z, progress)
     },
     sample: samples.progress
   }
@@ -522,7 +538,7 @@ const downloadFileFromMyDocuments = {
 
 const externalLink = {
   display: {
-    description: "Returns the primary external link of a room.",
+    description: "Returns the primary external link of a room. If the room doesn't have one, it is created.",
     label: "Get External Link"
   },
   key: "externalLink",
@@ -549,6 +565,23 @@ const externalLink = {
     },
     sample: samples.externalLink
   }
+}
+
+/**
+ * Finds a room member by the exact email. The API searches by a part of the
+ * name or email and also returns groups.
+ * @param {FilesService} files
+ * @param {number} roomId
+ * @param {string} email
+ * @returns {Promise<UserData | undefined>}
+ */
+async function findMember(files, roomId, email) {
+  const members = await files.listUsers(roomId, { filterValue: email })
+  const expected = email.toLowerCase()
+  return members.find((item) => {
+    const user = item.sharedToUser
+    return !!user && typeof user.email === "string" && user.email.toLowerCase() === expected
+  })
 }
 
 const inviteGuest = {
@@ -583,20 +616,24 @@ const inviteGuest = {
         const files = new FilesService(client)
         const people = new PeopleService(client)
         const user = await people.self()
-        const filters = {
-          filterBy: "email",
-          filterValue: user.email
+        // Full admins and the owner can manage any room. Other users must be
+        // the room owner, a room manager or a content creator.
+        let canInvite = user.isAdmin || user.isOwner
+        if (!canInvite) {
+          const member = await findMember(files, bundle.inputData.roomId, user.email)
+          canInvite = !!member && (
+            member.isOwner ||
+            member.access === ROOM_MANAGER ||
+            member.access === CONTENT_CREATOR
+          )
         }
-        const users = await files.listUsers(bundle.inputData.roomId, filters)
         /** @type {Record<number, string>} */
         const choices = {}
-        if (users.length > 0) {
-          if (users[0].access === OWNER || users[0].access === ROOM_MANAGER || users[0].access === CONTENT_CREATOR) {
-            const roles = await shareRoles.operation.perform(z, bundle)
-            for (let i = 0; i < roles.length; i = i + 1) {
-              const role = roles[i]
-              choices[role.id] = role.name
-            }
+        if (canInvite) {
+          const roles = await shareRoles.operation.perform(z, bundle)
+          for (let i = 0; i < roles.length; i = i + 1) {
+            const role = roles[i]
+            choices[role.id] = role.name
           }
         }
         return [{
@@ -615,12 +652,8 @@ const inviteGuest = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const filters = {
-        filterBy: "email",
-        filterValue: bundle.inputData.email
-      }
-      let guest = await files.listUsers(bundle.inputData.roomId, filters)
-      if (guest.length !== 0) {
+      const member = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      if (member) {
         return {
           status: "User is already a member"
         }
@@ -634,8 +667,8 @@ const inviteGuest = {
         notify: true
       }
       await files.shareRoom(bundle.inputData.roomId, body)
-      guest = await files.listUsers(bundle.inputData.roomId, filters)
-      if (guest.length !== 0) {
+      const guest = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      if (guest) {
         return {
           status: "Invited"
         }
@@ -667,7 +700,8 @@ const roomCreate = {
           "1": "Form filling room",
           "2": "Collaboration room",
           "5": "Custom room",
-          "6": "Public room"
+          "6": "Public room",
+          "8": "Virtual data room"
         },
         key: "roomType",
         label: "Type",
@@ -683,7 +717,7 @@ const roomCreate = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const body = {
-        roomType: parseInt(bundle.inputData.roomType, EDITOR),
+        roomType: Number(bundle.inputData.roomType),
         title: bundle.inputData.title
       }
       return await files.createRoom(body)
@@ -741,10 +775,11 @@ const shareRoom = {
         notify: true
       }
       const response = await files.shareRoom(bundle.inputData.roomId, body)
-      if (response.members.length <= 0) {
+      const member = response.members.length > 0 && response.members[0].sharedToUser
+      if (!member) {
         throw new z.errors.HaltedError("Failed to invite user")
       }
-      return response.members[0].sharedTo
+      return member
     },
     sample: samples.share
   }

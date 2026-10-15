@@ -22,12 +22,12 @@
  * @property {string=} searchArea
  * @property {string=} inviterId
  * @property {string=} area
+ * @property {string=} email
  */
 
 const ACTIVATION_STATUS = 1
 const REMOVED_USER_ID = "4A515A15-D4D6-4b8e-828E-E0586F18F3A3"
 
-const OWNER = 1
 const CONTENT_CREATOR = 11
 const ROOM_MANAGER = 9
 const EDITOR = 10
@@ -74,6 +74,14 @@ function isFillingFormsRoom(type) {
  */
 function isVirtualDataRoom(type) {
   return type === 8
+}
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isAiRoom(type) {
+  return type === 9
 }
 
 /**
@@ -126,6 +134,17 @@ function virtualDataRoomRoles() {
   return [
     { id: CONTENT_CREATOR, name: "Content creator" },
     { id: EDITOR, name: "Editor" },
+    { id: VIEWER, name: "Viewer" },
+    { id: FORM_FILLER, name: "Form filler" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function aiRoomRoles() {
+  return [
+    { id: CONTENT_CREATOR, name: "Content creator" },
     { id: VIEWER, name: "Viewer" }
   ]
 }
@@ -299,16 +318,17 @@ module.exports = {
   Client,
   EDITOR,
   FORM_FILLER,
-  OWNER,
   Progress,
   REMOVED_USER_ID,
   REVIEWER,
   ROOM_MANAGER,
   Service,
   VIEWER,
+  aiRoomRoles,
   collaborationRoomRoles,
   customRoomRoles,
   fillingFormsRoomRoles,
+  isAiRoom,
   isCollaborationRoom,
   isCustomRoom,
   isFillingFormsRoom,

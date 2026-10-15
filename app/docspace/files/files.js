@@ -220,7 +220,8 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} ShareMembers
- * @property {ShareData} sharedTo
+ * @property {ShareData} sharedTo Obsolete, use `sharedToUser`.
+ * @property {ShareData=} sharedToUser
  */
 
 /**

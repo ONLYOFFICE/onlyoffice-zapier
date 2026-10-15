@@ -6,10 +6,12 @@
 
 const {
   ACTIVATION_STATUS,
+  aiRoomRoles,
   Client,
   collaborationRoomRoles,
   customRoomRoles,
   fillingFormsRoomRoles,
+  isAiRoom,
   isCollaborationRoom,
   isCustomRoom,
   isFillingFormsRoom,
@@ -716,11 +718,21 @@ const roomArchived = createWebhookTrigger(
   }
 )
 
+/**
+ * Collaboration rooms, virtual data rooms and AI rooms don't have external
+ * links.
+ * @param {number} roomType
+ * @returns {boolean}
+ */
+function supportsExternalLinks(roomType) {
+  return !isCollaborationRoom(roomType) && !isVirtualDataRoom(roomType) && !isAiRoom(roomType)
+}
+
 const roomsFiltered = {
   display: {
-    description: "Hidden trigger to returning a list of rooms without collaboration type.",
+    description: "Hidden trigger to get a list of rooms that support external links.",
     hidden: true,
-    label: "Rooms Without Collaboration Type"
+    label: "Rooms With External Links"
   },
   key: "roomsFiltered",
   noun: "Room",
@@ -733,7 +745,7 @@ const roomsFiltered = {
      */
     async perform(z, bundle) {
       const rooms = await performRoomCreated(z, bundle)
-      return rooms.filter((room) => room.roomType !== 2)
+      return rooms.filter((room) => supportsExternalLinks(Number(room.roomType)))
     },
     sample: samples.room
   }
@@ -771,7 +783,9 @@ const shareRoles = {
       const roomType = Number(room.roomType)
       if (bundle.inputData.userId) {
         const foundUser = await people.user(bundle.inputData.userId)
-        if (foundUser?.isAdmin || foundUser?.isRoomAdmin) {
+        // Room manager is a paid role. Only the owner, Full admins and Room
+        // admins can have it.
+        if (foundUser?.isOwner || foundUser?.isAdmin || foundUser?.isRoomAdmin) {
           roles.push({ id: ROOM_MANAGER, name: "Room manager" })
         }
       }
@@ -789,6 +803,9 @@ const shareRoles = {
       }
       if (isVirtualDataRoom(roomType)) {
         roles = roles.concat(virtualDataRoomRoles())
+      }
+      if (isAiRoom(roomType)) {
+        roles = roles.concat(aiRoomRoles())
       }
       roles.forEach((role) => {
         role.id = Number(role.id)

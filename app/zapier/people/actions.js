@@ -4,13 +4,14 @@
 
 // @ts-check
 
-const { Client, REMOVED_USER_ID } = require("../../docspace/client/client.js")
+const { Client, isNotFoundError } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const samples = require("../../docspace/people/people.samples.js")
 
 /**
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("../../docspace/people/people.js").Account} Account
+ * @typedef {import("../../docspace/people/people.js").User} User
  */
 
 /**
@@ -26,6 +27,24 @@ const samples = require("../../docspace/people/people.samples.js")
  * @property {string} label
  * @property {boolean} required
  */
+
+/**
+ * Finds a user by email, including users who haven't accepted the invitation
+ * yet.
+ * @param {PeopleService} people
+ * @param {string} email
+ * @returns {Promise<User | undefined>}
+ */
+async function findUser(people, email) {
+  try {
+    return await people.userByEmail(email)
+  } catch (error) {
+    if (isNotFoundError(error)) {
+      return
+    }
+    throw error
+  }
+}
 
 const inviteUser = {
   display: {
@@ -75,43 +94,30 @@ const inviteUser = {
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData, InviteUserFields>} bundle
-     * @returns {Promise<Account>}
+     * @returns {Promise<User>}
      */
     async perform(z, bundle) {
-      /**
-       * @param {string} email
-       * @param {Account[]} accounts
-       * @returns {Account|undefined}
-       */
-      function findUser(email, accounts) {
-        for (let i = 0; i < accounts.length; i = i + 1) {
-          if (accounts[i].displayName === email) {
-            return accounts[i]
-          }
-        }
-      }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
-      let users = await people.listUsers()
-      users = users.filter((item) => item.id !== REMOVED_USER_ID)
-      let invitedUser = findUser(bundle.inputData.email, users)
-      if (invitedUser) {
-        return invitedUser
+      const { email } = bundle.inputData
+      const existingUser = await findUser(people, email)
+      if (existingUser) {
+        return existingUser
       }
       const body = {
         invitations: [{
-          email: bundle.inputData.email,
+          email,
           type: bundle.inputData.type
         }]
       }
-      const accounts = await people.inviteUser(body)
-      invitedUser = findUser(bundle.inputData.email, accounts)
+      await people.inviteUser(body)
+      const invitedUser = await findUser(people, email)
       if (invitedUser) {
         return invitedUser
       }
       throw new z.errors.HaltedError("Could not find the invited user in the response.")
     },
-    sample: samples.account
+    sample: samples.invitedUser
   }
 }
 
