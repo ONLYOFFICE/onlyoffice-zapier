@@ -9,7 +9,7 @@ const { argv, chdir, env, exit, stdin, stdout } = require("node:process")
 const { copyFile, readFile, rm, writeFile } = require("node:fs/promises")
 const { createInterface } = require("node:readline")
 const { error, log, warn } = require("node:console")
-const { execSync } = require("node:child_process")
+const { execFileSync, execSync } = require("node:child_process")
 const { existsSync } = require("node:fs")
 const { join } = require("node:path")
 const { build } = require("esbuild")
@@ -23,7 +23,7 @@ const app = sade("./makefile.js")
 /**
  * @typedef {Object} Version
  * @property {string} Version
- * @property {string} Deployment
+ * @property {string} State
  */
 
 /**
@@ -233,12 +233,28 @@ app
   .command("release")
   .describe("Release the current version of the app")
   .action(async () => {
+    // The notes come from the changelog, so pass them as an argument and not
+    // inside a shell command.
     const notes = await generateNotes(root)
-    exec(`gh release create "${pack.version}" --notes "${notes}"`)
+    const createArgs = [
+      "release",
+      "create",
+      pack.version,
+      "--notes",
+      notes
+    ]
+    execFileSync("gh", createArgs, { stdio: "inherit" })
 
     const build = join(dist, "build/build.zip")
     const source = join(dist, "build/source.zip")
-    exec(`gh release upload "${pack.version}" "${build}" "${source}"`)
+    const uploadArgs = [
+      "release",
+      "upload",
+      pack.version,
+      build,
+      source
+    ]
+    execFileSync("gh", uploadArgs, { stdio: "inherit" })
   })
 
 app
@@ -287,7 +303,8 @@ app
       ))
       if (current) {
         warn(`warn: the app version ${pack.version} has already been uploaded`)
-        if (current.Deployment !== "non-production") {
+        // Zapier CLI shows a version that isn't promoted as private.
+        if (current.State !== "private") {
           error(`error: the app version ${pack.version} has already been promoted`)
           exit(1)
         }

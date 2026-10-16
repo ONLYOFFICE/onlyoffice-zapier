@@ -14,7 +14,14 @@ const { Service } = require("../client/client")
  * @typedef {Object} Account
  * @property {string} id
  * @property {string} displayName
+ * @property {string=} avatar
+ * @property {string=} avatarOriginal
+ * @property {string=} avatarMax
+ * @property {string=} avatarMedium
+ * @property {string=} avatarSmall
  * @property {string} profileUrl
+ * @property {boolean=} hasAvatar
+ * @property {boolean=} isAnonim
  */
 
 /**
@@ -37,7 +44,6 @@ const { Service } = require("../client/client")
  * @property {number} status
  * @property {number} activationStatus
  * @property {string} department
- * @property {string=} workFrom
  * @property {string} avatarMax
  * @property {string} avatarMedium
  * @property {string} avatar
@@ -52,12 +58,17 @@ const { Service } = require("../client/client")
  * @property {number} mobilePhoneActivationStatus
  * @property {boolean} isSSO
  * @property {number=} quotaLimit
- * @property {number} usedSpace
+ * @property {number=} usedSpace
+ * @property {string=} cultureName
+ * @property {Account=} createdBy
+ * @property {string=} registrationDate
  * @property {string} id
  * @property {string} displayName
  * @property {string} avatarSmall
+ * @property {string=} avatarOriginal
  * @property {string} profileUrl
  * @property {boolean} hasAvatar
+ * @property {boolean=} isAnonim
  */
 
 class PeopleService extends Service {
@@ -86,24 +97,37 @@ class PeopleService extends Service {
 
   /**
    * ```http
-   * GET /people/filter
+   * GET /people
    * ```
-   * @param {Filters} filters
+   * @param {Filters=} filters
    * @returns {Promise<User[]>}
    */
-  listGuests(filters) {
-    const url = this.client.url("/people/filter", filters)
+  listUsers(filters) {
+    const url = this.client.url("/people", filters)
     return this.client.request("GET", url)
   }
 
   /**
    * ```http
-   * GET /people
+   * GET /people/email?email={{email}}
    * ```
-   * @returns {Promise<User[]>}
+   * @param {string} email
+   * @returns {Promise<User>}
    */
-  listUsers() {
-    const url = this.client.url("/people")
+  userByEmail(email) {
+    const url = this.client.url("/people/email", { email })
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /people/{{userId}}
+   * ```
+   * @param {string} userId
+   * @returns {Promise<User>}
+   */
+  user(userId) {
+    const url = this.client.url(`/people/${encodeURIComponent(userId)}`)
     return this.client.request("GET", url)
   }
 }

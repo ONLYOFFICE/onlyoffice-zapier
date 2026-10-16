@@ -4,26 +4,24 @@
 
 // @ts-check
 
-const { Client, EDITOR, OWNER, Progress, ROOM_MANAGER } = require("../../docspace/client/client.js")
+const { Client, Progress, ROOM_MANAGER, stripExtension } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
-const { stashFile } = require("./hydrators.js")
+const { downloadFile: downloadFileHydrator } = require("./hydrators.js")
 const { shareRoles } = require("./triggers.js")
 const { Uploader } = require("./uploader.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
 /**
- * @typedef {import("../../docspace/people/people.js").Account} Account
- * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
  * @typedef {import("../../docspace/files/files.js").DownloadFileData} DownloadFileData
  * @typedef {import("../../docspace/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
- * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
+ * @typedef {import("../../docspace/files/files.js").UserData} UserData
  * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("./triggers.js").ShareRolesFields} ShareRolesFields
@@ -128,6 +126,21 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @property {string} url
  */
 
+/**
+ * Waits for an operation and fails the action if the operation fails. If the
+ * operation is still running after the wait, its current state is returned.
+ * @param {ZObject} z
+ * @param {Progress} progress
+ * @returns {Promise<ProgressData>}
+ */
+async function completeOperation(z, progress) {
+  const result = await progress.complete()
+  if (result.error) {
+    throw new z.errors.HaltedError(result.error)
+  }
+  return result
+}
+
 const archiveRoom = {
   display: {
     description: "Archive a room.",
@@ -142,7 +155,7 @@ const archiveRoom = {
         key: "id",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -155,7 +168,7 @@ const archiveRoom = {
       const files = new FilesService(client)
       const operation = await files.archiveRoom(bundle.inputData.id)
       const progress = new Progress(files.listOperations.bind(files), operation)
-      return await progress.complete()
+      return completeOperation(z, progress)
     },
     sample: samples.progress
   }
@@ -176,15 +189,15 @@ const createFile = {
         helpText: "The room where the file will be created",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "The folder where the file will be created (optional)",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "File from Zapier",
@@ -210,7 +223,7 @@ const createFile = {
           title: bundle.inputData.title
         }
         const createdFile = await files.createFile(bundle.inputData.folderId, body)
-        createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+        createdFile.title = stripExtension(createdFile.title)
         return createdFile
       }
       throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
@@ -234,7 +247,7 @@ const createFileInMyDocuments = {
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "README",
@@ -256,7 +269,7 @@ const createFileInMyDocuments = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const createdFile = await files.createFileInMyDocuments(bundle.inputData)
-      createdFile.title = createdFile.title.substring(0, createdFile.title.lastIndexOf("."))
+      createdFile.title = stripExtension(createdFile.title)
       return createdFile
     },
     sample: samples.file
@@ -276,14 +289,14 @@ const createFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "Folder from Zapier",
@@ -331,7 +344,7 @@ const createFolderInMyDocuments = {
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         default: "Folder from Zapier",
@@ -373,15 +386,15 @@ const deleteFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         key: "folderId",
         label: "Folder id",
         required: true,
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -394,7 +407,7 @@ const deleteFolder = {
       const files = new FilesService(client)
       const operation = await files.deleteFolder(bundle.inputData.folderId)
       const progress = new Progress(files.listOperations.bind(files), operation[0])
-      return await progress.complete()
+      return completeOperation(z, progress)
     },
     sample: samples.progress
   }
@@ -415,7 +428,7 @@ const deleteFolderInMyDocuments = {
         label: "Folder id",
         required: true,
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -445,16 +458,16 @@ const downloadFile = {
         helpText: "The room where the file is located",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
         altersDynamicFields: true,
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "filesList.id.title",
@@ -462,7 +475,7 @@ const downloadFile = {
         label: "File id",
         required: true,
         search: "searchFile.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -471,10 +484,7 @@ const downloadFile = {
      * @returns {Promise<DownloadFileData>}
      */
     async perform(z, bundle) {
-      const client = new Client(bundle.authData.baseUrl, z.request)
-      const files = new FilesService(client)
-      const result = await files.downloadLink(bundle.inputData.fileId)
-      const hydrate = await z.dehydrateFile(stashFile, { url: result.url })
+      const hydrate = z.dehydrateFile(downloadFileHydrator, { fileId: bundle.inputData.fileId })
       return {
         file: hydrate,
         id: bundle.inputData.fileId
@@ -495,12 +505,12 @@ const downloadFileFromMyDocuments = {
     inputFields: [
       {
         altersDynamicFields: true,
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "The folder where the file is located (optional)",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "filesListFromMyDocuments.id.title",
@@ -508,7 +518,7 @@ const downloadFileFromMyDocuments = {
         label: "File id",
         required: true,
         search: "searchFile.id",
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -525,7 +535,7 @@ const downloadFileFromMyDocuments = {
 
 const externalLink = {
   display: {
-    description: "Returns the primary external link of a room.",
+    description: "Returns the primary external link of a room. If the room doesn't have one, it is created.",
     label: "Get External Link"
   },
   key: "externalLink",
@@ -537,7 +547,7 @@ const externalLink = {
         key: "id",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       }
     ],
     /**
@@ -552,6 +562,23 @@ const externalLink = {
     },
     sample: samples.externalLink
   }
+}
+
+/**
+ * Finds a room member by the exact email. The API searches by a part of the
+ * name or email and also returns groups.
+ * @param {FilesService} files
+ * @param {number} roomId
+ * @param {string} email
+ * @returns {Promise<UserData | undefined>}
+ */
+async function findMember(files, roomId, email) {
+  const members = await files.listUsers(roomId, { filterValue: email })
+  const expected = email.toLowerCase()
+  return members.find((item) => {
+    const user = item.sharedToUser
+    return !!user && typeof user.email === "string" && user.email.toLowerCase() === expected
+  })
 }
 
 const inviteGuest = {
@@ -569,7 +596,7 @@ const inviteGuest = {
         key: "roomId",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         key: "email",
@@ -586,20 +613,24 @@ const inviteGuest = {
         const files = new FilesService(client)
         const people = new PeopleService(client)
         const user = await people.self()
-        const filters = {
-          filterBy: "email",
-          filterValue: user.email
+        // Full admins and the owner can manage any room. Other users must be
+        // the room owner, a room manager or a content creator.
+        let canInvite = user.isAdmin || user.isOwner
+        if (!canInvite) {
+          const member = await findMember(files, bundle.inputData.roomId, user.email)
+          canInvite = !!member && (
+            member.isOwner ||
+            member.access === ROOM_MANAGER ||
+            member.access === CONTENT_CREATOR
+          )
         }
-        const users = await files.listUsers(bundle.inputData.roomId, filters)
         /** @type {Record<number, string>} */
         const choices = {}
-        if (users.length > 0) {
-          if (users[0].access === OWNER || users[0].access === ROOM_MANAGER || users[0].access === CONTENT_CREATOR) {
-            const roles = await shareRoles.operation.perform(z, bundle)
-            for (let i = 0; i < roles.length; i = i + 1) {
-              const role = roles[i]
-              choices[role.id] = role.name
-            }
+        if (canInvite) {
+          const roles = await shareRoles.operation.perform(z, bundle)
+          for (let i = 0; i < roles.length; i = i + 1) {
+            const role = roles[i]
+            choices[role.id] = role.name
           }
         }
         return [{
@@ -618,12 +649,8 @@ const inviteGuest = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const filters = {
-        filterBy: "email",
-        filterValue: bundle.inputData.email
-      }
-      let guest = await files.listUsers(bundle.inputData.roomId, filters)
-      if (guest.length !== 0) {
+      const member = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      if (member) {
         return {
           status: "User is already a member"
         }
@@ -637,15 +664,15 @@ const inviteGuest = {
         notify: true
       }
       await files.shareRoom(bundle.inputData.roomId, body)
-      guest = await files.listUsers(bundle.inputData.roomId, filters)
-      if (guest.length !== 0) {
+      const guest = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      if (guest) {
         return {
           status: "Invited"
         }
       }
       throw new z.errors.HaltedError("Failed to invite guest")
     },
-    sample: samples.account
+    sample: samples.inviteGuest
   }
 }
 
@@ -670,7 +697,8 @@ const roomCreate = {
           "1": "Form filling room",
           "2": "Collaboration room",
           "5": "Custom room",
-          "6": "Public room"
+          "6": "Public room",
+          "8": "Virtual data room"
         },
         key: "roomType",
         label: "Type",
@@ -686,7 +714,7 @@ const roomCreate = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const body = {
-        roomType: parseInt(bundle.inputData.roomType, EDITOR),
+        roomType: Number(bundle.inputData.roomType),
         title: bundle.inputData.title
       }
       return await files.createRoom(body)
@@ -710,7 +738,7 @@ const shareRoom = {
         key: "roomId",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         dynamic: "userAdded.id.displayName",
@@ -744,10 +772,11 @@ const shareRoom = {
         notify: true
       }
       const response = await files.shareRoom(bundle.inputData.roomId, body)
-      if (response.members.length <= 0) {
+      const member = response.members.length > 0 && response.members[0].sharedToUser
+      if (!member) {
         throw new z.errors.HaltedError("Failed to invite user")
       }
-      return response.members[0].sharedTo
+      return member
     },
     sample: samples.share
   }
@@ -767,14 +796,14 @@ const uploadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Download the file via direct link or hydrate the file",
@@ -801,20 +830,20 @@ const uploadFile = {
           const fileStash = await uploader.stash(bundle.inputData.url)
           const headers = await uploader.headers(fileStash)
           const bodySession = {
-            CreateOn: new Date().toISOString(),
-            FileName: headers.fileName,
-            FileSize: headers.fileSize,
-            folderId: bundle.inputData.folderId
+            createOn: new Date().toISOString(),
+            fileName: headers.fileName,
+            fileSize: headers.fileSize
           }
           const session = await files.createSession(bundle.inputData.folderId, bodySession)
           const bodyUpload = {
+            data: headers.data,
             fileName: headers.fileName,
             fileSize: headers.fileSize,
             fileStash
           }
           return await uploader.upload(
             bodyUpload,
-            (chunkData) => files.uploadChunk(session.data.id, chunkData)
+            (chunkData) => files.uploadChunk(session.id, chunkData)
           )
         } catch (error) {
           let message = "Unknown error"
@@ -845,7 +874,7 @@ const uploadFileToMyDocuments = {
         key: "folderId",
         label: "Folder id",
         search: "searchFolder.id",
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Download the file via direct link or hydrate the file",

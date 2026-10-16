@@ -6,34 +6,36 @@
 
 const {
   ACTIVATION_STATUS,
+  aiRoomRoles,
   Client,
   collaborationRoomRoles,
   customRoomRoles,
   fillingFormsRoomRoles,
+  isAiRoom,
   isCollaborationRoom,
   isCustomRoom,
   isFillingFormsRoom,
   isPublicRoom,
   isVirtualDataRoom,
-  ONLY_USERS_FILTER_TYPE,
+  normalizeId,
   publicRoomRoles,
   REMOVED_USER_ID,
   ROOM_MANAGER,
+  stripExtension,
   virtualDataRoomRoles
 } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
-const { user } = require("../../docspace/people/people.samples.js")
 const { createWebhookTrigger } = require("../webhooks/hooks.js")
+const { pageFilters } = require("../pagination.js")
 const {
   FILE_CREATED,
   FILE_DELETED,
+  FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
-  ROOM_ARCHIVED,
-  ROOM_CREATED,
-  ROOM_USER_ADDED
+  ROOM_ARCHIVED
 } = require("../../docspace/webhooks/events.js")
 
 /**
@@ -114,6 +116,16 @@ const {
  */
 
 /**
+ * @param {FileData} file
+ * @returns {FileData}
+ */
+function normalizeFile(file) {
+  file.title = stripExtension(file.title)
+  file.id = normalizeId(file.id)
+  return file
+}
+
+/**
  * @param {ZObject} z
  * @param {Bundle<SessionAuthenticationData, FileCreatedFields>} bundle
  * @returns {Promise<FileData[]>}
@@ -126,16 +138,13 @@ async function performFileCreated(z, bundle) {
     const client = new Client(bundle.authData.baseUrl, z.request)
     const files = new FilesService(client)
     const filters = {
+      ...pageFilters(bundle),
       filterType: "FilesOnly",
-      sortBy: "DateAndTime",
+      sortBy: "DateAndTimeCreation",
       sortOrder: "descending"
     }
     const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-    filesList.files.forEach((file) => {
-      file.title = file.title.substring(0, file.title.lastIndexOf("."))
-      file.id = Number(file.id)
-    })
-    return filesList.files.slice(0, 100)
+    return filesList.files.slice(0, 100).map(normalizeFile)
   }
   throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
 }
@@ -144,7 +153,10 @@ const fileCreated = createWebhookTrigger(
   "fileCreated",
   "File Created",
   "Triggers when a file is created in a room or folder.",
-  [FILE_CREATED],
+  [
+    FILE_CREATED,
+    FILE_UPLOADED
+  ],
   {
     filters: { rootFolderType: 14 },
     inputFields: [
@@ -154,16 +166,17 @@ const fileCreated = createWebhookTrigger(
         helpText: "Triggers when created from a specific room",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "Triggers when created from a specific folder",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileCreated,
     sample: samples.file
@@ -189,7 +202,10 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
   "fileCreatedInMyDocuments",
   "File Created in Files Section",
   "Triggers when a file is created in the Files section.",
-  [FILE_CREATED],
+  [
+    FILE_CREATED,
+    FILE_UPLOADED
+  ],
   {
     filters: { rootFolderType: 5 },
     inputFields: [
@@ -198,9 +214,10 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
         helpText: "Triggers when created from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileCreatedInMyDocuments,
     sample: samples.file
@@ -221,15 +238,12 @@ async function performFileDeleted(z, bundle) {
     sortOrder: "descending"
   }
   const trash = await files.listTrash(filters)
-  trash.files.forEach((file) => {
-    file.title = file.title.substring(0, file.title.lastIndexOf("."))
-    file.id = Number(file.id)
-  })
+  trash.files.forEach(normalizeFile)
   if (bundle.inputData.id || bundle.inputData.folderId) {
     if (!bundle.inputData.folderId) {
       bundle.inputData.folderId = bundle.inputData.id
     }
-    return trash.files.filter((item) => item.originId === bundle.inputData.folderId)
+    return trash.files.filter((item) => String(item.originId) === String(bundle.inputData.folderId))
   }
   return trash.files
 }
@@ -247,16 +261,17 @@ const fileDeleted = createWebhookTrigger(
         helpText: "Triggers when deleted from a specific room (optional)",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "Triggers when deleted from a specific folder (optional)",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileDeleted,
     sample: samples.file
@@ -284,15 +299,17 @@ const fileDeletedInMyDocuments = createWebhookTrigger(
   "Triggers when a file is deleted from the Files section.",
   [FILE_DELETED],
   {
+    filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "Triggers when deleted from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
+    normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileDeletedInMyDocuments,
     sample: samples.file
@@ -308,6 +325,7 @@ const filesList = {
   key: "filesList",
   noun: "Files",
   operation: {
+    canPaginate: true,
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData, FilesListFields>} bundle
@@ -330,6 +348,7 @@ const filesListFromMyDocuments = {
   key: "filesListFromMyDocuments",
   noun: "Files",
   operation: {
+    canPaginate: true,
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData, FilesListFromMyDocumentsFields>} bundle
@@ -388,13 +407,14 @@ async function performFolderCreated(z, bundle) {
     const client = new Client(bundle.authData.baseUrl, z.request)
     const files = new FilesService(client)
     const filters = {
+      ...pageFilters(bundle),
       filterType: "FoldersOnly",
-      sortBy: "DateAndTime",
+      sortBy: "DateAndTimeCreation",
       sortOrder: "descending"
     }
     const folders = await files.listFolders(bundle.inputData.id, filters)
     folders.folders.forEach((folder) => {
-      folder.id = Number(folder.id)
+      folder.id = normalizeId(folder.id)
     })
     return folders.folders.slice(0, 100)
   }
@@ -415,14 +435,14 @@ const folderCreated = createWebhookTrigger(
         helpText: "Triggers when created from a specific room",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "Triggers when created from a specific folder",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
     noun: "Folder",
@@ -459,7 +479,7 @@ const folderCreatedInMyDocuments = createWebhookTrigger(
         helpText: "Triggers when created from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
     noun: "Folder",
@@ -483,12 +503,12 @@ async function performFolderDeleted(z, bundle) {
   }
   const trash = await files.listTrash(filters)
   trash.folders.forEach((folder) => {
-    folder.id = Number(folder.id)
+    folder.id = normalizeId(folder.id)
   })
   if (bundle.inputData.folderId) {
-    return trash.folders.filter((item) => item.originId === bundle.inputData.folderId)
+    return trash.folders.filter((item) => String(item.originId) === String(bundle.inputData.folderId))
   } else if (bundle.inputData.id) {
-    return trash.folders.filter((item) => item.originId === bundle.inputData.id)
+    return trash.folders.filter((item) => String(item.originId) === String(bundle.inputData.id))
   }
   return trash.folders
 }
@@ -506,14 +526,14 @@ const folderDeleted = createWebhookTrigger(
         helpText: "Triggers when deleted from a specific room (optional)",
         key: "id",
         label: "Room id",
-        type: "integer"
+        type: "string"
       },
       {
-        dynamic: "folderCreated.id.title",
+        dynamic: "foldersList.id.title",
         helpText: "Triggers when deleted from a specific folder (optional)",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
     noun: "Folder",
@@ -543,13 +563,14 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
   "Triggers when a folder is deleted from the Files section.",
   [FOLDER_DELETED],
   {
+    filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "Triggers when deleted from a specific folder of the Files section (optional)",
         key: "folderId",
         label: "Folder id",
-        type: "integer"
+        type: "string"
       }
     ],
     noun: "Folder",
@@ -557,6 +578,32 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
     sample: samples.folder
   }
 )
+
+const foldersList = {
+  display: {
+    description: "Hidden trigger to get a list of folders from a folder or room.",
+    hidden: true,
+    label: "List of Folders"
+  },
+  key: "foldersList",
+  noun: "Folders",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderCreatedFields>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      // The dropdown is empty until a room or folder is selected.
+      if (!bundle.inputData.id && !bundle.inputData.folderId) {
+        return []
+      }
+      return performFolderCreated(z, bundle)
+    },
+    sample: samples.folder
+  }
+}
 
 const foldersInMyDocumentsList = {
   display: {
@@ -567,6 +614,7 @@ const foldersInMyDocumentsList = {
   key: "foldersInMyDocumentsList",
   noun: "Folders",
   operation: {
+    canPaginate: true,
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData>} bundle
@@ -585,7 +633,7 @@ const foldersInMyDocumentsList = {
       }
       return await performFolderCreated(z, refinedBundle)
     },
-    sample: samples.file
+    sample: samples.folder
   }
 }
 
@@ -597,24 +645,46 @@ const foldersInMyDocumentsList = {
 async function performRoomCreated(z, bundle) {
   const client = new Client(bundle.authData.baseUrl, z.request)
   const files = new FilesService(client)
-  const rooms = await files.listRooms()
-  rooms.folders.forEach((room) => {
-    room.id = Number(room.id)
+  // Without sorting, DocSpace uses the order from its interface, so new rooms
+  // can be missing from the first page.
+  const filters = {
+    ...pageFilters(bundle),
+    sortBy: "DateAndTimeCreation",
+    sortOrder: "descending"
+  }
+  const rooms = await files.listRooms(filters)
+  // Form filling rooms are in the separate Forms section and aren't returned
+  // by default.
+  const forms = await files.listRooms({
+    ...filters,
+    searchArea: "Forms"
   })
-  return rooms.folders.slice(0, 100)
+  const ids = new Set(rooms.folders.map((room) => String(room.id)))
+  const list = rooms.folders
+    .concat(forms.folders.filter((room) => !ids.has(String(room.id))))
+    .sort((a, b) => Date.parse(b.created) - Date.parse(a.created))
+  list.forEach((room) => {
+    room.id = normalizeId(room.id)
+  })
+  // Return both lists in full, so that no room is lost between pages.
+  return list
 }
 
-const roomCreated = createWebhookTrigger(
-  "roomCreated",
-  "Room Created",
-  "Triggers when a room is created.",
-  [ROOM_CREATED],
-  {
-    noun: "Room",
-    pollingFallback: performRoomCreated,
+// Only Full admins and Room admins can subscribe to the `room.created` event,
+// so this trigger uses polling.
+const roomCreated = {
+  display: {
+    description: "Triggers when a room is created.",
+    label: "Room Created"
+  },
+  key: "roomCreated",
+  noun: "Room",
+  operation: {
+    canPaginate: true,
+    perform: performRoomCreated,
     sample: samples.room
   }
-)
+}
 
 /**
  * @param {ZObject} z
@@ -631,7 +701,7 @@ async function performRoomArchived(z, bundle) {
   }
   const rooms = await files.listRooms(filters)
   rooms.folders.forEach((room) => {
-    room.id = Number(room.id)
+    room.id = normalizeId(room.id)
   })
   return rooms.folders
 }
@@ -644,19 +714,30 @@ const roomArchived = createWebhookTrigger(
   {
     noun: "Room",
     pollingFallback: performRoomArchived,
-    sample: samples.folder
+    sample: samples.room
   }
 )
 
+/**
+ * Collaboration rooms, virtual data rooms and AI rooms don't have external
+ * links.
+ * @param {number} roomType
+ * @returns {boolean}
+ */
+function supportsExternalLinks(roomType) {
+  return !isCollaborationRoom(roomType) && !isVirtualDataRoom(roomType) && !isAiRoom(roomType)
+}
+
 const roomsFiltered = {
   display: {
-    description: "Hidden trigger to returning a list of rooms without collaboration type.",
+    description: "Hidden trigger to get a list of rooms that support external links.",
     hidden: true,
-    label: "Rooms Without Collaboration Type"
+    label: "Rooms With External Links"
   },
   key: "roomsFiltered",
   noun: "Room",
   operation: {
+    canPaginate: true,
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData>} bundle
@@ -664,7 +745,7 @@ const roomsFiltered = {
      */
     async perform(z, bundle) {
       const rooms = await performRoomCreated(z, bundle)
-      return rooms.filter((room) => room.roomType !== 2)
+      return rooms.filter((room) => supportsExternalLinks(Number(room.roomType)))
     },
     sample: samples.room
   }
@@ -700,12 +781,11 @@ const shareRoles = {
       const files = new FilesService(client)
       const room = await files.roomInfo(bundle.inputData.roomId)
       const roomType = Number(room.roomType)
-      const people2 = new PeopleService(client)
-      var users = await people2.listUsers()
-      users = users.filter((item) => item.id !== REMOVED_USER_ID)
       if (bundle.inputData.userId) {
-        const foundUser = users.find((u) => u.id === bundle.inputData.userId)
-        if (foundUser?.isAdmin || foundUser?.isRoomAdmin) {
+        const foundUser = await people.user(bundle.inputData.userId)
+        // Room manager is a paid role. Only the owner, Full admins and Room
+        // admins can have it.
+        if (foundUser?.isOwner || foundUser?.isAdmin || foundUser?.isRoomAdmin) {
           roles.push({ id: ROOM_MANAGER, name: "Room manager" })
         }
       }
@@ -724,6 +804,9 @@ const shareRoles = {
       if (isVirtualDataRoom(roomType)) {
         roles = roles.concat(virtualDataRoomRoles())
       }
+      if (isAiRoom(roomType)) {
+        roles = roles.concat(aiRoomRoles())
+      }
       roles.forEach((role) => {
         role.id = Number(role.id)
       })
@@ -741,32 +824,40 @@ const shareRoles = {
 async function performUserInvited(z, bundle) {
   const client = new Client(bundle.authData.baseUrl, z.request)
   const files = new FilesService(client)
-  const filters = {
-    filterType: ONLY_USERS_FILTER_TYPE
-  }
-  let users = await files.listUsers(bundle.inputData.id, filters)
-  users = users.filter((item) => item.sharedTo.id !== REMOVED_USER_ID)
-  if (bundle.inputData.active) {
-    users = users.filter((item) => item.sharedTo.activationStatus === ACTIVATION_STATUS)
-  }
-  return users.map((item) => {
-    return item.sharedTo
+  const members = await files.listUsers(bundle.inputData.id, {})
+  // The list has users and groups. Only users have `sharedToUser`.
+  /** @type {User[]} */
+  let users = []
+  members.forEach((item) => {
+    if (item.sharedToUser && item.sharedToUser.id !== REMOVED_USER_ID) {
+      users.push(item.sharedToUser)
+    }
   })
+  // Boolean fields may come from Zapier as strings.
+  if (String(bundle.inputData.active) === "true") {
+    users = users.filter((item) => item.activationStatus === ACTIVATION_STATUS)
+  }
+  return users
 }
 
-const userInvited = createWebhookTrigger(
-  "userInvited",
-  "User Joined",
-  "Triggers when a user is invited to the room.",
-  [ROOM_USER_ADDED],
-  {
+// DocSpace has no webhook event for adding a user to a room. The
+// `user.invited` event is about invitations to the workspace, so this trigger
+// uses polling.
+const userInvited = {
+  display: {
+    description: "Triggers when a user is invited to the room.",
+    label: "User Joined"
+  },
+  key: "userInvited",
+  noun: "User",
+  operation: {
     inputFields: [
       {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room id",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Returns only those who are active",
@@ -775,11 +866,10 @@ const userInvited = createWebhookTrigger(
         type: "boolean"
       }
     ],
-    noun: "User",
-    pollingFallback: performUserInvited,
-    sample: user
+    perform: performUserInvited,
+    sample: samples.share
   }
-)
+}
 
 module.exports = {
   fileCreated,
@@ -794,6 +884,7 @@ module.exports = {
   folderDeleted,
   folderDeletedInMyDocuments,
   foldersInMyDocumentsList,
+  foldersList,
   roomArchived,
   roomCreated,
   roomsFiltered,

@@ -51,19 +51,33 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} ExternalLinkData
  * @property {number} access
  * @property {boolean} canEditAccess
+ * @property {boolean=} canEditDenyDownload
+ * @property {boolean=} canEditExpirationDate
+ * @property {boolean=} canEditInternal
+ * @property {boolean=} canRevoke
  * @property {boolean} isLocked
  * @property {boolean} isOwner
- * @property {SharedTo} sharedTo
+ * @property {SharedTo=} sharedLink
+ * @property {SharedTo} sharedTo Obsolete, use `sharedLink`.
+ * @property {number=} subjectType
  */
 
 /**
  * @typedef {Object} FileData
  * @property {number} rootFolderId
  * @property {number} folderId
+ * @property {number=} version
+ * @property {number=} versionGroup
+ * @property {string=} contentLength
+ * @property {number=} pureContentLength
+ * @property {number=} fileStatus
+ * @property {string=} comment
+ * @property {number=} thumbnailStatus
  * @property {string} viewUrl
  * @property {string} webUrl
  * @property {number} fileType
  * @property {string} fileExst
+ * @property {number=} fileEntryType
  * @property {number} id
  * @property {string} title
  * @property {string} created
@@ -72,6 +86,7 @@ const { Service } = require("../client/client.js")
  * @property {number} rootFolderType
  * @property {Account} updatedBy
  * @property {number=} originId
+ * @property {string=} originTitle
  */
 
 /**
@@ -82,6 +97,11 @@ const { Service } = require("../client/client.js")
 /**
  * @typedef {Object} FolderData
  * @property {number} parentId
+ * @property {number=} rootFolderId
+ * @property {number=} filesCount
+ * @property {number=} foldersCount
+ * @property {number=} new
+ * @property {number=} fileEntryType
  * @property {number} id
  * @property {string} title
  * @property {string} created
@@ -106,13 +126,6 @@ const { Service } = require("../client/client.js")
  */
 
 /**
- * @typedef {Object} InviteGuestBody
- * @property {Invitations[]} invitations
- * @property {boolean} notify
- * @property {string} message
- */
-
-/**
  * @typedef {Object} InviteGuestData
  * @property {string} status
  */
@@ -124,24 +137,16 @@ const { Service } = require("../client/client.js")
  */
 
 /**
- * DocSpace server doesn't have a generic structure for asynchronous responses.
- * Some endpoints may return the `progress` property[^1][^2][^3], while others
- * may return the `percents`[^4][^5].
- *
- * [^1]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/ConversationResultDto.cs#L32
- * [^2]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/FileOperationDto.cs#L90
- * [^3]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/Services/WCFService/FileOperations/FileOperationResult.cs#L31
- * [^4]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/RequestsDto/SmtpOperationStatusRequestsDto.cs#L31
- * [^5]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/ResponseDto/LdapStatusDto.cs#L31
- *
  * @typedef {Object} ProgressData
  * @property {string} id
- * @property {number} operation
+ * @property {number} Operation
  * @property {number=} progress
  * @property {string} error
  * @property {string} processed
  * @property {boolean} finished
- * @property {number=} percents
+ * @property {number=} status
+ * @property {Object[]=} files
+ * @property {Object[]=} folders
  */
 
 /**
@@ -158,6 +163,13 @@ const { Service } = require("../client/client.js")
  * @property {number} foldersCount
  * @property {number} new
  * @property {number} roomType
+ * @property {string[]=} tags
+ * @property {boolean=} private
+ * @property {boolean=} indexing
+ * @property {boolean=} denyDownload
+ * @property {boolean=} inRoom
+ * @property {number=} usedSpace
+ * @property {number=} fileEntryType
  * @property {number} id
  * @property {string} title
  * @property {string} created
@@ -188,6 +200,7 @@ const { Service } = require("../client/client.js")
  * @property {boolean} denyDownload
  * @property {boolean} isExpired
  * @property {boolean} primary
+ * @property {boolean=} internal
  * @property {string} requestToken
  */
 
@@ -206,11 +219,21 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isVisitor
  * @property {boolean} isCollaborator
  * @property {boolean} isSSO
- * @property {number} quotaLimit
- * @property {number} usedSpace
+ * @property {number=} quotaLimit
+ * @property {number=} usedSpace
+ * @property {string=} department
+ * @property {number=} mobilePhoneActivationStatus
+ * @property {string=} registrationDate
  * @property {string} id
  * @property {string} displayName
+ * @property {string=} avatar
+ * @property {string=} avatarOriginal
+ * @property {string=} avatarMax
+ * @property {string=} avatarMedium
+ * @property {string=} avatarSmall
  * @property {string} profileUrl
+ * @property {boolean=} hasAvatar
+ * @property {boolean=} isAnonim
  */
 
 /**
@@ -220,7 +243,8 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} ShareMembers
- * @property {ShareData} sharedTo
+ * @property {ShareData} sharedTo Obsolete, use `sharedToUser`.
+ * @property {ShareData=} sharedToUser
  */
 
 /**
@@ -244,23 +268,19 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} Session
- * @property {boolean} success
- * @property {Object} data
- * @property {string} data.id
- * @property {number[]} data.path
- * @property {string} data.created
- * @property {string} data.expired
- * @property {string} data.location
- * @property {number} data.bytes_uploaded
- * @property {number} data.bytes_total
+ * @property {string} id
+ * @property {number[]} path
+ * @property {string} created
+ * @property {string} expired
+ * @property {string} location
+ * @property {number} bytes_total
  */
 
 /**
  * @typedef {Object} SessionData
- * @property {number} folderId
- * @property {string} FileName
- * @property {number} FileSize
- * @property {string} CreateOn
+ * @property {string} fileName
+ * @property {number} fileSize
+ * @property {string} createOn
  */
 
 /**
@@ -275,7 +295,8 @@ const { Service } = require("../client/client.js")
  * @property {boolean} canEditAccess
  * @property {boolean} isLocked
  * @property {boolean} isOwner
- * @property {User} sharedTo
+ * @property {User} sharedTo Obsolete, use `sharedToUser`.
+ * @property {User=} sharedToUser
  */
 
 /**
@@ -291,7 +312,7 @@ class FilesService extends Service {
    * @returns {Promise<ProgressData>}
    */
   archiveRoom(id) {
-    const url = this.client.url(`/files/rooms/${id}/archive`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/archive`)
     return this.client.request("PUT", url)
   }
 
@@ -304,7 +325,7 @@ class FilesService extends Service {
    * @returns {Promise<FileData>}
    */
   createFile(folderId, body) {
-    const url = this.client.url(`/files/${folderId}/file`)
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}/file`)
     return this.client.request("POST", url, body)
   }
 
@@ -329,7 +350,7 @@ class FilesService extends Service {
    * @returns {Promise<FolderData>}
    */
   createFolder(folderId, body) {
-    const url = this.client.url(`/files/folder/${folderId}`)
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("POST", url, body)
   }
 
@@ -347,14 +368,14 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * POST /files/{{folderId}}/upload/create_session
+   * POST /files/{{folderId}}/session
    * ```
    * @param {number} folderId
    * @param {SessionData} body
    * @returns {Promise<Session>}
    */
   createSession(folderId, body) {
-    const url = this.client.url(`/files/${folderId}/upload/create_session`)
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}/session`)
     return this.client.request("POST", url, body)
   }
 
@@ -366,7 +387,7 @@ class FilesService extends Service {
    * @returns {Promise<ProgressData[]>}
    */
   deleteFolder(folderId) {
-    const url = this.client.url(`/files/folder/${folderId}`)
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("DELETE", url)
   }
 
@@ -378,7 +399,31 @@ class FilesService extends Service {
    * @returns {Promise<DownloadLinkData>}
    */
   downloadLink(fileId) {
-    const url = this.client.url(`/files/file/${fileId}/presigned`)
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/presigned`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{fileId}}
+   * ```
+   * @param {number|string} fileId
+   * @returns {Promise<FileData>}
+   */
+  fileInfo(fileId) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/folder/{{folderId}}
+   * ```
+   * @param {number|string} folderId
+   * @returns {Promise<FolderData>}
+   */
+  folderInfo(folderId) {
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("GET", url)
   }
 
@@ -390,7 +435,7 @@ class FilesService extends Service {
    * @returns {Promise<ExternalLinkData>}
    */
   externalLink(id) {
-    const url = this.client.url(`/files/rooms/${id}/link`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/link`)
     return this.client.request("GET", url)
   }
 
@@ -403,7 +448,7 @@ class FilesService extends Service {
    * @returns {Promise<ShareList>}
    */
   shareRoom(id, data) {
-    const url = this.client.url(`/files/rooms/${id}/share`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/share`)
     return this.client.request("PUT", url, data)
   }
 
@@ -416,7 +461,7 @@ class FilesService extends Service {
    * @returns {Promise<FilesList>}
    */
   listFiles(folderId, filters) {
-    const url = this.client.url(`/files/${folderId}`, filters)
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}`, filters)
     return this.client.request("GET", url)
   }
 
@@ -429,7 +474,7 @@ class FilesService extends Service {
    * @returns {Promise<FoldersList>}
    */
   listFolders(id, filters) {
-    const url = this.client.url(`/files/${id}`, filters)
+    const url = this.client.url(`/files/${encodeURIComponent(id)}`, filters)
     return this.client.request("GET", url)
   }
 
@@ -488,7 +533,7 @@ class FilesService extends Service {
    * @returns {Promise<UsersList>}
    */
   listUsers(id, filters) {
-    const url = this.client.url(`/files/rooms/${id}/share`, filters)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/share`, filters)
     return this.client.request("GET", url)
   }
 
@@ -511,31 +556,20 @@ class FilesService extends Service {
    * @returns {Promise<RoomData>}
    */
   roomInfo(folderId) {
-    const url = this.client.url(`/files/rooms/${folderId}`)
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(folderId)}`)
     return this.client.request("GET", url)
   }
 
   /**
    * ```http
-   * GET /files/@trash
-   * ```
-   * @returns {Promise<Section>}
-   */
-  trashSection() {
-    const url = this.client.url("/files/@trash")
-    return this.client.request("GET", url)
-  }
-
-  /**
-   * ```http
-   * POST /files/{{folderId}}/upload/create_session
+   * POST /ChunkedUploader.ashx?uid={{sessionId}}
    * ```
    * @param {string} sessionId
    * @param {ChunkData} chunkData
    * @returns {Promise<UploadFileData>}
    */
   uploadChunk(sessionId, chunkData) {
-    const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${sessionId}`
+    const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${encodeURIComponent(sessionId)}`
     return this.client.request("POST", url, chunkData.body, chunkData.headers)
   }
 }

@@ -6,8 +6,17 @@
 
 const { Assertion, equal, not, unreachable } = require("uvu/assert")
 const { test } = require("uvu")
-const { Client, Progress } = require("./client.js")
-const samples = require("../../docspace/files/files.samples.js")
+const { Client, isNotFoundError, normalizeId, Progress, stripExtension } = require("./client.js")
+
+/** @type {import("../files/files.js").ProgressData} */
+const operation = {
+  Operation: 0,
+  error: "",
+  finished: false,
+  id: "00000000-1111-2222-3333-444444444444",
+  processed: "0",
+  progress: 0
+}
 
 /**
  * @typedef {import("./client.js").Filters} Filters
@@ -26,8 +35,6 @@ test("url generate a valid URL with filters", () => {
   /** @type {Filters} */
   const filters = {
     count: 1,
-    filterBy: "userName",
-    filterOp: "startsWith",
     filterValue: "John",
     sortBy: "DateAndTime",
     sortOrder: "descending",
@@ -37,7 +44,7 @@ test("url generate a valid URL with filters", () => {
 
   equal(
     url,
-    "https://example.com/api/2.0/files?count=1&filterBy=userName&filterOp=startsWith&filterValue=John&sortBy=DateAndTime&sortOrder=descending&startIndex=0"
+    "https://example.com/api/2.0/files?count=1&filterValue=John&sortBy=DateAndTime&sortOrder=descending&startIndex=0"
   )
 })
 
@@ -51,24 +58,23 @@ test("url generate a valid URL without filters", () => {
 
 test("progress initializes with the endpoint", async () => {
   async function endpoint() {
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.endpoint()
   equal(response.length, 1)
-  equal(response[0].error, samples.progress.error)
-  equal(response[0].progress, samples.progress.progress)
-  equal(response[0].percents, samples.progress.percents)
+  equal(response[0].error, operation.error)
+  equal(response[0].progress, operation.progress)
 })
 
 test("progress initializes with the endpoint and it's operation", async () => {
   async function endpoint() {
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
-  equal(progress.operation, samples.progress)
+  const progress = new Progress(endpoint, operation)
+  equal(progress.operation, operation)
 })
 
 test("progress completes with a default delay", async () => {
@@ -83,10 +89,10 @@ test("progress completes with a default limit", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   await progress.complete()
 
   equal(i, 20)
@@ -96,10 +102,10 @@ test("progress completes with the custom limit", async () => {
   let i = 0
   async function endpoint() {
     i += 1
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   await progress.complete(100, 10)
 
   equal(i, 10)
@@ -107,10 +113,10 @@ test("progress completes with the custom limit", async () => {
 
 test("progress throws an error if the limit is negative or zero", async () => {
   async function endpoint() {
-    return [samples.progress]
+    return [operation]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
 
   try {
     await progress.complete(100, 0)
@@ -133,18 +139,17 @@ test("progress breaks if the response contains an error", async () => {
     i += 1
     return [
       {
+        Operation: 0,
         error: "hola",
         finished: false,
         id: "00000000-1111-2222-3333-444444444444",
-        operation: 0,
-        percents: 0,
         processed: "0",
         progress: 0
       }
     ]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.complete()
 
   equal(i, 1)
@@ -163,18 +168,17 @@ test("progress completes when the response contains 100 progress", async () => {
     }
     return [
       {
+        Operation: 0,
         error: "",
         finished: finished,
         id: "00000000-1111-2222-3333-444444444444",
-        operation: 0,
-        percents: 0,
         processed: "0",
         progress: p
       }
     ]
   }
 
-  const progress = new Progress(endpoint, samples.progress)
+  const progress = new Progress(endpoint, operation)
   const response = await progress.complete()
 
   equal(i, 2)
@@ -184,32 +188,25 @@ test("progress completes when the response contains 100 progress", async () => {
   equal(response.progress, 100)
 })
 
-test("progress completes when the response contains 100 percents", async () => {
-  let i = 0
-  let p = 0
-  async function endpoint() {
-    i += 1
-    p += 50
-    return [
-      {
-        error: "",
-        finished: false,
-        id: "00000000-1111-2222-3333-444444444444",
-        operation: 0,
-        percents: p,
-        processed: "0",
-        progress: 0
-      }
-    ]
-  }
+test("detects not found errors of z.request", () => {
+  equal(isNotFoundError(new Error(JSON.stringify({ status: 404 }))), true)
+  equal(isNotFoundError(new Error(JSON.stringify({ status: 500 }))), false)
+  equal(isNotFoundError(new Error("not json")), false)
+  equal(isNotFoundError("404"), false)
+})
 
-  const progress = new Progress(endpoint, samples.progress)
-  const response = await progress.complete()
+test("normalizes numeric ids only", () => {
+  equal(normalizeId("15"), 15)
+  equal(normalizeId(15), 15)
+  equal(normalizeId("sbox-1-abc"), "sbox-1-abc")
+  equal(normalizeId("11111111-2222-3333-4444-555555555555"), "11111111-2222-3333-4444-555555555555")
+})
 
-  equal(i, 2)
-  equal(p, 100)
-  equal(response.error, "")
-  equal(response.percents, 100)
+test("strips the extension from a file title", () => {
+  equal(stripExtension("Report.docx"), "Report")
+  equal(stripExtension("archive.tar.gz"), "archive.tar")
+  equal(stripExtension("README"), "README")
+  equal(stripExtension(".env"), ".env")
 })
 
 test.run()

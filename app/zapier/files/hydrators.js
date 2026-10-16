@@ -4,26 +4,33 @@
 
 // @ts-check
 
+const { Client } = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
+
 /**
- * @typedef {Object} InputData
- * @property {string} url
+ * @typedef {Object} DownloadFileInputData
+ * @property {number} fileId
  */
 
 /**
+ * The file is downloaded only when a later step uses it, which can be much
+ * later. The download link expires, so it is requested at that moment.
  * @param {ZObject} z
- * @param {import("zapier-platform-core").Bundle<InputData>} bundle
+ * @param {import("zapier-platform-core").Bundle<DownloadFileInputData>} bundle
  * @returns {Promise<string>}
  */
-
-const stashFile = async (z, bundle) => {
+const downloadFile = async (z, bundle) => {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const link = await files.downloadLink(bundle.inputData.fileId)
   const filePromise = z.request({
     raw: true,
     redirect: "error",
-    url: bundle.inputData.url
+    url: link.url
   })
   return z.stashFile(filePromise)
 }
 
 module.exports = {
-  stashFile
+  downloadFile
 }

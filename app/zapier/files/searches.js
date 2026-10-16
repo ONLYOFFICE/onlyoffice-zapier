@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client } = require("../../docspace/client/client.js")
+const { Client, normalizeId } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 
@@ -12,6 +12,7 @@ const samples = require("../../docspace/files/files.samples.js")
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
+ * @typedef {import("../../docspace/client/client.js").Filters} Filters
  */
 
 /**
@@ -19,6 +20,40 @@ const samples = require("../../docspace/files/files.samples.js")
  * @property {number} folderId
  * @property {string} title
  */
+
+/**
+ * @param {string} title
+ * @param {string} query
+ * @returns {boolean}
+ */
+function includesTitle(title, query) {
+  return title.toLowerCase().includes(query.toLowerCase())
+}
+
+/**
+ * Searches entries by the title. In most sections, the server does the search.
+ * The Rooms section returns nothing for it, so its first page is searched
+ * instead.
+ * @template {{title: string}} T
+ * @param {(filters: Filters) => Promise<T[]>} list
+ * @param {string} title
+ * @returns {Promise<T[]>}
+ */
+async function searchByTitle(list, title) {
+  const filters = {
+    sortBy: "DateAndTime",
+    sortOrder: "descending",
+    withSubfolders: true
+  }
+  let items = await list({
+    ...filters,
+    filterValue: title
+  })
+  if (items.length === 0) {
+    items = await list(filters)
+  }
+  return items.filter((item) => includesTitle(item.title, title))
+}
 
 const searchFile = {
   display: {
@@ -35,7 +70,7 @@ const searchFile = {
         key: "folderId",
         label: "Section",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "File title or extension",
@@ -52,19 +87,16 @@ const searchFile = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const filters = {
-        sortBy: "DateAndTime",
-        sortOrder: "descending",
-        withSubfolders: true
-      }
-      const filesList = await files.listFiles(bundle.inputData.folderId, filters)
-      const results = filesList.files.filter((file) => file.title.includes(bundle.inputData.title))
+      const results = await searchByTitle(
+        async (filters) => (await files.listFiles(bundle.inputData.folderId, filters)).files,
+        bundle.inputData.title
+      )
       results.forEach((file) => {
-        file.id = Number(file.id)
+        file.id = normalizeId(file.id)
       })
       return results
     },
-    sample: samples.file
+    sample: samples.foundFile
   }
 }
 
@@ -83,7 +115,7 @@ const searchFolder = {
         key: "folderId",
         label: "Section",
         required: true,
-        type: "integer"
+        type: "string"
       },
       {
         helpText: "Folder title",
@@ -100,15 +132,12 @@ const searchFolder = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const filters = {
-        sortBy: "DateAndTime",
-        sortOrder: "descending",
-        withSubfolders: true
-      }
-      const folderList = await files.listFolders(bundle.inputData.folderId, filters)
-      const results = folderList.folders.filter((folder) => folder.title.includes(bundle.inputData.title))
+      const results = await searchByTitle(
+        async (filters) => (await files.listFolders(bundle.inputData.folderId, filters)).folders,
+        bundle.inputData.title
+      )
       results.forEach((folder) => {
-        folder.id = Number(folder.id)
+        folder.id = normalizeId(folder.id)
       })
       return results
     },

@@ -15,20 +15,16 @@
  * @property {number=} startIndex
  * @property {string=} sortBy
  * @property {string=} sortOrder
- * @property {string=} filterBy
- * @property {string=} filterOp
  * @property {string=} filterValue
  * @property {string|number=} filterType
  * @property {string=} searchArea
- * @property {string=} inviterId
- * @property {string=} area
+ * @property {string=} email
+ * @property {boolean=} withSubfolders
  */
 
 const ACTIVATION_STATUS = 1
-const ONLY_USERS_FILTER_TYPE = 0
 const REMOVED_USER_ID = "4A515A15-D4D6-4b8e-828E-E0586F18F3A3"
 
-const OWNER = 1
 const CONTENT_CREATOR = 11
 const ROOM_MANAGER = 9
 const EDITOR = 10
@@ -75,6 +71,14 @@ function isFillingFormsRoom(type) {
  */
 function isVirtualDataRoom(type) {
   return type === 8
+}
+
+/**
+ * @param {number} type
+ * @returns {boolean}
+ */
+function isAiRoom(type) {
+  return type === 9
 }
 
 /**
@@ -127,8 +131,72 @@ function virtualDataRoomRoles() {
   return [
     { id: CONTENT_CREATOR, name: "Content creator" },
     { id: EDITOR, name: "Editor" },
+    { id: VIEWER, name: "Viewer" },
+    { id: FORM_FILLER, name: "Form filler" }
+  ]
+}
+
+/**
+ * @returns {RoleData[]}
+ */
+function aiRoomRoles() {
+  return [
+    { id: CONTENT_CREATOR, name: "Content creator" },
     { id: VIEWER, name: "Viewer" }
   ]
+}
+
+/**
+ * Returns the status of an error of `z.request`. Zapier puts the status in the
+ * error message.
+ * @param {unknown} error
+ * @returns {number | undefined}
+ */
+function responseStatus(error) {
+  if (!(error instanceof Error)) {
+    return undefined
+  }
+  try {
+    return JSON.parse(error.message).status
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * @param {unknown} error
+ * @returns {boolean}
+ */
+function isNotFoundError(error) {
+  return responseStatus(error) === 404
+}
+
+/**
+ * Converts numeric ids to numbers. Other ids, like user GUIDs or ids of files
+ * in third-party storages, stay as is.
+ * @template T
+ * @param {T} id
+ * @returns {T | number}
+ */
+function normalizeId(id) {
+  if (typeof id === "string" && /^\d+$/.test(id)) {
+    return Number(id)
+  }
+  return id
+}
+
+/**
+ * Removes the extension from a file title. A title without an extension stays
+ * as is.
+ * @param {string} title
+ * @returns {string}
+ */
+function stripExtension(title) {
+  const index = title.lastIndexOf(".")
+  if (index <= 0) {
+    return title
+  }
+  return title.substring(0, index)
 }
 
 class Client {
@@ -178,16 +246,22 @@ class Client {
    * @returns {Promise<T>}
    */
   async request(method, url, body = {}, headers = {}) {
-    const response = await this.zrequest({ body, headers, method, url })
+    const response = await this.zrequest({
+      body: method === "GET" ? undefined : body,
+      headers,
+      method,
+      url
+    })
 
     const { data } = response
     if (!data) {
-      throw Error("TODO")
+      throw Error(`Unexpected response from the workspace: ${method} ${url}`)
     }
 
     const { status, success } = data
     if (status !== 0 && success !== true) {
-      throw Error("TODO")
+      const message = data.error && data.error.message
+      throw Error(message || `The workspace returned an error: ${method} ${url}`)
     }
 
     return data.response || data.data
@@ -206,7 +280,7 @@ class Progress {
 
   async complete(delay = 100, limit = 20) {
     if (limit <= 0) {
-      throw new Error("todo")
+      throw new Error("The limit of status checks must be greater than zero")
     }
     let progress = this.operation
     while (limit > 0) {
@@ -214,20 +288,8 @@ class Progress {
       const operation = operations.find((item) => item.id === this.operation.id)
       if (operation) {
         progress = operation
-        if (!!progress.error || limit === 0) {
+        if (progress.error || (progress.progress === 100 && progress.finished)) {
           return progress
-        }
-
-        if (Object.hasOwn(progress, "progress")) {
-          if (progress.progress === 100 && progress.finished) {
-            return progress
-          }
-        }
-
-        if (Object.hasOwn(progress, "percents")) {
-          if (progress.percents === 100) {
-            return progress
-          }
         }
       }
       await this.wait(delay)
@@ -256,27 +318,26 @@ class Service {
 
 module.exports = {
   ACTIVATION_STATUS,
-  COMMENTER,
   CONTENT_CREATOR,
   Client,
-  EDITOR,
-  FORM_FILLER,
-  ONLY_USERS_FILTER_TYPE,
-  OWNER,
   Progress,
   REMOVED_USER_ID,
-  REVIEWER,
   ROOM_MANAGER,
   Service,
-  VIEWER,
+  aiRoomRoles,
   collaborationRoomRoles,
   customRoomRoles,
   fillingFormsRoomRoles,
+  isAiRoom,
   isCollaborationRoom,
   isCustomRoom,
   isFillingFormsRoom,
+  isNotFoundError,
   isPublicRoom,
   isVirtualDataRoom,
+  normalizeId,
   publicRoomRoles,
+  responseStatus,
+  stripExtension,
   virtualDataRoomRoles
 }

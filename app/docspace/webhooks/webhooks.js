@@ -49,7 +49,7 @@ class WebhooksService extends Service {
    * @returns {Promise<void>}
    */
   deleteWebhook(id) {
-    const url = this.client.url(`/settings/webhook/${id}`)
+    const url = this.client.url(`/settings/webhook/${encodeURIComponent(id)}`)
     return this.client.request("DELETE", url)
   }
 }

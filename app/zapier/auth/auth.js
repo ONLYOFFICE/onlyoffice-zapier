@@ -45,13 +45,15 @@ const sessionAuth = {
      * @returns {Promise<SessionAuthenticationData>}
      */
     async perform(z, bundle) {
-      if (!/^(https?):\/\/[^\s/$.?#].[^\s]*$/i.test(bundle.authData.baseUrl)) {
-        throw new Error("Invalid Workspace Address format")
+      // Only HTTPS is allowed, because the email and password are sent.
+      if (!/^https:\/\/[^\s/$.?#].[^\s]*$/i.test(bundle.authData.baseUrl)) {
+        throw new Error("Invalid Workspace Address format. The address must start with https://")
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bundle.authData.username)) {
         throw new Error("Invalid Email format")
       }
-      const baseUrl = normalizeUrl(bundle.authData.baseUrl)
+      // By default, normalize-url removes "www.", which changes the host.
+      const baseUrl = normalizeUrl(bundle.authData.baseUrl, { stripWWW: false })
       const client = new Client(baseUrl, z.request)
       const auth = new AuthenticationService(client)
       const data = await auth.auth(bundle.authData)
@@ -65,20 +67,21 @@ const sessionAuth = {
   /**
    * @param {ZObject} z
    * @param {Bundle<SessionAuthenticationUnapprovedData>} bundle
-   * @returns {Promise<User | undefined>}
+   * @returns {Promise<User>}
    */
   async test(z, bundle) {
     const { baseUrl } = bundle.authData
     if (!baseUrl) {
-      return
+      throw new Error("The Workspace Address is missing")
     }
 
     const client = new Client(baseUrl, z.request)
     const auth = new AuthenticationService(client)
 
+    // On RefreshAuthError, Zapier signs in again with the saved credentials.
     const status = await auth.check()
     if (!status) {
-      return
+      throw new z.errors.RefreshAuthError("The session has expired")
     }
 
     const people = new PeopleService(client)
