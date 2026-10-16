@@ -467,7 +467,7 @@ class FilesService extends Service {
 
   /**
    * ```http
-   * GET /files/rooms/{{id}}
+   * GET /files/{{id}}
    * ```
    * @param {number} id
    * @param {Filters} filters
