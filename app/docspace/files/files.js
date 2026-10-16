@@ -126,13 +126,6 @@ const { Service } = require("../client/client.js")
  */
 
 /**
- * @typedef {Object} InviteGuestBody
- * @property {Invitations[]} invitations
- * @property {boolean} notify
- * @property {string} message
- */
-
-/**
  * @typedef {Object} InviteGuestData
  * @property {string} status
  */
@@ -144,16 +137,6 @@ const { Service } = require("../client/client.js")
  */
 
 /**
- * DocSpace server doesn't have a generic structure for asynchronous responses.
- * Some endpoints may return the `progress` property[^1][^2][^3], while others
- * may return the `percents`[^4][^5].
- *
- * [^1]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/ConversationResultDto.cs#L32
- * [^2]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/ApiModels/ResponseDto/FileOperationDto.cs#L90
- * [^3]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/products/ASC.Files/Core/Services/WCFService/FileOperations/FileOperationResult.cs#L31
- * [^4]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/RequestsDto/SmtpOperationStatusRequestsDto.cs#L31
- * [^5]: https://github.com/ONLYOFFICE/DocSpace-server/blob/v1.1.3-server/web/ASC.Web.Api/ApiModels/ResponseDto/LdapStatusDto.cs#L31
- *
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} Operation
@@ -161,7 +144,6 @@ const { Service } = require("../client/client.js")
  * @property {string} error
  * @property {string} processed
  * @property {boolean} finished
- * @property {number=} percents
  * @property {number=} status
  * @property {Object[]=} files
  * @property {Object[]=} folders
@@ -575,17 +557,6 @@ class FilesService extends Service {
    */
   roomInfo(folderId) {
     const url = this.client.url(`/files/rooms/${encodeURIComponent(folderId)}`)
-    return this.client.request("GET", url)
-  }
-
-  /**
-   * ```http
-   * GET /files/@trash
-   * ```
-   * @returns {Promise<Section>}
-   */
-  trashSection() {
-    const url = this.client.url("/files/@trash")
     return this.client.request("GET", url)
   }
 

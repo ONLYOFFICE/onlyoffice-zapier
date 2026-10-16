@@ -5,7 +5,6 @@
 // @ts-check
 
 /**
- * @typedef {import("./files.js").Account} Account
  * @typedef {import("./files.js").DownloadFileData} DownloadFileData
  * @typedef {import("./files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("./files.js").FileData} FileData

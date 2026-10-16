@@ -10,7 +10,6 @@ const FormData = require("form-data")
 
 /**
  * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
- * @typedef {import("./actions.js").UploadFileFields} UploadFileFields
  */
 
 /**
@@ -19,12 +18,6 @@ const FormData = require("form-data")
  * @property {number} fileSize
  * @property {string} fileStash
  * @property {Buffer=} data The whole file, if it has already been downloaded.
- */
-
-/**
- * @typedef {Object} ErrorData
- * @property {string} message
- * @property {string} stack
  */
 
 /**

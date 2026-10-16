@@ -10,7 +10,6 @@ const samples = require("../../docspace/people/people.samples.js")
 
 /**
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
- * @typedef {import("../../docspace/people/people.js").Account} Account
  * @typedef {import("../../docspace/people/people.js").User} User
  */
 

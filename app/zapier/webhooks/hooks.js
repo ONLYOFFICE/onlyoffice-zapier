@@ -8,7 +8,6 @@ const crypto = require("crypto")
 const { Client, isNotFoundError, normalizeId, responseStatus } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const { WebhooksService } = require("../../docspace/webhooks/webhooks.js")
-const { WEBHOOK_TRIGGER_NAMES } = require("../../docspace/webhooks/events.js")
 
 /**
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
@@ -262,11 +261,10 @@ async function fetchEntry(z, bundle, trigger, payload) {
  * @param {ZObject} z
  * @param {Bundle<SessionAuthenticationData>} bundle
  * @param {WebhookFilters} [filters]
- * @param {number[]} [eventIds]
  * @param {function(any): any} [normalize]
  * @returns {Promise<WebhookEventData[]>}
  */
-async function performWebhook(z, bundle, filters = {}, eventIds = [], normalize) {
+async function performWebhook(z, bundle, filters = {}, normalize) {
   const subscribeData = /** @type {WebhookSubscriptionData} */ (/** @type {unknown} */ (bundle.subscribeData))
   // DocSpace sends an empty request when it checks the address of a new
   // webhook. It has no event, so there is nothing to check or return.
@@ -291,19 +289,6 @@ async function performWebhook(z, bundle, filters = {}, eventIds = [], normalize)
   const webhookBody = bundle.cleanedRequest
   const trigger = webhookBody.event && webhookBody.event.trigger
   const inputData = bundle.inputData || {}
-
-  // Filter by event trigger name
-  if (eventIds.length > 0 && trigger) {
-    const expectedTriggers = eventIds
-      .map((id) => WEBHOOK_TRIGGER_NAMES[id])
-      .filter(Boolean)
-    if (
-      expectedTriggers.length > 0 &&
-      !expectedTriggers.includes(trigger)
-    ) {
-      return []
-    }
-  }
 
   // The filters use the webhook payload, because it keeps the place of the
   // entry before the event. For example, the API response of a file moved to
@@ -341,17 +326,6 @@ async function performWebhook(z, bundle, filters = {}, eventIds = [], normalize)
 }
 
 /**
- * Get sample data using polling
- * @param {ZObject} z
- * @param {Bundle<SessionAuthenticationData>} bundle
- * @param {Function} pollingFunction
- * @returns {Promise<WebhookEventData[]>}
- */
-async function performList(z, bundle, pollingFunction) {
-  return await pollingFunction(z, bundle)
-}
-
-/**
  * Create webhook trigger
  * @param {string} key
  * @param {string} label
@@ -359,7 +333,7 @@ async function performList(z, bundle, pollingFunction) {
  * @param {number[]} eventIds
  * @param {Object} options
  * @param {Object[]=} options.inputFields
- * @param {Function=} options.pollingFallback
+ * @param {WebhookTriggerOperation["performList"]} [options.pollingFallback]
  * @param {Object=} options.sample
  * @param {string=} options.noun
  * @param {WebhookFilters=} options.filters
@@ -383,20 +357,10 @@ function createWebhookTrigger(key, label, description, eventIds, options = {}) {
        * @returns {Promise<WebhookEventData[]>}
        */
       perform: (z, bundle) => {
-        return performWebhook(z, bundle, options.filters, eventIds, options.normalize)
+        return performWebhook(z, bundle, options.filters, options.normalize)
       },
 
-      /**
-       * @param {ZObject} z
-       * @param {Bundle<SessionAuthenticationData>} bundle
-       * @returns {Promise<WebhookEventData[]>}
-       */
-      performList: options.pollingFallback ? (z, bundle) => {
-        if (!options.pollingFallback) {
-          throw new Error("pollingFallback is required")
-        }
-        return performList(z, bundle, options.pollingFallback)
-      } : undefined,
+      performList: options.pollingFallback,
 
       /**
        * @param {ZObject} z
@@ -427,7 +391,6 @@ module.exports = {
   createWebhookTrigger,
   findHeader,
   generateSecretKey,
-  performList,
   performWebhook,
   subscribeWebhook,
   triggersMask,

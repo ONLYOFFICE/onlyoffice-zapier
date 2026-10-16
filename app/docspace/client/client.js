@@ -15,13 +15,9 @@
  * @property {number=} startIndex
  * @property {string=} sortBy
  * @property {string=} sortOrder
- * @property {string=} filterBy
- * @property {string=} filterOp
  * @property {string=} filterValue
  * @property {string|number=} filterType
  * @property {string=} searchArea
- * @property {string=} inviterId
- * @property {string=} area
  * @property {string=} email
  * @property {boolean=} withSubfolders
  */
@@ -292,20 +288,8 @@ class Progress {
       const operation = operations.find((item) => item.id === this.operation.id)
       if (operation) {
         progress = operation
-        if (!!progress.error || limit === 0) {
+        if (progress.error || (progress.progress === 100 && progress.finished)) {
           return progress
-        }
-
-        if (Object.hasOwn(progress, "progress")) {
-          if (progress.progress === 100 && progress.finished) {
-            return progress
-          }
-        }
-
-        if (Object.hasOwn(progress, "percents")) {
-          if (progress.percents === 100) {
-            return progress
-          }
         }
       }
       await this.wait(delay)
@@ -334,17 +318,12 @@ class Service {
 
 module.exports = {
   ACTIVATION_STATUS,
-  COMMENTER,
   CONTENT_CREATOR,
   Client,
-  EDITOR,
-  FORM_FILLER,
   Progress,
   REMOVED_USER_ID,
-  REVIEWER,
   ROOM_MANAGER,
   Service,
-  VIEWER,
   aiRoomRoles,
   collaborationRoomRoles,
   customRoomRoles,

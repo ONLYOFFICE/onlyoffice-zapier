@@ -35,8 +35,6 @@ test("url generate a valid URL with filters", () => {
   /** @type {Filters} */
   const filters = {
     count: 1,
-    filterBy: "userName",
-    filterOp: "startsWith",
     filterValue: "John",
     sortBy: "DateAndTime",
     sortOrder: "descending",
@@ -46,7 +44,7 @@ test("url generate a valid URL with filters", () => {
 
   equal(
     url,
-    "https://example.com/api/2.0/files?count=1&filterBy=userName&filterOp=startsWith&filterValue=John&sortBy=DateAndTime&sortOrder=descending&startIndex=0"
+    "https://example.com/api/2.0/files?count=1&filterValue=John&sortBy=DateAndTime&sortOrder=descending&startIndex=0"
   )
 })
 
@@ -68,7 +66,6 @@ test("progress initializes with the endpoint", async () => {
   equal(response.length, 1)
   equal(response[0].error, operation.error)
   equal(response[0].progress, operation.progress)
-  equal(response[0].percents, operation.percents)
 })
 
 test("progress initializes with the endpoint and it's operation", async () => {
@@ -146,7 +143,6 @@ test("progress breaks if the response contains an error", async () => {
         error: "hola",
         finished: false,
         id: "00000000-1111-2222-3333-444444444444",
-        percents: 0,
         processed: "0",
         progress: 0
       }
@@ -176,7 +172,6 @@ test("progress completes when the response contains 100 progress", async () => {
         error: "",
         finished: finished,
         id: "00000000-1111-2222-3333-444444444444",
-        percents: 0,
         processed: "0",
         progress: p
       }
@@ -191,34 +186,6 @@ test("progress completes when the response contains 100 progress", async () => {
   equal(finished, true)
   equal(response.error, "")
   equal(response.progress, 100)
-})
-
-test("progress completes when the response contains 100 percents", async () => {
-  let i = 0
-  let p = 0
-  async function endpoint() {
-    i += 1
-    p += 50
-    return [
-      {
-        Operation: 0,
-        error: "",
-        finished: false,
-        id: "00000000-1111-2222-3333-444444444444",
-        percents: p,
-        processed: "0",
-        progress: 0
-      }
-    ]
-  }
-
-  const progress = new Progress(endpoint, operation)
-  const response = await progress.complete()
-
-  equal(i, 2)
-  equal(p, 100)
-  equal(response.error, "")
-  equal(response.percents, 100)
 })
 
 test("detects not found errors of z.request", () => {

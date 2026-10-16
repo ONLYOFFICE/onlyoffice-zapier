@@ -97,18 +97,6 @@ class PeopleService extends Service {
 
   /**
    * ```http
-   * GET /people/filter
-   * ```
-   * @param {Filters} filters
-   * @returns {Promise<User[]>}
-   */
-  listGuests(filters) {
-    const url = this.client.url("/people/filter", filters)
-    return this.client.request("GET", url)
-  }
-
-  /**
-   * ```http
    * GET /people
    * ```
    * @param {Filters=} filters

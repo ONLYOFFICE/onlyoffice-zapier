@@ -14,15 +14,12 @@ const { Uploader } = require("./uploader.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
 /**
- * @typedef {import("../../docspace/people/people.js").Account} Account
- * @typedef {import("../../docspace/files/files.js").ChunkData} ChunkData
  * @typedef {import("../../docspace/files/files.js").DownloadFileData} DownloadFileData
  * @typedef {import("../../docspace/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
- * @typedef {import("../../docspace/files/files.js").RoleData} RoleData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspace/files/files.js").UserData} UserData
  * @typedef {import("../../docspace/files/files.js").ShareData}  _ShareData

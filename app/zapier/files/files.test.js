@@ -68,7 +68,6 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {import("./triggers.js").FileCreatedInMyDocumentsFields} FileCreatedInMyDocumentsFields
  * @typedef {import("./triggers.js").FilesListFields} FilesListFields
  * @typedef {import("./triggers.js").FolderCreatedFields} FolderCreatedFields
- * @typedef {import("./triggers.js").FolderCreatedInMyDocumentsFields} FolderCreatedInMyDocumentsFields
  * @typedef {import("./actions.js").InviteGuestFields} InviteGuestFields
  * @typedef {import("./actions.js").RoomCreateFields} RoomCreateFields
  * @typedef {import("./searches.js").SearchFields} SearchFields
