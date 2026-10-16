@@ -505,7 +505,7 @@ const downloadFileFromMyDocuments = {
     inputFields: [
       {
         altersDynamicFields: true,
-        dynamic: "foldersList.id.title",
+        dynamic: "foldersInMyDocumentsList.id.title",
         helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the section.",
         key: "folderId",
         label: "Folder",

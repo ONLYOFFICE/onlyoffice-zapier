@@ -294,6 +294,21 @@ function checkTexts(items, description) {
   }
 }
 
+test("uses dropdowns of the Files section in its triggers and actions", () => {
+  /** @type {Record<string, any>} */
+  const items = { ...App.triggers, ...App.creates }
+  for (const item of Object.values(items)) {
+    if (!/MyDocuments/.test(item.key) || item.display.hidden) {
+      continue
+    }
+    for (const field of item.operation.inputFields || []) {
+      if (typeof field === "object" && field.dynamic) {
+        equal(/MyDocuments/.test(field.dynamic), true, `${item.key}.${field.key}: ${field.dynamic}`)
+      }
+    }
+  }
+})
+
 test("follows the Zapier style of triggers", () => {
   checkTexts(App.triggers, /^Triggers when .+\.$/)
 })
