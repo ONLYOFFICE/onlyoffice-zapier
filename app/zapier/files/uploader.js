@@ -186,7 +186,7 @@ class Uploader {
       result = await uploadChunk(chunk)
     }
     if (!result) {
-      throw new this.z.errors.HaltedError("Unknown error")
+      throw new this.z.errors.HaltedError("Failed to upload the file.")
     }
     return result
   }

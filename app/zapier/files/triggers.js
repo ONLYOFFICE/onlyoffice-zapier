@@ -146,13 +146,13 @@ async function performFileCreated(z, bundle) {
     const filesList = await files.listFiles(bundle.inputData.folderId, filters)
     return filesList.files.slice(0, 100).map(normalizeFile)
   }
-  throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
+  throw new z.errors.HaltedError("Select a room or a folder.")
 }
 
 const fileCreated = createWebhookTrigger(
   "fileCreated",
   "File Created",
-  "Triggers when a file is created in a room or folder.",
+  "Triggers when a file is created or uploaded in a room.",
   [
     FILE_CREATED,
     FILE_UPLOADED
@@ -163,16 +163,15 @@ const fileCreated = createWebhookTrigger(
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Triggers when created from a specific room",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
-        helpText: "Triggers when created from a specific folder",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -201,7 +200,7 @@ async function performFileCreatedInMyDocuments(z, bundle) {
 const fileCreatedInMyDocuments = createWebhookTrigger(
   "fileCreatedInMyDocuments",
   "File Created in Files Section",
-  "Triggers when a file is created in the Files section.",
+  "Triggers when a file is created or uploaded in the Files section.",
   [
     FILE_CREATED,
     FILE_UPLOADED
@@ -211,9 +210,9 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when created from a specific folder of the Files section (optional)",
+        helpText: "A folder in the Files section. Leave empty to watch the whole section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -251,23 +250,23 @@ async function performFileDeleted(z, bundle) {
 const fileDeleted = createWebhookTrigger(
   "fileDeleted",
   "File Deleted",
-  "Triggers when a file is deleted (optionally from a room or folder).",
+  "Triggers when a file is moved to Trash.",
   [FILE_DELETED],
   {
     inputFields: [
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Triggers when deleted from a specific room (optional)",
+        helpText: "Leave empty to watch the whole workspace.",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
-        helpText: "Triggers when deleted from a specific folder (optional)",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -295,17 +294,17 @@ async function performFileDeletedInMyDocuments(z, bundle) {
 
 const fileDeletedInMyDocuments = createWebhookTrigger(
   "fileDeletedInMyDocuments",
-  "File Deleted From Files Section",
-  "Triggers when a file is deleted from the Files section.",
+  "File Deleted from Files Section",
+  "Triggers when a file from the Files section is moved to Trash.",
   [FILE_DELETED],
   {
     filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when deleted from a specific folder of the Files section (optional)",
+        helpText: "A folder in the Files section. Leave empty to watch the whole section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -323,7 +322,7 @@ const filesList = {
     label: "List of Files"
   },
   key: "filesList",
-  noun: "Files",
+  noun: "File",
   operation: {
     canPaginate: true,
     /**
@@ -346,7 +345,7 @@ const filesListFromMyDocuments = {
     label: "List of Files from Files Section"
   },
   key: "filesListFromMyDocuments",
-  noun: "Files",
+  noun: "File",
   operation: {
     canPaginate: true,
     /**
@@ -369,12 +368,12 @@ const filesListFromMyDocuments = {
 
 const filteredSections = {
   display: {
-    description: "Hidden trigger to get all sections.",
+    description: "Hidden trigger to get the workspace sections.",
     hidden: true,
-    label: "Filtered Sections"
+    label: "Sections"
   },
   key: "filteredSections",
-  noun: "Sections",
+  noun: "Section",
   operation: {
     /**
      * @param {ZObject} z
@@ -418,13 +417,13 @@ async function performFolderCreated(z, bundle) {
     })
     return folders.folders.slice(0, 100)
   }
-  throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
+  throw new z.errors.HaltedError("Select a room or a folder.")
 }
 
 const folderCreated = createWebhookTrigger(
   "folderCreated",
   "Folder Created",
-  "Triggers when a folder is created in a room or folder.",
+  "Triggers when a folder is created in a room.",
   [FOLDER_CREATED],
   {
     filters: { rootFolderType: 14 },
@@ -432,16 +431,15 @@ const folderCreated = createWebhookTrigger(
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Triggers when created from a specific room",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
-        helpText: "Triggers when created from a specific folder",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -476,9 +474,9 @@ const folderCreatedInMyDocuments = createWebhookTrigger(
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when created from a specific folder of the Files section (optional)",
+        helpText: "A folder in the Files section. Leave empty to watch the whole section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -516,23 +514,23 @@ async function performFolderDeleted(z, bundle) {
 const folderDeleted = createWebhookTrigger(
   "folderDeleted",
   "Folder Deleted",
-  "Triggers when a folder is deleted (optionally from a room or folder).",
+  "Triggers when a folder is moved to Trash.",
   [FOLDER_DELETED],
   {
     inputFields: [
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "Triggers when deleted from a specific room (optional)",
+        helpText: "Leave empty to watch the whole workspace.",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
-        helpText: "Triggers when deleted from a specific folder (optional)",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -559,17 +557,17 @@ async function performFolderDeletedInMyDocuments(z, bundle) {
 
 const folderDeletedInMyDocuments = createWebhookTrigger(
   "folderDeletedInMyDocuments",
-  "Folder Deleted From Files Section",
-  "Triggers when a folder is deleted from the Files section.",
+  "Folder Deleted from Files Section",
+  "Triggers when a folder from the Files section is moved to Trash.",
   [FOLDER_DELETED],
   {
     filters: { rootFolderType: 5 },
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "Triggers when deleted from a specific folder of the Files section (optional)",
+        helpText: "A folder in the Files section. Leave empty to watch the whole section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         type: "string"
       }
     ],
@@ -586,7 +584,7 @@ const foldersList = {
     label: "List of Folders"
   },
   key: "foldersList",
-  noun: "Folders",
+  noun: "Folder",
   operation: {
     canPaginate: true,
     /**
@@ -612,7 +610,7 @@ const foldersInMyDocumentsList = {
     label: "List of Folders from Files Section"
   },
   key: "foldersInMyDocumentsList",
-  noun: "Folders",
+  noun: "Folder",
   operation: {
     canPaginate: true,
     /**
@@ -753,9 +751,9 @@ const roomsFiltered = {
 
 const shareRoles = {
   display: {
-    description: "Hidden trigger to get roles to share by the room ID.",
+    description: "Hidden trigger to get the roles available in a room.",
     hidden: true,
-    label: "Get Roles"
+    label: "Room Roles"
   },
   key: "shareRoles",
   noun: "Role",
@@ -845,8 +843,8 @@ async function performUserInvited(z, bundle) {
 // uses polling.
 const userInvited = {
   display: {
-    description: "Triggers when a user is invited to the room.",
-    label: "User Joined"
+    description: "Triggers when a user is added to a room.",
+    label: "New Room Member"
   },
   key: "userInvited",
   noun: "User",
@@ -855,14 +853,14 @@ const userInvited = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room id",
+        label: "Room",
         required: true,
         type: "string"
       },
       {
-        helpText: "Returns only those who are active",
+        helpText: "Skip members who haven't accepted the invitation yet.",
         key: "active",
-        label: "active",
+        label: "Only active members",
         type: "boolean"
       }
     ],

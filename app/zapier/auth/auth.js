@@ -17,10 +17,10 @@ const { PeopleService } = require("../../docspace/people/people")
  */
 
 const sessionAuth = {
-  connectionLabel: "{{firstName}} {{lastName}}",
+  connectionLabel: "{{firstName}} {{lastName}} ({{email}})",
   fields: [
     {
-      helpText: "Enter [URL](https://api.onlyoffice.com/docspace/api-backend/get-started/authentication/basic-authentication/) of your ONLYOFFICE Apps workspace.",
+      helpText: "The address of your ONLYOFFICE Apps workspace, for example https://yourname.onlyoffice.com.",
       key: "baseUrl",
       label: "Workspace Address",
       required: true
@@ -31,6 +31,7 @@ const sessionAuth = {
       required: true
     },
     {
+      helpText: "Sign-in with two-factor authentication or SSO isn't supported.",
       key: "password",
       label: "Password",
       required: true,
@@ -47,10 +48,10 @@ const sessionAuth = {
     async perform(z, bundle) {
       // Only HTTPS is allowed, because the email and password are sent.
       if (!/^https:\/\/[^\s/$.?#].[^\s]*$/i.test(bundle.authData.baseUrl)) {
-        throw new Error("Invalid Workspace Address format. The address must start with https://")
+        throw new Error("Enter the full workspace address that starts with https://, for example https://yourname.onlyoffice.com.")
       }
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(bundle.authData.username)) {
-        throw new Error("Invalid Email format")
+        throw new Error("Enter a valid email.")
       }
       // By default, normalize-url removes "www.", which changes the host.
       const baseUrl = normalizeUrl(bundle.authData.baseUrl, { stripWWW: false })
@@ -72,7 +73,7 @@ const sessionAuth = {
   async test(z, bundle) {
     const { baseUrl } = bundle.authData
     if (!baseUrl) {
-      throw new Error("The Workspace Address is missing")
+      throw new Error("The workspace address is missing.")
     }
 
     const client = new Client(baseUrl, z.request)
