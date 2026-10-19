@@ -37,6 +37,7 @@ const {
   FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
+  FOLDER_UPDATED,
   ROOM_ARCHIVED
 } = require("../../docspace/webhooks/events.js")
 
@@ -666,6 +667,63 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
   }
 )
 
+/**
+ * Lists the folders of the selected folder or room, or of the Files section if
+ * nothing is selected. Recently changed folders go first.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FolderCreatedFields>} bundle
+ * @returns {Promise<FolderData[]>}
+ */
+async function performFolderUpdated(z, bundle) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  let folderId = bundle.inputData.folderId || bundle.inputData.id
+  if (!folderId) {
+    const section = await files.myDocumentsSection()
+    folderId = section.pathParts[0].id
+  }
+  const filters = {
+    ...pageFilters(bundle),
+    filterType: "FoldersOnly",
+    sortBy: "DateAndTime",
+    sortOrder: "descending"
+  }
+  const folders = await files.listFolders(folderId, filters)
+  folders.folders.forEach((folder) => {
+    folder.id = normalizeId(folder.id)
+  })
+  return folders.folders.slice(0, 100)
+}
+
+const folderUpdated = createWebhookTrigger(
+  "folderUpdated",
+  "Folder Updated",
+  "Triggers when a folder is changed, for example renamed.",
+  [FOLDER_UPDATED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    noun: "Folder",
+    pollingFallback: performFolderUpdated,
+    sample: samples.folder
+  }
+)
+
 const foldersList = {
   display: {
     description: "Hidden trigger to get a list of folders from a folder or room.",
@@ -972,6 +1030,7 @@ module.exports = {
   folderCreatedInMyDocuments,
   folderDeleted,
   folderDeletedInMyDocuments,
+  folderUpdated,
   foldersInMyDocumentsList,
   foldersList,
   roomArchived,

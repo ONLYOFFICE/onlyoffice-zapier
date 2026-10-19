@@ -21,6 +21,7 @@ const {
   fileMoved,
   fileUpdated,
   foldersList,
+  folderUpdated,
   roomCreated,
   roomsFiltered,
   shareRoles,
@@ -309,6 +310,30 @@ test("file moved trigger fires for files moved to the selected folder", async ()
   const files = await perform(z, webhookBundle("file.moved", payload, { folderId: "4", id: "1" }))
   equal(pluck(files, "id"), [7])
   equal(await perform(z, webhookBundle("file.moved", payload, { folderId: "3", id: "1" })), [])
+})
+
+test("folder updated trigger subscribes to the folder.updated event", async () => {
+  await checkSubscription(folderUpdated, 65536)
+})
+
+test("folder updated trigger fires for folders of the selected room", async () => {
+  const z = fakeZ({ "GET /files/folder/8": { id: 8, parentId: 1, title: "Reports" } })
+  const payload = { id: 8, parentId: 1, rootFolderType: 14, title: "Reports" }
+  const perform = /** @type {any} */ (folderUpdated.operation.perform)
+  const folders = await perform(z, webhookBundle("folder.updated", payload, { id: "1" }))
+  equal(pluck(folders, "title"), ["Reports"])
+  equal(await perform(z, webhookBundle("folder.updated", payload, { id: "2" })), [])
+})
+
+test("folder updated trigger lists the files section if nothing is selected", async () => {
+  const z = fakeZ({
+    "GET /files/10": { folders: [{ id: "3", title: "Reports" }] },
+    "GET /files/@my": { pathParts: [{ id: 10, title: "Files" }] }
+  })
+  const performList = /** @type {any} */ (folderUpdated.operation.performList)
+  const folders = await run(performList, z, { inputData: {} })
+  equal(pluck(folders, "id"), [3])
+  equal(z.calls[1].query.filterType, "FoldersOnly")
 })
 
 test.run()

@@ -2,6 +2,7 @@
 - add webhooks
 - new File Updated trigger
 - new File Moved trigger
+- new Folder Updated trigger
 
 ## 1.1.0
 - new inviteGuest action
