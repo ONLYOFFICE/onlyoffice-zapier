@@ -46,6 +46,7 @@ const {
   roomArchived,
   roomCreated,
   roomsFiltered,
+  roomUpdated,
   shareRoles,
   userInvited
 } = require("./triggers.js")
@@ -168,6 +169,21 @@ Files("triggers when a room is created", async (context) => {
   const rooms = await tester(perform, bundle)
   const room = rooms[0]
   equal(room.id, context.inputData.rooms.roomId)
+})
+
+Files("lists the updated room", async (context) => {
+  const { performList } = roomUpdated.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      roomId: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const rooms = await tester(performList, bundle)
+  equal(rooms[0].id, context.inputData.rooms.roomId)
 })
 
 Files("hidden rooms filtered trigger returns rooms with external links", async (context) => {

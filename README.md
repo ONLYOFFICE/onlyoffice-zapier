@@ -39,6 +39,7 @@ At the moment, the following triggers are available for ONLYOFFICE Apps:
 | Folder Updated | Room id, Folder id |
 | Room Archived | - |
 | Room Created | - |
+| Room Updated | Room id |
 | User Joined | Room id, active |
 | User Added | - |
 

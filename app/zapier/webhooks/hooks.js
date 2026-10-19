@@ -207,6 +207,8 @@ async function unsubscribeWebhook(z, bundle) {
 /**
  * @typedef {Object} WebhookFilters
  * @property {number=} rootFolderType
+ * @property {string=} entryField The input field with the id of the entry
+ * itself, for triggers about a room.
  */
 
 /**
@@ -301,6 +303,12 @@ async function performWebhook(z, bundle, filters = {}, normalize) {
       payload.rootFolderType === undefined ||
       Number(payload.rootFolderType) !== Number(filters.rootFolderType)
     ) {
+      return []
+    }
+  }
+
+  if (filters.entryField && isSet(inputData[filters.entryField])) {
+    if (String(payload.id) !== String(inputData[filters.entryField])) {
       return []
     }
   }

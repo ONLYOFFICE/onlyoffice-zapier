@@ -25,6 +25,7 @@ const {
   folderUpdated,
   roomCreated,
   roomsFiltered,
+  roomUpdated,
   shareRoles,
   userInvited
 } = require("./triggers.js")
@@ -348,6 +349,26 @@ test("folder moved trigger fires for folders moved to the selected folder", asyn
   const folders = await perform(z, webhookBundle("folder.moved", payload, { folderId: "4", id: "1" }))
   equal(pluck(folders, "id"), [8])
   equal(await perform(z, webhookBundle("folder.moved", payload, { id: "1" })), [])
+})
+
+test("room updated trigger subscribes to the room.updated event", async () => {
+  await checkSubscription(roomUpdated, 8388608)
+})
+
+test("room updated trigger fires only for the selected room", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: 5, roomType: 2, title: "Sales" } })
+  const payload = { id: 5, parentId: 1, rootFolderType: 14, title: "Sales" }
+  const perform = /** @type {any} */ (roomUpdated.operation.perform)
+  const rooms = await perform(z, webhookBundle("room.updated", payload, { roomId: "5" }))
+  equal(pluck(rooms, "roomType"), [2])
+  equal(await perform(z, webhookBundle("room.updated", payload, { roomId: "6" })), [])
+  equal((await perform(z, webhookBundle("room.updated", payload))).length, 1)
+})
+
+test("room updated trigger returns the selected room for samples", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: "5", title: "Sales" } })
+  const performList = /** @type {any} */ (roomUpdated.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { roomId: "5" } }), "id"), [5])
 })
 
 test.run()

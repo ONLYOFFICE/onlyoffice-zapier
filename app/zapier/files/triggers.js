@@ -39,7 +39,8 @@ const {
   FOLDER_DELETED,
   FOLDER_MOVED,
   FOLDER_UPDATED,
-  ROOM_ARCHIVED
+  ROOM_ARCHIVED,
+  ROOM_UPDATED
 } = require("../../docspace/webhooks/events.js")
 
 /**
@@ -896,6 +897,61 @@ const roomArchived = createWebhookTrigger(
 )
 
 /**
+ * @typedef {Object} RoomUpdatedFields
+ * @property {string=} roomId
+ */
+
+/**
+ * Returns the selected room, or the rooms of the workspace if no room is
+ * selected. Recently changed rooms go first.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, RoomUpdatedFields>} bundle
+ * @returns {Promise<RoomData[]>}
+ */
+async function performRoomUpdated(z, bundle) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  /** @type {RoomData[]} */
+  let rooms
+  if (bundle.inputData.roomId) {
+    rooms = [await files.roomInfo(Number(bundle.inputData.roomId))]
+  } else {
+    const filters = {
+      ...pageFilters(bundle),
+      sortBy: "DateAndTime",
+      sortOrder: "descending"
+    }
+    rooms = (await files.listRooms(filters)).folders
+  }
+  rooms.forEach((room) => {
+    room.id = normalizeId(room.id)
+  })
+  return rooms
+}
+
+const roomUpdated = createWebhookTrigger(
+  "roomUpdated",
+  "Room Updated",
+  "Triggers when a room is changed, for example renamed or its logo, tags or settings are changed.",
+  [ROOM_UPDATED],
+  {
+    filters: { entryField: "roomId" },
+    inputFields: [
+      {
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch all rooms.",
+        key: "roomId",
+        label: "Room",
+        type: "string"
+      }
+    ],
+    noun: "Room",
+    pollingFallback: performRoomUpdated,
+    sample: samples.room
+  }
+)
+
+/**
  * Collaboration rooms, virtual data rooms and AI rooms don't have external
  * links.
  * @param {number} roomType
@@ -1068,6 +1124,7 @@ module.exports = {
   foldersList,
   roomArchived,
   roomCreated,
+  roomUpdated,
   roomsFiltered,
   shareRoles,
   userInvited
