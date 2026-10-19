@@ -5,6 +5,7 @@
 - new Folder Updated trigger
 - new Folder Moved trigger
 - new Room Updated trigger
+- new Form Submitted trigger
 
 ## 1.1.0
 - new inviteGuest action

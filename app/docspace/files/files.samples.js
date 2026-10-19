@@ -61,6 +61,21 @@ const foundFile = {
   title: "Report.docx"
 }
 
+// The Form Submitted trigger returns the filled copy of the form with the
+// original form.
+const submittedForm = {
+  ...file,
+  fileExst: ".pdf",
+  id: 6,
+  originalForm: {
+    ...file,
+    fileExst: ".pdf",
+    id: 5,
+    title: "Application"
+  },
+  title: "Application - John Doe"
+}
+
 /** @type {FolderData} */
 const folder = {
   created: CREATED,
@@ -212,5 +227,6 @@ module.exports = {
   role,
   room,
   share,
+  submittedForm,
   upload
 }

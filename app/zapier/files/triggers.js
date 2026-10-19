@@ -39,6 +39,7 @@ const {
   FOLDER_DELETED,
   FOLDER_MOVED,
   FOLDER_UPDATED,
+  FORM_SUBMITTED,
   ROOM_ARCHIVED,
   ROOM_UPDATED
 } = require("../../docspace/webhooks/events.js")
@@ -757,6 +758,122 @@ const folderMoved = createWebhookTrigger(
   }
 )
 
+/**
+ * @param {any} form
+ * @returns {any}
+ */
+function normalizeForm(form) {
+  normalizeFile(form)
+  // DocSpace always sends the original form, but an event without it must not
+  // fail the run.
+  if (form.originalForm && form.originalForm.title) {
+    normalizeFile(form.originalForm)
+  }
+  return form
+}
+
+// The type of the "Complete" folder of form filling rooms.
+const COMPLETE_FOLDER_TYPE = 25
+
+/**
+ * @typedef {Object} FormSubmittedFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string=} formId
+ */
+
+/**
+ * Lists the filled forms of the selected room with their original forms, like
+ * the webhook returns them. Form filling rooms keep the filled forms in
+ * subfolders of the "Complete" folder, one subfolder for each original form,
+ * together with a spreadsheet of the answers.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FormSubmittedFields>} bundle
+ * @returns {Promise<FileData[]>}
+ */
+async function performFormSubmitted(z, bundle) {
+  if (!bundle.inputData.id) {
+    return []
+  }
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const room = await files.listFolders(Number(bundle.inputData.id), { filterType: "FoldersOnly" })
+  const complete = room.folders.find((folder) => Number(folder.type) === COMPLETE_FOLDER_TYPE)
+  if (!complete) {
+    return []
+  }
+  const done = await files.listFolders(complete.id, { filterType: "FoldersOnly" })
+  // Like the webhook, the original form must be in the selected folder, or at
+  // the top level of the room.
+  const parentId = String(bundle.inputData.folderId || bundle.inputData.id)
+  /** @type {FileData[]} */
+  const result = []
+  for (const folder of done.folders) {
+    const { originalFormId } = folder
+    if (!originalFormId) {
+      continue
+    }
+    if (bundle.inputData.formId && String(originalFormId) !== String(bundle.inputData.formId)) {
+      continue
+    }
+    const original = await files.fileInfo(originalFormId)
+    if (String(original.folderId) !== parentId) {
+      continue
+    }
+    const filters = {
+      filterType: "FilesOnly",
+      sortBy: "DateAndTimeCreation",
+      sortOrder: "descending"
+    }
+    const forms = await files.listFiles(folder.id, filters)
+    forms.files
+      .filter((form) => form.fileExst === ".pdf")
+      .forEach((form) => result.push(normalizeForm({ ...form, originalForm: { ...original } })))
+  }
+  return result
+    .sort((a, b) => Date.parse(b.created) - Date.parse(a.created))
+    .slice(0, 100)
+}
+
+const formSubmitted = createWebhookTrigger(
+  "formSubmitted",
+  "Form Submitted",
+  "Triggers when a form is filled out and submitted.",
+  [FORM_SUBMITTED],
+  {
+    filters: { entryField: "formId" },
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder with forms. Leave empty to watch only the forms at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        helpText: "Leave empty to watch all forms of the room or folder.",
+        key: "formId",
+        label: "Form",
+        type: "string"
+      }
+    ],
+    normalize: normalizeForm,
+    noun: "Form",
+    pollingFallback: performFormSubmitted,
+    sample: samples.submittedForm
+  }
+)
+
 const foldersList = {
   display: {
     description: "Hidden trigger to get a list of folders from a folder or room.",
@@ -1122,6 +1239,7 @@ module.exports = {
   folderUpdated,
   foldersInMyDocumentsList,
   foldersList,
+  formSubmitted,
   roomArchived,
   roomCreated,
   roomUpdated,
