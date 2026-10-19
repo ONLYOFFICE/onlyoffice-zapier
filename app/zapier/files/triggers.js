@@ -32,6 +32,7 @@ const { pageFilters } = require("../pagination.js")
 const {
   FILE_CREATED,
   FILE_DELETED,
+  FILE_UPDATED,
   FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
@@ -311,6 +312,61 @@ const fileDeletedInMyDocuments = createWebhookTrigger(
     normalize: normalizeFile,
     noun: "File",
     pollingFallback: performFileDeletedInMyDocuments,
+    sample: samples.file
+  }
+)
+
+/**
+ * Lists the files of the selected folder or room, or of the Files section if
+ * nothing is selected. Recently changed files go first.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FileCreatedFields>} bundle
+ * @returns {Promise<FileData[]>}
+ */
+async function performFileUpdated(z, bundle) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  let folderId = bundle.inputData.folderId || bundle.inputData.id
+  if (!folderId) {
+    const section = await files.myDocumentsSection()
+    folderId = section.pathParts[0].id
+  }
+  const filters = {
+    ...pageFilters(bundle),
+    filterType: "FilesOnly",
+    sortBy: "DateAndTime",
+    sortOrder: "descending"
+  }
+  const filesList = await files.listFiles(folderId, filters)
+  return filesList.files.slice(0, 100).map(normalizeFile)
+}
+
+const fileUpdated = createWebhookTrigger(
+  "fileUpdated",
+  "File Updated",
+  "Triggers when a file is changed, for example edited, renamed or restored to an earlier version.",
+  [FILE_UPDATED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    normalize: normalizeFile,
+    noun: "File",
+    pollingFallback: performFileUpdated,
     sample: samples.file
   }
 )
@@ -874,6 +930,7 @@ module.exports = {
   fileCreatedInMyDocuments,
   fileDeleted,
   fileDeletedInMyDocuments,
+  fileUpdated,
   filesList,
   filesListFromMyDocuments,
   filteredSections,

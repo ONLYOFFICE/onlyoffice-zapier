@@ -4,6 +4,8 @@
 
 // @ts-check
 
+const crypto = require("crypto")
+
 /**
  * @typedef {Object} RecordedRequest
  * @property {string} method
@@ -78,9 +80,34 @@ function fakeZ(routes) {
   }
 }
 
+const WEBHOOK_SECRET = "secret"
+
+/**
+ * Creates the bundle of a webhook request, signed like DocSpace signs it.
+ * @param {string} trigger
+ * @param {Object} payload
+ * @param {Object} [inputData]
+ * @returns {any}
+ */
+function webhookBundle(trigger, payload, inputData = {}) {
+  const content = JSON.stringify({ event: { trigger }, payload })
+  const hash = crypto.createHmac("sha256", WEBHOOK_SECRET).update(content).digest("hex")
+  return {
+    authData,
+    cleanedRequest: JSON.parse(content),
+    inputData,
+    rawRequest: {
+      content,
+      headers: { "Http-X-Docspace-Signature-256": `sha256=${hash.toUpperCase()}` }
+    },
+    subscribeData: { id: 1, secretKey: WEBHOOK_SECRET }
+  }
+}
+
 module.exports = {
   HaltedError,
   RefreshAuthError,
   authData,
-  fakeZ
+  fakeZ,
+  webhookBundle
 }

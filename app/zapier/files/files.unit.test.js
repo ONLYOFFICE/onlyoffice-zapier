@@ -15,9 +15,10 @@ const {
   roomCreate,
   shareRoom
 } = require("./actions.js")
-const { authData, fakeZ, HaltedError } = require("../z.fixture.js")
+const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
 const {
   fileCreated,
+  fileUpdated,
   foldersList,
   roomCreated,
   roomsFiltered,
@@ -259,6 +260,41 @@ test("searches the first page if the server search finds nothing", async () => {
   const result = await run(searchFile.operation.perform, z, { inputData: { folderId: 9, title: "test file" } })
   equal(pluck(result, "id"), [1])
   equal(z.calls.length, 2)
+})
+
+/**
+ * @param {any} trigger
+ * @param {number} mask
+ */
+async function checkSubscription(trigger, mask) {
+  const z = fakeZ({ "POST /settings/webhook": { id: 1 } })
+  await run(trigger.operation.performSubscribe, z, { inputData: {}, targetUrl: "https://hooks.zapier.com/1" })
+  equal(z.calls[0].body.triggers, mask)
+}
+
+test("file updated trigger subscribes to the file.updated event", async () => {
+  await checkSubscription(fileUpdated, 512)
+})
+
+test("file updated trigger fires for files of the selected folder", async () => {
+  const z = fakeZ({ "GET /files/file/7": { folderId: 3, id: 7, title: "Report.docx" } })
+  const payload = { id: 7, parentId: 3, rootFolderType: 14, title: "Report.docx" }
+  const perform = /** @type {any} */ (fileUpdated.operation.perform)
+  const files = await perform(z, webhookBundle("file.updated", payload, { folderId: "3", id: "1" }))
+  equal(pluck(files, "title"), ["Report"])
+  equal(await perform(z, webhookBundle("file.updated", payload, { folderId: "4", id: "1" })), [])
+  equal((await perform(z, webhookBundle("file.updated", payload))).length, 1)
+})
+
+test("file updated trigger lists the files section if nothing is selected", async () => {
+  const z = fakeZ({
+    "GET /files/10": { files: [{ id: 2, title: "Report.docx" }] },
+    "GET /files/@my": { pathParts: [{ id: 10, title: "Files" }] }
+  })
+  const performList = /** @type {any} */ (fileUpdated.operation.performList)
+  const files = await run(performList, z, { inputData: {} })
+  equal(pluck(files, "title"), ["Report"])
+  equal(z.calls[1].query.sortBy, "DateAndTime")
 })
 
 test.run()
