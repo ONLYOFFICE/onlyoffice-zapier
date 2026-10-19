@@ -32,6 +32,7 @@ const { pageFilters } = require("../pagination.js")
 const {
   FILE_CREATED,
   FILE_DELETED,
+  FILE_MOVED,
   FILE_UPDATED,
   FILE_UPLOADED,
   FOLDER_CREATED,
@@ -359,6 +360,38 @@ const fileUpdated = createWebhookTrigger(
       {
         dynamic: "foldersList.id.title",
         helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    normalize: normalizeFile,
+    noun: "File",
+    pollingFallback: performFileUpdated,
+    sample: samples.file
+  }
+)
+
+// DocSpace doesn't keep a history of moves, so the test records of the Zap
+// editor are the recently changed files of the selected place.
+const fileMoved = createWebhookTrigger(
+  "fileMoved",
+  "File Moved",
+  "Triggers when a file is moved to another folder or room.",
+  [FILE_MOVED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room the file is moved to. Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "The folder the file is moved to. Leave empty to watch only the top level of the room.",
         key: "folderId",
         label: "Folder",
         type: "string"
@@ -930,6 +963,7 @@ module.exports = {
   fileCreatedInMyDocuments,
   fileDeleted,
   fileDeletedInMyDocuments,
+  fileMoved,
   fileUpdated,
   filesList,
   filesListFromMyDocuments,

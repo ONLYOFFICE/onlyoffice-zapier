@@ -18,6 +18,7 @@ const {
 const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
 const {
   fileCreated,
+  fileMoved,
   fileUpdated,
   foldersList,
   roomCreated,
@@ -295,6 +296,19 @@ test("file updated trigger lists the files section if nothing is selected", asyn
   const files = await run(performList, z, { inputData: {} })
   equal(pluck(files, "title"), ["Report"])
   equal(z.calls[1].query.sortBy, "DateAndTime")
+})
+
+test("file moved trigger subscribes to the file.moved event", async () => {
+  await checkSubscription(fileMoved, 16384)
+})
+
+test("file moved trigger fires for files moved to the selected folder", async () => {
+  const z = fakeZ({ "GET /files/file/7": { folderId: 4, id: 7, title: "Report.docx" } })
+  const payload = { id: 7, parentId: 4, rootFolderType: 14, title: "Report.docx" }
+  const perform = /** @type {any} */ (fileMoved.operation.perform)
+  const files = await perform(z, webhookBundle("file.moved", payload, { folderId: "4", id: "1" }))
+  equal(pluck(files, "id"), [7])
+  equal(await perform(z, webhookBundle("file.moved", payload, { folderId: "3", id: "1" })), [])
 })
 
 test.run()

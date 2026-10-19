@@ -30,6 +30,7 @@ const {
   fileCreatedInMyDocuments,
   //fileDeleted,
   //fileDeletedInMyDocuments, TODO:
+  fileMoved,
   filesList,
   //filesListFromMyDocuments, TODO:
   fileUpdated,
@@ -379,6 +380,22 @@ Files("triggers when a file is created in folder that is in room", async (contex
 
 Files("lists updated files of a folder that is in room", async (context) => {
   const { performList } = fileUpdated.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      folderId: context.inputData.rooms.folderId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const files = await tester(performList, bundle)
+  const file = /** @type {import("../../docspace/files/files.js").FileData} */ (files[0])
+  equal(file.title, "Test File")
+})
+
+Files("lists moved files of a folder that is in room", async (context) => {
+  const { performList } = fileMoved.operation
   const bundle = {
     authData: context.authData,
     inputData: {
