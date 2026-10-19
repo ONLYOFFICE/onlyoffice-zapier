@@ -57,23 +57,23 @@ async function searchByTitle(list, title) {
 
 const searchFile = {
   display: {
-    description: "Search for a file.",
-    label: "Search File"
+    description: "Finds a file by title in a section.",
+    label: "Find File"
   },
   key: "searchFile",
-  noun: "Files",
+  noun: "File",
   operation: {
     inputFields: [
       {
         dynamic: "filteredSections.id.title",
-        helpText: "Search for a section",
+        helpText: "The section to search in, including its subfolders.",
         key: "folderId",
         label: "Section",
         required: true,
         type: "string"
       },
       {
-        helpText: "File title or extension",
+        helpText: "The whole or part of the file title, for example Report or .pdf.",
         key: "title",
         label: "Title",
         required: true
@@ -102,23 +102,23 @@ const searchFile = {
 
 const searchFolder = {
   display: {
-    description: "Search for a folder.",
-    label: "Search Folder"
+    description: "Finds a folder by title in a section.",
+    label: "Find Folder"
   },
   key: "searchFolder",
-  noun: "Folders",
+  noun: "Folder",
   operation: {
     inputFields: [
       {
         dynamic: "filteredSections.id.title",
-        helpText: "Search for a section",
+        helpText: "The section to search in, including its subfolders.",
         key: "folderId",
         label: "Section",
         required: true,
         type: "string"
       },
       {
-        helpText: "Folder title",
+        helpText: "The whole or part of the folder title.",
         key: "title",
         label: "Title",
         required: true

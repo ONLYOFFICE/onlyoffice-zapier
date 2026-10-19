@@ -143,7 +143,7 @@ async function completeOperation(z, progress) {
 
 const archiveRoom = {
   display: {
-    description: "Archive a room.",
+    description: "Moves a room to the Archive.",
     label: "Archive Room"
   },
   key: "archiveRoom",
@@ -153,7 +153,7 @@ const archiveRoom = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room id",
+        label: "Room",
         required: true,
         type: "string"
       }
@@ -176,7 +176,7 @@ const archiveRoom = {
 
 const createFile = {
   display: {
-    description: "Create a file.",
+    description: "Creates a new file in a room.",
     label: "Create File"
   },
   key: "createFile",
@@ -186,21 +186,21 @@ const createFile = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "The room where the file will be created",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
-        helpText: "The folder where the file will be created (optional)",
+        helpText: "A folder in the room. Leave empty to create the file at the top level of the room.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
       {
         default: "File from Zapier",
+        helpText: "Add an extension, for example .xlsx or .pdf, to set the file type. The default is .docx.",
         key: "title",
         label: "Title",
         required: true,
@@ -226,7 +226,7 @@ const createFile = {
         createdFile.title = stripExtension(createdFile.title)
         return createdFile
       }
-      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
+      throw new z.errors.HaltedError("Select a room or a folder.")
     },
     sample: samples.file
   }
@@ -234,7 +234,7 @@ const createFile = {
 
 const createFileInMyDocuments = {
   display: {
-    description: "Create a file in the Files section.",
+    description: "Creates a new file in the Files section.",
     label: "Create File in Files Section"
   },
   key: "createFileInMyDocuments",
@@ -243,14 +243,15 @@ const createFileInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "The folder where the file will be created (optional)",
+        helpText: "A folder in the Files section. Leave empty to create the file at the top level of the section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
       {
-        default: "README",
+        default: "File from Zapier",
+        helpText: "Add an extension, for example .xlsx or .pdf, to set the file type. The default is .docx.",
         key: "title",
         label: "Title",
         required: true,
@@ -278,7 +279,7 @@ const createFileInMyDocuments = {
 
 const createFolder = {
   display: {
-    description: "Create a folder.",
+    description: "Creates a new folder in a room.",
     label: "Create Folder"
   },
   key: "createFolder",
@@ -288,13 +289,13 @@ const createFolder = {
       {
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
@@ -323,7 +324,7 @@ const createFolder = {
         }
         return await files.createFolder(bundle.inputData.folderId, body)
       }
-      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
+      throw new z.errors.HaltedError("Select a room or a folder.")
     },
     sample: samples.folder
   }
@@ -331,7 +332,7 @@ const createFolder = {
 
 const createFolderInMyDocuments = {
   display: {
-    description: "Create a folder in the Files section.",
+    description: "Creates a new folder in the Files section.",
     label: "Create Folder in Files Section"
   },
   key: "createFolderInMyDocuments",
@@ -340,9 +341,9 @@ const createFolderInMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "The folder where the folder will be created (optional)",
+        helpText: "A folder in the Files section. Leave empty to create the folder at the top level of the section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
@@ -374,7 +375,7 @@ const createFolderInMyDocuments = {
 
 const deleteFolder = {
   display: {
-    description: "Delete a folder.",
+    description: "Moves a folder in a room to Trash.",
     label: "Delete Folder"
   },
   key: "deleteFolder",
@@ -385,13 +386,13 @@ const deleteFolder = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         required: true,
         search: "searchFolder.id",
         type: "string"
@@ -415,8 +416,8 @@ const deleteFolder = {
 
 const deleteFolderInMyDocuments = {
   display: {
-    description: "Delete a folder from the Files section.",
-    label: "Delete Folder From Files Section"
+    description: "Moves a folder in the Files section to Trash.",
+    label: "Delete Folder from Files Section"
   },
   key: "deleteFolderInMyDocuments",
   noun: "Folder",
@@ -425,7 +426,7 @@ const deleteFolderInMyDocuments = {
       {
         dynamic: "foldersInMyDocumentsList.id.title",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         required: true,
         search: "searchFolder.id",
         type: "string"
@@ -445,7 +446,7 @@ const deleteFolderInMyDocuments = {
 
 const downloadFile = {
   display: {
-    description: "Returns a hydrated link to download a file.",
+    description: "Gets a file from a room to use it in later steps, for example as an email attachment.",
     label: "Download File"
   },
   key: "downloadFile",
@@ -455,24 +456,23 @@ const downloadFile = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
-        helpText: "The room where the file is located",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         altersDynamicFields: true,
         dynamic: "foldersList.id.title",
-        helpText: "The folder where the file is located (optional)",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
       {
         dynamic: "filesList.id.title",
         key: "fileId",
-        label: "File id",
+        label: "File",
         required: true,
         search: "searchFile.id",
         type: "string"
@@ -496,8 +496,8 @@ const downloadFile = {
 
 const downloadFileFromMyDocuments = {
   display: {
-    description: "Returns a hydrated link to download a file from the Files section.",
-    label: "Download File From Files Section"
+    description: "Gets a file from the Files section to use it in later steps, for example as an email attachment.",
+    label: "Download File from Files Section"
   },
   key: "downloadFileFromMyDocuments",
   noun: "File",
@@ -505,17 +505,17 @@ const downloadFileFromMyDocuments = {
     inputFields: [
       {
         altersDynamicFields: true,
-        dynamic: "foldersList.id.title",
-        helpText: "The folder where the file is located (optional)",
+        dynamic: "foldersInMyDocumentsList.id.title",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
       {
         dynamic: "filesListFromMyDocuments.id.title",
         key: "fileId",
-        label: "File id",
+        label: "File",
         required: true,
         search: "searchFile.id",
         type: "string"
@@ -535,7 +535,7 @@ const downloadFileFromMyDocuments = {
 
 const externalLink = {
   display: {
-    description: "Returns the primary external link of a room. If the room doesn't have one, it is created.",
+    description: "Gets the primary external link of a room. If the room doesn't have one, creates it.",
     label: "Get External Link"
   },
   key: "externalLink",
@@ -545,7 +545,7 @@ const externalLink = {
       {
         dynamic: "roomsFiltered.id.title",
         key: "id",
-        label: "Room id",
+        label: "Room",
         required: true,
         type: "string"
       }
@@ -583,7 +583,7 @@ async function findMember(files, roomId, email) {
 
 const inviteGuest = {
   display: {
-    description: "Invites a guest to the room.",
+    description: "Invites a person to a room by email as a guest.",
     label: "Invite Guest"
   },
   key: "inviteGuest",
@@ -594,7 +594,7 @@ const inviteGuest = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "roomId",
-        label: "Room id",
+        label: "Room",
         required: true,
         type: "string"
       },
@@ -670,7 +670,7 @@ const inviteGuest = {
           status: "Invited"
         }
       }
-      throw new z.errors.HaltedError("Failed to invite guest")
+      throw new z.errors.HaltedError("Failed to invite the guest. Check that the workspace allows guest invitations.")
     },
     sample: samples.inviteGuest
   }
@@ -678,7 +678,7 @@ const inviteGuest = {
 
 const roomCreate = {
   display: {
-    description: "Create a room.",
+    description: "Creates a new room.",
     label: "Create Room"
   },
   key: "roomCreate",
@@ -694,14 +694,14 @@ const roomCreate = {
       },
       {
         choices: {
-          "1": "Form filling room",
+          "1": "Form Filling Space",
           "2": "Collaboration room",
           "5": "Custom room",
           "6": "Public room",
-          "8": "Virtual data room"
+          "8": "Virtual Data Room"
         },
         key: "roomType",
-        label: "Type",
+        label: "Room type",
         required: true
       }
     ],
@@ -725,7 +725,7 @@ const roomCreate = {
 
 const shareRoom = {
   display: {
-    description: "Share a room with a user.",
+    description: "Adds a workspace user to a room with the selected role.",
     label: "Share Room"
   },
   key: "shareRoom",
@@ -736,14 +736,14 @@ const shareRoom = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "roomId",
-        label: "Room id",
+        label: "Room",
         required: true,
         type: "string"
       },
       {
         dynamic: "userAdded.id.displayName",
         key: "userId",
-        label: "User id",
+        label: "User",
         required: true,
         type: "string"
       },
@@ -774,7 +774,7 @@ const shareRoom = {
       const response = await files.shareRoom(bundle.inputData.roomId, body)
       const member = response.members.length > 0 && response.members[0].sharedToUser
       if (!member) {
-        throw new z.errors.HaltedError("Failed to invite user")
+        throw new z.errors.HaltedError("Failed to add the user to the room.")
       }
       return member
     },
@@ -784,7 +784,7 @@ const shareRoom = {
 
 const uploadFile = {
   display: {
-    description: "Upload a file.",
+    description: "Uploads a file to a room.",
     label: "Upload File"
   },
   key: "uploadFile",
@@ -795,20 +795,20 @@ const uploadFile = {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
         key: "id",
-        label: "Room id",
+        label: "Room",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
       {
-        helpText: "Download the file via direct link or hydrate the file",
+        helpText: "A file from a previous step or a public URL of the file.",
         key: "url",
-        label: "URL or File",
+        label: "File",
         required: true,
         type: "file"
       }
@@ -853,7 +853,7 @@ const uploadFile = {
           throw new z.errors.HaltedError(message)
         }
       }
-      throw new z.errors.HaltedError("Check that all Zap fields are entered correctly")
+      throw new z.errors.HaltedError("Select a room or a folder.")
     },
     sample: samples.upload
   }
@@ -861,7 +861,7 @@ const uploadFile = {
 
 const uploadFileToMyDocuments = {
   display: {
-    description: "Upload a file to the Files section.",
+    description: "Uploads a file to the Files section.",
     label: "Upload File to Files Section"
   },
   key: "uploadFileToMyDocuments",
@@ -870,16 +870,16 @@ const uploadFileToMyDocuments = {
     inputFields: [
       {
         dynamic: "foldersInMyDocumentsList.id.title",
-        helpText: "The folder where the file will be uploaded (optional)",
+        helpText: "A folder in the Files section. Leave empty to upload the file to the top level of the section.",
         key: "folderId",
-        label: "Folder id",
+        label: "Folder",
         search: "searchFolder.id",
         type: "string"
       },
       {
-        helpText: "Download the file via direct link or hydrate the file",
+        helpText: "A file from a previous step or a public URL of the file.",
         key: "url",
-        label: "URL or File",
+        label: "File",
         required: true,
         type: "file"
       }

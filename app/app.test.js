@@ -271,4 +271,57 @@ test("has the `uploadFileToMyDocuments` creation", () => {
   equal(has, true)
 })
 
+/**
+ * @param {Record<string, any>} items
+ * @param {RegExp} description
+ */
+function checkTexts(items, description) {
+  for (const item of Object.values(items)) {
+    const { key, noun } = item
+    const { label } = item.display
+    const titleCase = /^[A-Z][a-z]*( ([A-Z][a-z]*|and|from|in|of|to|with))*$/
+    equal(titleCase.test(label), true, `${key}: the label is in title case`)
+    equal(/^[A-Z][a-z]+$/.test(noun), true, `${key}: the noun is one singular word`)
+    if (!item.display.hidden) {
+      equal(description.test(item.display.description), true, `${key}: the description`)
+    }
+    for (const field of item.operation.inputFields || []) {
+      if (typeof field === "object") {
+        equal(/ id$/i.test(field.label), false, `${key}.${field.key}: the label has no "id"`)
+        equal(/^[A-Z][^A-Z]*$/.test(field.label), true, `${key}.${field.key}: the label is in sentence case`)
+      }
+    }
+  }
+}
+
+test("uses dropdowns of the Files section in its triggers and actions", () => {
+  /** @type {Record<string, any>} */
+  const items = { ...App.triggers, ...App.creates }
+  for (const item of Object.values(items)) {
+    if (!/MyDocuments/.test(item.key) || item.display.hidden) {
+      continue
+    }
+    for (const field of item.operation.inputFields || []) {
+      if (typeof field === "object" && field.dynamic) {
+        equal(/MyDocuments/.test(field.dynamic), true, `${item.key}.${field.key}: ${field.dynamic}`)
+      }
+    }
+  }
+})
+
+test("follows the Zapier style of triggers", () => {
+  checkTexts(App.triggers, /^Triggers when .+\.$/)
+})
+
+test("follows the Zapier style of actions", () => {
+  checkTexts(App.creates, /^[A-Z][a-z]+s .+\.$/)
+})
+
+test("follows the Zapier style of searches", () => {
+  checkTexts(App.searches, /^Finds .+\.$/)
+  for (const search of Object.values(App.searches)) {
+    equal(search.display.label.startsWith("Find "), true, `${search.key}: the label starts with "Find"`)
+  }
+})
+
 test.run()

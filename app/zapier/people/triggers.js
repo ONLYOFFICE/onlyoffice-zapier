@@ -31,11 +31,11 @@ async function performUserAdded(z, bundle) {
 // so this trigger uses polling.
 const userAdded = {
   display: {
-    description: "Triggers when a user is added.",
+    description: "Triggers when a user is added to the workspace.",
     label: "User Added"
   },
   key: "userAdded",
-  noun: "Users",
+  noun: "User",
   operation: {
     canPaginate: true,
     perform: performUserAdded,

@@ -47,7 +47,7 @@ async function findUser(people, email) {
 
 const inviteUser = {
   display: {
-    description: "Invites a user to the current workspace.",
+    description: "Invites a person to the workspace by email.",
     label: "Invite User"
   },
   key: "inviteUser",
@@ -85,7 +85,7 @@ const inviteUser = {
         return [{
           choices: choices,
           key: "type",
-          label: "Role",
+          label: "User type",
           required: true
         }]
       }
