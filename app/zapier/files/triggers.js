@@ -37,6 +37,7 @@ const {
   FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
+  FOLDER_MOVED,
   FOLDER_UPDATED,
   ROOM_ARCHIVED
 } = require("../../docspace/webhooks/events.js")
@@ -724,6 +725,37 @@ const folderUpdated = createWebhookTrigger(
   }
 )
 
+// DocSpace doesn't keep a history of moves, so the test records of the Zap
+// editor are the recently changed folders of the selected place.
+const folderMoved = createWebhookTrigger(
+  "folderMoved",
+  "Folder Moved",
+  "Triggers when a folder is moved to another folder or room.",
+  [FOLDER_MOVED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room the folder is moved to. Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "The folder the folder is moved to. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    noun: "Folder",
+    pollingFallback: performFolderUpdated,
+    sample: samples.folder
+  }
+)
+
 const foldersList = {
   display: {
     description: "Hidden trigger to get a list of folders from a folder or room.",
@@ -1030,6 +1062,7 @@ module.exports = {
   folderCreatedInMyDocuments,
   folderDeleted,
   folderDeletedInMyDocuments,
+  folderMoved,
   folderUpdated,
   foldersInMyDocumentsList,
   foldersList,

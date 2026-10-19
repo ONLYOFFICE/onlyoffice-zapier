@@ -35,6 +35,7 @@ At the moment, the following triggers are available for ONLYOFFICE Apps:
 | Folder Created in Files Section | Folder id |
 | Folder Deleted | Room id, Folder id |
 | Folder Deleted from Files Section | Folder id |
+| Folder Moved | Room id, Folder id |
 | Folder Updated | Room id, Folder id |
 | Room Archived | - |
 | Room Created | - |

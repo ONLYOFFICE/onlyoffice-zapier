@@ -20,6 +20,7 @@ const {
   fileCreated,
   fileMoved,
   fileUpdated,
+  folderMoved,
   foldersList,
   folderUpdated,
   roomCreated,
@@ -334,6 +335,19 @@ test("folder updated trigger lists the files section if nothing is selected", as
   const folders = await run(performList, z, { inputData: {} })
   equal(pluck(folders, "id"), [3])
   equal(z.calls[1].query.filterType, "FoldersOnly")
+})
+
+test("folder moved trigger subscribes to the folder.moved event", async () => {
+  await checkSubscription(folderMoved, 2097152)
+})
+
+test("folder moved trigger fires for folders moved to the selected folder", async () => {
+  const z = fakeZ({ "GET /files/folder/8": { id: 8, parentId: 4, title: "Reports" } })
+  const payload = { id: 8, parentId: 4, rootFolderType: 14, title: "Reports" }
+  const perform = /** @type {any} */ (folderMoved.operation.perform)
+  const folders = await perform(z, webhookBundle("folder.moved", payload, { folderId: "4", id: "1" }))
+  equal(pluck(folders, "id"), [8])
+  equal(await perform(z, webhookBundle("folder.moved", payload, { id: "1" })), [])
 })
 
 test.run()

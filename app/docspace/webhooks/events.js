@@ -17,6 +17,7 @@ const FOLDER_CREATED = 32768
 const FOLDER_UPDATED = 65536
 // The `folder.trashed` event.
 const FOLDER_DELETED = 131072
+const FOLDER_MOVED = 2097152
 const ROOM_ARCHIVED = 16777216
 
 module.exports = {
@@ -27,6 +28,7 @@ module.exports = {
   FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
+  FOLDER_MOVED,
   FOLDER_UPDATED,
   ROOM_ARCHIVED
 }

@@ -39,6 +39,7 @@ const {
   folderCreatedInMyDocuments,
   folderDeleted,
   folderDeletedInMyDocuments,
+  folderMoved,
   //foldersInMyDocumentsList, TODO:
   foldersList,
   folderUpdated,
@@ -316,6 +317,22 @@ Files("triggers when a folder is created in room", async (context) => {
 
 Files("lists updated folders of the room", async (context) => {
   const { performList } = folderUpdated.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
+  const folder = /** @type {import("../../docspace/files/files.js").FolderData} */ (folders[0])
+  equal(folder.id, context.inputData.rooms.folderId)
+})
+
+Files("lists moved folders of the room", async (context) => {
+  const { performList } = folderMoved.operation
   const bundle = {
     authData: context.authData,
     inputData: {

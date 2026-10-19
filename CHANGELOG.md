@@ -3,6 +3,7 @@
 - new File Updated trigger
 - new File Moved trigger
 - new Folder Updated trigger
+- new Folder Moved trigger
 
 ## 1.1.0
 - new inviteGuest action
