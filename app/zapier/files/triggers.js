@@ -39,6 +39,7 @@ const {
   FOLDER_DELETED,
   FOLDER_MOVED,
   FOLDER_UPDATED,
+  FORM_FILLED_OUT,
   FORM_SUBMITTED,
   ROOM_ARCHIVED,
   ROOM_UPDATED
@@ -874,6 +875,75 @@ const formSubmitted = createWebhookTrigger(
   }
 )
 
+// The form filling status of a form that all roles have filled out.
+const COMPLETE_FORM_STATUS = 4
+
+/**
+ * Lists the filled out forms of the selected folder or room.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FormSubmittedFields>} bundle
+ * @returns {Promise<FileData[]>}
+ */
+async function performFormFilledOut(z, bundle) {
+  const folderId = bundle.inputData.folderId || bundle.inputData.id
+  if (!folderId) {
+    return []
+  }
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const filters = {
+    filterType: "FilesOnly",
+    sortBy: "DateAndTime",
+    sortOrder: "descending"
+  }
+  const forms = await files.listFiles(Number(folderId), filters)
+  const { formId } = bundle.inputData
+  return forms.files
+    .filter((form) => form.formFillingStatus === COMPLETE_FORM_STATUS)
+    .filter((form) => !formId || String(form.id) === String(formId))
+    .slice(0, 100)
+    .map(normalizeFile)
+}
+
+const formFilledOut = createWebhookTrigger(
+  "formFilledOut",
+  "Form Filled Out",
+  "Triggers when all roles have filled out a form in a virtual data room.",
+  [FORM_FILLED_OUT],
+  {
+    filters: { entryField: "formId" },
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder with forms. Leave empty to watch only the forms at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        helpText: "Leave empty to watch all forms of the room or folder.",
+        key: "formId",
+        label: "Form",
+        type: "string"
+      }
+    ],
+    normalize: normalizeFile,
+    noun: "Form",
+    pollingFallback: performFormFilledOut,
+    sample: samples.file
+  }
+)
+
 const foldersList = {
   display: {
     description: "Hidden trigger to get a list of folders from a folder or room.",
@@ -1239,6 +1309,7 @@ module.exports = {
   folderUpdated,
   foldersInMyDocumentsList,
   foldersList,
+  formFilledOut,
   formSubmitted,
   roomArchived,
   roomCreated,

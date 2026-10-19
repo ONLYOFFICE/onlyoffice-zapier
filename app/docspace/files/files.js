@@ -87,6 +87,7 @@ const { Service } = require("../client/client.js")
  * @property {Account} updatedBy
  * @property {number=} originId
  * @property {string=} originTitle
+ * @property {number=} formFillingStatus 4 if all roles have filled out the form.
  */
 
 /**

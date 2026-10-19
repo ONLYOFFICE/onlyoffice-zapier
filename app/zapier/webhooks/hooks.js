@@ -246,7 +246,7 @@ async function fetchEntry(z, bundle, trigger, payload) {
   const files = new FilesService(client)
   const type = trigger.split(".")[0]
   try {
-    if (type === "file") {
+    if (type === "file" || type === "form") {
       return await files.fileInfo(payload.id)
     }
     if (type === "folder") {

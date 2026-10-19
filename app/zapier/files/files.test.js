@@ -43,6 +43,7 @@ const {
   //foldersInMyDocumentsList, TODO:
   foldersList,
   folderUpdated,
+  formFilledOut,
   formSubmitted,
   roomArchived,
   roomCreated,
@@ -185,6 +186,20 @@ Files("lists the updated room", async (context) => {
   }
   const rooms = await tester(performList, bundle)
   equal(rooms[0].id, context.inputData.rooms.roomId)
+})
+
+Files("lists no filled out forms in a room without forms", async (context) => {
+  const { performList } = formFilledOut.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  equal(await tester(performList, bundle), [])
 })
 
 Files("lists no submitted forms in a room without forms", async (context) => {

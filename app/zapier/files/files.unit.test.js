@@ -23,6 +23,7 @@ const {
   folderMoved,
   foldersList,
   folderUpdated,
+  formFilledOut,
   formSubmitted,
   roomCreated,
   roomsFiltered,
@@ -435,6 +436,35 @@ test("form submitted trigger lists the filled forms with their original forms", 
   equal(forms[0].originalForm.title, "Application")
   equal(pluck(await run(performList, z, { inputData: { folderId: "4", id: "3" } }), "id"), [8])
   equal(await run(performList, z, { inputData: { formId: "7", id: "3" } }), [])
+  equal(await run(performList, z, { inputData: {} }), [])
+})
+
+test("form filled out trigger subscribes to the form.filled.out event", async () => {
+  await checkSubscription(formFilledOut, 536870912)
+})
+
+test("form filled out trigger returns the filled out form", async () => {
+  const z = fakeZ({ "GET /files/file/5": { folderId: 3, formFillingStatus: 4, id: 5, title: "Contract.pdf" } })
+  const payload = { id: 5, parentId: 3, rootFolderType: 14, title: "Contract.pdf" }
+  const perform = /** @type {any} */ (formFilledOut.operation.perform)
+  const forms = await perform(z, webhookBundle("form.filled.out", payload, { formId: "5", id: "3" }))
+  equal(pluck(forms, "title"), ["Contract"])
+  equal(await perform(z, webhookBundle("form.filled.out", payload, { formId: "4" })), [])
+  equal(await perform(z, webhookBundle("form.filled.out", payload, { id: "8" })), [])
+})
+
+test("form filled out trigger lists only filled out forms", async () => {
+  const z = fakeZ({
+    "GET /files/3": {
+      files: [
+        { formFillingStatus: 3, id: 6, title: "Draft.pdf" },
+        { formFillingStatus: 4, id: 5, title: "Contract.pdf" }
+      ]
+    }
+  })
+  const performList = /** @type {any} */ (formFilledOut.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { id: "3" } }), "id"), [5])
+  equal(await run(performList, z, { inputData: { formId: "6", id: "3" } }), [])
   equal(await run(performList, z, { inputData: {} }), [])
 })
 
