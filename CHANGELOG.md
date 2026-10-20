@@ -28,6 +28,7 @@
 - new Change User Type action
 - new Disable User and Enable User actions
 - actions wait up to 20 seconds for long DocSpace operations
+- failed actions show as errors, not as halted; errors about missing rights or tariff limits are clear; Upload File doesn't ask to reconnect the account when the server of the file URL refuses access
 
 ## 1.1.0
 - new inviteGuest action

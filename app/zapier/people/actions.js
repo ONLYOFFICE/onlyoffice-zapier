@@ -114,7 +114,7 @@ const inviteUser = {
       if (invitedUser) {
         return invitedUser
       }
-      throw new z.errors.HaltedError("Could not find the invited user in the response.")
+      throw new z.errors.Error("Could not find the invited user in the response.", "OperationFailed")
     },
     sample: samples.invitedUser
   }
@@ -185,7 +185,7 @@ const changeUserType = {
           checks = checks + 1
         }
         if (progress.error) {
-          throw new z.errors.HaltedError(progress.error)
+          throw new z.errors.Error(progress.error, "OperationFailed")
         }
         if (!progress.isCompleted) {
           throw new z.errors.Error("The user type is still being changed. Check the user later.", "Timeout", 408)
@@ -217,7 +217,7 @@ async function setUserStatus(z, bundle, status) {
   const users = await people.updateUserStatus(status, [userId])
   const user = users.find((item) => item.id === userId)
   if (!user) {
-    throw new z.errors.HaltedError("DocSpace didn't change the status of the user.")
+    throw new z.errors.Error("DocSpace didn't change the status of the user.", "OperationFailed")
   }
   return user
 }

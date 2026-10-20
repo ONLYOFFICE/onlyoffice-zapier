@@ -145,7 +145,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 async function completeOperation(z, progress) {
   const result = await progress.complete()
   if (result.error) {
-    throw new z.errors.HaltedError(result.error)
+    throw new z.errors.Error(result.error, "OperationFailed")
   }
   if (!result.finished) {
     throw new z.errors.Error(
@@ -242,7 +242,7 @@ const createFile = {
         createdFile.title = stripExtension(createdFile.title)
         return createdFile
       }
-      throw new z.errors.HaltedError("Select a room or a folder.")
+      throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
     sample: samples.file
   }
@@ -340,7 +340,7 @@ const createFolder = {
         }
         return await files.createFolder(bundle.inputData.folderId, body)
       }
-      throw new z.errors.HaltedError("Select a room or a folder.")
+      throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
     sample: samples.folder
   }
@@ -686,7 +686,10 @@ const inviteGuest = {
           status: "Invited"
         }
       }
-      throw new z.errors.HaltedError("Failed to invite the guest. Check that the workspace allows guest invitations.")
+      throw new z.errors.Error(
+        "Failed to invite the guest. Check that the workspace allows guest invitations.",
+        "OperationFailed"
+      )
     },
     sample: samples.inviteGuest
   }
@@ -790,7 +793,7 @@ const shareRoom = {
       const response = await files.shareRoom(bundle.inputData.roomId, body)
       const member = response.members.length > 0 && response.members[0].sharedToUser
       if (!member) {
-        throw new z.errors.HaltedError("Failed to add the user to the room.")
+        throw new z.errors.Error("Failed to add the user to the room.", "OperationFailed")
       }
       return member
     },
@@ -842,34 +845,26 @@ const uploadFile = {
         const client = new Client(bundle.authData.baseUrl, z.request)
         const files = new FilesService(client)
         const uploader = new Uploader(z)
-        try {
-          const fileStash = await uploader.stash(bundle.inputData.url)
-          const headers = await uploader.headers(fileStash)
-          const bodySession = {
-            createOn: new Date().toISOString(),
-            fileName: headers.fileName,
-            fileSize: headers.fileSize
-          }
-          const session = await files.createSession(bundle.inputData.folderId, bodySession)
-          const bodyUpload = {
-            data: headers.data,
-            fileName: headers.fileName,
-            fileSize: headers.fileSize,
-            fileStash
-          }
-          return await uploader.upload(
-            bodyUpload,
-            (chunkData) => files.uploadChunk(session.id, chunkData)
-          )
-        } catch (error) {
-          let message = "Unknown error"
-          if (error instanceof Error) {
-            message = error.message
-          }
-          throw new z.errors.HaltedError(message)
+        const fileStash = await uploader.stash(bundle.inputData.url)
+        const headers = await uploader.headers(fileStash)
+        const bodySession = {
+          createOn: new Date().toISOString(),
+          fileName: headers.fileName,
+          fileSize: headers.fileSize
         }
+        const session = await files.createSession(bundle.inputData.folderId, bodySession)
+        const bodyUpload = {
+          data: headers.data,
+          fileName: headers.fileName,
+          fileSize: headers.fileSize,
+          fileStash
+        }
+        return await uploader.upload(
+          bodyUpload,
+          (chunkData) => files.uploadChunk(session.id, chunkData)
+        )
       }
-      throw new z.errors.HaltedError("Select a room or a folder.")
+      throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
     sample: samples.upload
   }
@@ -1511,7 +1506,10 @@ const removeUserFromRoom = {
       // of the room owner. So check the members.
       const members = await files.listUsers(roomId, {})
       if (members.some((item) => item.sharedToUser && item.sharedToUser.id === userId)) {
-        throw new z.errors.HaltedError("The user is still a member of the room. The room owner can't be removed.")
+        throw new z.errors.Error(
+          "The user is still a member of the room. The room owner can't be removed.",
+          "OperationFailed"
+        )
       }
       return { roomId, status: "Removed", userId }
     },
@@ -2348,7 +2346,7 @@ const createRoomFromTemplate = {
         checks = checks + 1
       }
       if (status.error) {
-        throw new z.errors.HaltedError(status.error)
+        throw new z.errors.Error(status.error, "OperationFailed")
       }
       if (!status.isCompleted) {
         throw new z.errors.Error("The room is still being created. Check the Rooms section later.", "Timeout", 408)

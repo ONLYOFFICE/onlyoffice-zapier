@@ -91,6 +91,7 @@ const {
   searchRoom
 } = require("./zapier/files/searches.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
+const { afterResponse } = require("./zapier/refusals.js")
 const { searchUser } = require("./zapier/people/searches.js")
 const {
   disabledUsersList,
@@ -98,6 +99,9 @@ const {
 } = require("./zapier/people/triggers.js")
 
 const App = {
+  afterResponse: [
+    ...afterResponse
+  ],
   authentication: sessionAuth,
   beforeRequest: [
     ...beforeSessionAuthRequest

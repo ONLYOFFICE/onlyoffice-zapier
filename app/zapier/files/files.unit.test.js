@@ -14,6 +14,7 @@ const {
   convertFile,
   copyFile,
   copyFolder,
+  createFile,
   createFileWithContent,
   createRoomFromTemplate,
   deleteFile,
@@ -35,9 +36,10 @@ const {
   roomCreate,
   shareRoom,
   unarchiveRoom,
-  unlockFile
+  unlockFile,
+  uploadFile
 } = require("./actions.js")
-const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
+const { authData, fakeZ, HaltedError, webhookBundle, ZapierError } = require("../z.fixture.js")
 const {
   archivedRoomsList,
   fileCreated,
@@ -116,7 +118,7 @@ test("fails archiving when the operation fails", async () => {
     "PUT /files/rooms/1/archive": { error: "", finished: false, id: "op", progress: 0 }
   })
   const error = await caught(() => run(archiveRoom.operation.perform, z, { inputData: { id: 1 } }))
-  instance(error, HaltedError)
+  instance(error, ZapierError)
   equal(/** @type {Error} */ (error).message, "Access denied")
 })
 
@@ -136,8 +138,7 @@ test("fails copying a file when the operation is still running", async () => {
   try {
     const inputData = { destinationRoomId: "3", fileId: "7" }
     const error = await caught(() => run(copyFile.operation.perform, z, { inputData }))
-    instance(error, Error)
-    equal(error instanceof HaltedError, false)
+    instance(error, ZapierError)
     match(String(error), "still processing the operation")
   } finally {
     Progress.prototype.now = now
@@ -601,7 +602,7 @@ test("fails deleting a file when the operation fails", async () => {
     "GET /files/fileops": [operation]
   })
   const error = await caught(() => run(deleteFile.operation.perform, z, { inputData: { fileId: "7" } }))
-  instance(error, HaltedError)
+  instance(error, ZapierError)
   equal(z.calls[0].body.immediately, false)
 })
 
@@ -736,7 +737,7 @@ test("fails removing a user who is still a member", async () => {
     "PUT /files/rooms/5/share": { error: 0, members: [] }
   })
   const inputData = { id: "5", userId: "owner" }
-  instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), HaltedError)
+  instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), ZapierError)
 })
 
 test("gets the members of a room page by page", async () => {
@@ -1014,7 +1015,7 @@ test("fails creating a room from a template with an error", async () => {
   })
   const inputData = { templateId: "4", title: "Sales Q4" }
   const error = await caught(() => run(createRoomFromTemplate.operation.perform, z, { inputData }))
-  instance(error, HaltedError)
+  instance(error, ZapierError)
   equal(z.calls.length, 1)
 })
 
@@ -1023,6 +1024,29 @@ test("lists the room templates", async () => {
   const templates = await run(roomTemplatesList.operation.perform, z, {})
   equal(templates[0].id, 4)
   equal(z.calls[0].query.searchArea, "Templates")
+})
+
+test("passes the errors of the workspace through when uploading a file", async () => {
+  // The fake workspace answers 404 when the upload session is created.
+  const z = fakeZ({})
+  const { fetch } = globalThis
+  const headers = new Map()
+  headers.set("content-length", "3")
+  // @ts-ignore: only the headers are read.
+  globalThis.fetch = async () => ({ headers })
+  try {
+    const inputData = { id: "5", url: "https://zapier.com/engine/hydrate/1/abc/" }
+    const error = await caught(() => run(uploadFile.operation.perform, z, { inputData }))
+    equal(error instanceof HaltedError, false)
+    match(String(error), "404")
+  } finally {
+    globalThis.fetch = fetch
+  }
+})
+
+test("fails creating a file without a room or a folder", async () => {
+  const error = await caught(() => run(createFile.operation.perform, fakeZ({}), { inputData: { title: "Report" } }))
+  instance(error, ZapierError)
 })
 
 test.run()

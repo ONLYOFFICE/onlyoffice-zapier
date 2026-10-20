@@ -8,7 +8,7 @@
 
 const { equal, instance } = require("uvu/assert")
 const { test } = require("uvu")
-const { authData, fakeZ, HaltedError } = require("../z.fixture.js")
+const { authData, fakeZ, ZapierError } = require("../z.fixture.js")
 const {
   changeUserType,
   disableUser,
@@ -109,7 +109,7 @@ test("fails changing the user type with an error", async () => {
     await changeUserType.operation.perform(z, { authData, inputData })
     throw new Error("Expected an error")
   } catch (error) {
-    instance(error, HaltedError)
+    instance(error, ZapierError)
   }
 })
 
@@ -135,7 +135,7 @@ test("fails if the status of the user isn't changed", async () => {
     await disableUser.operation.perform(z, { authData, inputData: { userId: "u1" } })
     throw new Error("Expected an error")
   } catch (error) {
-    instance(error, HaltedError)
+    instance(error, ZapierError)
   }
 })
 
