@@ -121,6 +121,21 @@ const externalLink = {
   subjectType: 4
 }
 
+const roomMembers = {
+  count: 1,
+  members: [
+    {
+      access: 2,
+      displayName: "John Doe",
+      email: "john.doe@example.com",
+      id: "11111111-2222-3333-4444-555555555555",
+      role: "Viewer",
+      type: "User"
+    }
+  ],
+  roomId: 5
+}
+
 const removedMember = {
   roomId: 5,
   status: "Removed",
@@ -233,6 +248,7 @@ module.exports = {
   removedMember,
   role,
   room,
+  roomMembers,
   share,
   submittedForm,
   upload

@@ -311,6 +311,7 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isOwner
  * @property {User} sharedTo Obsolete, use `sharedToUser`.
  * @property {User=} sharedToUser
+ * @property {{id: string, name: string}=} sharedToGroup
  */
 
 /**

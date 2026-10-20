@@ -16,6 +16,7 @@
 - new Move File, Copy File, Move Folder and Copy Folder actions
 - new Unarchive Room action
 - new Remove User from Room action
+- new Get Room Members action
 
 ## 1.1.0
 - new inviteGuest action

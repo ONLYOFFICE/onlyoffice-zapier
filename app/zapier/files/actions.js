@@ -4,12 +4,20 @@
 
 // @ts-check
 
-const { Client, normalizeId, Progress, ROOM_MANAGER, stripExtension } = require("../../docspace/client/client.js")
+const {
+  Client,
+  normalizeId,
+  Progress,
+  REMOVED_USER_ID,
+  ROOM_MANAGER,
+  stripExtension
+} = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const { downloadFile: downloadFileHydrator } = require("./hydrators.js")
 const { shareRoles } = require("./triggers.js")
+const { PAGE_SIZE } = require("../pagination.js")
 const { Uploader } = require("./uploader.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
@@ -1503,6 +1511,93 @@ const removeUserFromRoom = {
   }
 }
 
+/** @type {Record<number, string>} */
+const ROLE_NAMES = {
+  1: "Full access",
+  10: "Editor",
+  11: "Content creator",
+  2: "Viewer",
+  5: "Reviewer",
+  6: "Commenter",
+  7: "Form filler",
+  9: "Room manager"
+}
+
+/**
+ * @typedef {Object} RoomMember
+ * @property {number} access
+ * @property {string} displayName
+ * @property {string} email
+ * @property {string} id
+ * @property {string} role
+ * @property {string} type
+ */
+
+/**
+ * @typedef {Object} GetRoomMembersFields
+ * @property {string} id
+ */
+
+const getRoomMembers = {
+  display: {
+    description: "Gets the users and groups of a room with their roles.",
+    label: "Get Room Members"
+  },
+  key: "getRoomMembers",
+  noun: "Member",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, GetRoomMembersFields>} bundle
+     * @returns {Promise<{count: number, members: RoomMember[], roomId: number|string}>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const roomId = normalizeId(bundle.inputData.id)
+      /** @type {RoomMember[]} */
+      const members = []
+      /** @type {UserData[]} */
+      let page
+      let startIndex = 0
+      do {
+        page = await files.listUsers(roomId, { count: PAGE_SIZE, startIndex })
+        page.forEach((item) => {
+          const role = item.isOwner ? "Owner" : ROLE_NAMES[item.access] || ""
+          const user = item.sharedToUser
+          if (user && user.id !== REMOVED_USER_ID) {
+            members.push({
+              access: item.access,
+              displayName: user.displayName,
+              email: user.email,
+              id: user.id,
+              role,
+              type: "User"
+            })
+          }
+          const group = item.sharedToGroup
+          if (group) {
+            members.push({ access: item.access, displayName: group.name, email: "", id: group.id, role, type: "Group" })
+          }
+        })
+        startIndex = startIndex + PAGE_SIZE
+      } while (page.length === PAGE_SIZE)
+      return { count: members.length, members, roomId }
+    },
+    sample: samples.roomMembers
+  }
+}
+
 module.exports = {
   archiveRoom,
   copyFile,
@@ -1519,6 +1614,7 @@ module.exports = {
   externalLink,
   getFile,
   getRoom,
+  getRoomMembers,
   inviteGuest,
   moveFile,
   moveFolder,

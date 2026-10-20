@@ -24,6 +24,7 @@ const {
   externalLink,
   getFile,
   getRoom,
+  getRoomMembers,
   inviteGuest,
   moveFile,
   moveFolder,
@@ -302,6 +303,18 @@ Files("removes the invited user from the room", async (context) => {
   }
   const result = await tester(removeUserFromRoom.operation.perform, bundle)
   equal(result.status, "Removed")
+})
+
+Files("gets the members of the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const result = await tester(getRoomMembers.operation.perform, bundle)
+  equal(result.roomId, context.inputData.rooms.roomId)
+  equal(result.members.some((member) => member.role === "Owner"), true)
 })
 
 Files("returns the links of a room", async (context) => {

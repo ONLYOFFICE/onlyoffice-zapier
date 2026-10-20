@@ -16,6 +16,7 @@ const {
   downloadFile,
   getFile,
   getRoom,
+  getRoomMembers,
   inviteGuest,
   moveFile,
   moveFolder,
@@ -697,6 +698,30 @@ test("fails removing a user who is still a member", async () => {
   })
   const inputData = { id: "5", userId: "owner" }
   instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), HaltedError)
+})
+
+test("gets the members of a room page by page", async () => {
+  const owner = { access: 1, isOwner: true, sharedToUser: { displayName: "Owner", email: "o@e.com", id: "o" } }
+  const viewer = { access: 2, isOwner: false, sharedToUser: { displayName: "Viewer", email: "v@e.com", id: "v" } }
+  const group = { access: 10, isOwner: false, sharedToGroup: { id: "g", name: "Team" } }
+  const z = fakeZ({
+    "GET /files/rooms/5/share": (call) => {
+      if (call.query.startIndex === "0") {
+        return Array.from({ length: 100 }, () => viewer)
+      }
+      return [
+        owner,
+        group
+      ]
+    }
+  })
+  const result = await run(getRoomMembers.operation.perform, z, { inputData: { id: "5" } })
+  equal(result.roomId, 5)
+  equal(result.count, 102)
+  equal(z.calls.length, 2)
+  equal(result.members[0].role, "Viewer")
+  equal(result.members[100].role, "Owner")
+  equal(result.members[101], { access: 10, displayName: "Team", email: "", id: "g", role: "Editor", type: "Group" })
 })
 
 test.run()
