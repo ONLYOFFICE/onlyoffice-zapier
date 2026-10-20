@@ -32,7 +32,7 @@ const {
   userInvited
 } = require("./triggers.js")
 const { pageFilters } = require("../pagination.js")
-const { searchFile } = require("./searches.js")
+const { searchFile, searchRoom } = require("./searches.js")
 
 /**
  * @param {any} fn
@@ -466,6 +466,38 @@ test("form filled out trigger lists only filled out forms", async () => {
   equal(pluck(await run(performList, z, { inputData: { id: "3" } }), "id"), [5])
   equal(await run(performList, z, { inputData: { formId: "6", id: "3" } }), [])
   equal(await run(performList, z, { inputData: {} }), [])
+})
+
+test("finds the recently changed room first without sorting in the request", async () => {
+  const rooms = [
+    { id: 1, title: "Sales", updated: "2026-01-01T00:00:00Z" },
+    { id: 2, title: "Sales Q4", updated: "2026-02-01T00:00:00Z" }
+  ]
+  const z = fakeZ({ "GET /files/rooms": (call) => ({ folders: call.query.searchArea === "Forms" ? [] : rooms }) })
+  const found = await run(searchRoom.operation.perform, z, { inputData: { title: "sales" } })
+  equal(pluck(found, "id"), [
+    2,
+    1
+  ])
+  equal(z.calls[0].query.sortBy, undefined)
+})
+
+test("finds rooms by title, including form filling rooms", async () => {
+  const forms = [
+    { id: 2, roomType: 1, title: "Sales forms" },
+    { id: 1, roomType: 2, title: "Sales" }
+  ]
+  const active = [{ id: "1", roomType: 2, title: "Sales" }]
+  const z = fakeZ({
+    "GET /files/rooms": (call) => ({ folders: call.query.searchArea === "Forms" ? forms : active })
+  })
+  const rooms = await run(searchRoom.operation.perform, z, { inputData: { title: "sales" } })
+  const ids = pluck(rooms, "id")
+  equal(ids, [
+    1,
+    2
+  ])
+  equal(z.calls[0].query.filterValue, "sales")
 })
 
 test.run()

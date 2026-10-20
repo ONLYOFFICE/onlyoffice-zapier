@@ -11,6 +11,7 @@ const samples = require("../../docspace/files/files.samples.js")
 /**
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
  * @typedef {import("../../docspace/client/client.js").Filters} Filters
  */
@@ -18,6 +19,11 @@ const samples = require("../../docspace/files/files.samples.js")
 /**
  * @typedef {Object} SearchFields
  * @property {number} folderId
+ * @property {string} title
+ */
+
+/**
+ * @typedef {Object} SearchRoomFields
  * @property {string} title
  */
 
@@ -145,7 +151,50 @@ const searchFolder = {
   }
 }
 
+const searchRoom = {
+  display: {
+    description: "Finds a room by title.",
+    label: "Find Room"
+  },
+  key: "searchRoom",
+  noun: "Room",
+  operation: {
+    inputFields: [
+      {
+        helpText: "The whole or part of the room title.",
+        key: "title",
+        label: "Title",
+        required: true
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, SearchRoomFields>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      // DocSpace saves the sort order of a request as the default order of
+      // the user, so sort the rooms here.
+      const filters = { filterValue: bundle.inputData.title }
+      const rooms = await files.listRooms(filters)
+      // Form filling rooms are in the separate Forms section.
+      const forms = await files.listRooms({ ...filters, searchArea: "Forms" })
+      const ids = new Set(rooms.folders.map((room) => String(room.id)))
+      const results = rooms.folders.concat(forms.folders.filter((room) => !ids.has(String(room.id))))
+      results.sort((a, b) => (Date.parse(b.updated) || 0) - (Date.parse(a.updated) || 0))
+      results.forEach((room) => {
+        room.id = normalizeId(room.id)
+      })
+      return results
+    },
+    sample: samples.room
+  }
+}
+
 module.exports = {
   searchFile,
-  searchFolder
+  searchFolder,
+  searchRoom
 }

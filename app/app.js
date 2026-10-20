@@ -55,7 +55,8 @@ const hydrators = require("./zapier/files/hydrators")
 const { inviteUser } = require("./zapier/people/actions.js")
 const {
   searchFile,
-  searchFolder
+  searchFolder,
+  searchRoom
 } = require("./zapier/files/searches.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
 const { userAdded } = require("./zapier/people/triggers.js")
@@ -90,7 +91,8 @@ const App = {
   platformVersion,
   searches: {
     [searchFile.key]: searchFile,
-    [searchFolder.key]: searchFolder
+    [searchFolder.key]: searchFolder,
+    [searchRoom.key]: searchRoom
   },
   triggers: {
     [fileCreated.key]: fileCreated,

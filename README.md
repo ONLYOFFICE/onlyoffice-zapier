@@ -93,6 +93,10 @@ At the moment, search for folders and files by name is available through the sec
 1. Open the *Custom* tab.
 2. Specify the room ID from the trigger.
 
+| Search | API method | Fields |
+| ------------- | ------------- | ------------- |
+| Find Room | [GET api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-folder) | Title |
+
 
 ## Contribution
 

@@ -55,7 +55,8 @@ const {
 const { invitedUser } = require("../people/people.fixture.js")
 const {
   searchFile,
-  searchFolder
+  searchFolder,
+  searchRoom
 } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
@@ -534,6 +535,19 @@ Files("upload a file", async (context) => {
   const result = await tester(perform, bundle)
   equal(result.uploaded, true)
   not.equal(result.id, 0)
+})
+
+Files("finds the room by title", async (context) => {
+  const { perform } = searchRoom.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      title: "test ROOM"
+    }
+  }
+  const rooms = await tester(perform, bundle)
+  const ids = rooms.map((room) => room.id)
+  equal(ids.includes(context.inputData.rooms.roomId), true)
 })
 
 Files("search a file in room", async (context) => {

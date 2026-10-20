@@ -7,6 +7,7 @@
 - new Room Updated trigger
 - new Form Submitted trigger
 - new Form Filled Out trigger
+- new Find Room search
 
 ## 1.1.0
 - new inviteGuest action
