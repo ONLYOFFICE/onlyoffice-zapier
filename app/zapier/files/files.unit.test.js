@@ -155,6 +155,12 @@ test("creates a room with a numeric type", async () => {
   equal(z.calls[0].body, { roomType: 8, title: "VDR" })
 })
 
+test("creates a room with tags", async () => {
+  const z = fakeZ({ "POST /files/rooms": { id: 1 } })
+  await run(roomCreate.operation.perform, z, { inputData: { roomType: "5", tags: " Sales ", title: "Deals" } })
+  equal(z.calls[0].body, { roomType: 5, tags: ["Sales"], title: "Deals" })
+})
+
 test("returns the user of the shared room", async () => {
   const user = { email: "a@example.com", id: "u1" }
   const member = { sharedTo: { id: "old" }, sharedToUser: user }

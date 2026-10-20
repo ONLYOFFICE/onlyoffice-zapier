@@ -207,6 +207,7 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} RoomCreateBody
  * @property {string} title
  * @property {number} roomType
+ * @property {string[]=} tags DocSpace creates the tags that don't exist.
  */
 
 /**

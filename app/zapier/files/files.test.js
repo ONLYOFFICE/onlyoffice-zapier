@@ -179,6 +179,7 @@ Files("create a room", async (context) => {
   /** @type {RoomCreateFields} */
   const inputData = {
     roomType: "5",
+    tags: ["zapier-test-room"],
     title: "Test room"
   }
   const bundle = {
@@ -188,6 +189,7 @@ Files("create a room", async (context) => {
   const room = await tester(perform, bundle)
   context.inputData.rooms.roomId = room.id
   equal(bundle.inputData.title, room.title)
+  equal(room.tags, ["zapier-test-room"])
 })
 
 Files("triggers when a room is created", async (context) => {

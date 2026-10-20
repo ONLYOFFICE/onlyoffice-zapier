@@ -34,6 +34,7 @@
 - fix Remove User from Room in rooms with more than 100 members
 - Get External Link is now Get Room External Link and Share Room is now Add User to Room; Get Room External Link can get the link without creating it; room and user fields can use Find Room and Find User; clearer help texts
 - Add User to Room and Invite Guest can turn off the email or change its text
+- Create Room can add tags
 
 ## 1.1.0
 - new inviteGuest action

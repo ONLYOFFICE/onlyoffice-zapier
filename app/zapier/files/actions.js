@@ -118,6 +118,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {Object} RoomCreateFields
  * @property {string} title
  * @property {string} roomType
+ * @property {string[]|string=} tags
  */
 
 /**
@@ -822,9 +823,18 @@ const roomCreate = {
           "6": "Public room",
           "8": "Virtual Data Room"
         },
+        helpText: "A Public room can't be created if external sharing is turned off in the workspace.",
         key: "roomType",
         label: "Room type",
         required: true
+      },
+      {
+        dynamic: "tagsList.id.name",
+        helpText: "Choose existing tags or enter new ones.",
+        key: "tags",
+        label: "Tags",
+        list: true,
+        type: "string"
       }
     ],
     /**
@@ -835,9 +845,14 @@ const roomCreate = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
+      /** @type {import("../../docspace/files/files.js").RoomCreateBody} */
       const body = {
         roomType: Number(bundle.inputData.roomType),
         title: bundle.inputData.title
+      }
+      const tags = bundle.inputData.tags ? tagNames(bundle.inputData.tags) : []
+      if (tags.length > 0) {
+        body.tags = tags
       }
       return await files.createRoom(body)
     },
