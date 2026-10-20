@@ -96,6 +96,7 @@ At the moment, search for folders and files by name is available through the sec
 | Search | API method | Fields |
 | ------------- | ------------- | ------------- |
 | Find Room | [GET api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-folder) | Title |
+| Find User | [GET api/2.0/people/email](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/profiles/get-profile-by-email) | Email |
 
 
 ## Contribution

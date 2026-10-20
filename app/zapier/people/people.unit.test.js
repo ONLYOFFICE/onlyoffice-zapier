@@ -10,6 +10,7 @@ const { equal } = require("uvu/assert")
 const { test } = require("uvu")
 const { authData, fakeZ } = require("../z.fixture.js")
 const { inviteUser } = require("./actions.js")
+const { searchUser } = require("./searches.js")
 const { userAdded } = require("./triggers.js")
 
 test("returns an existing user without inviting them again", async () => {
@@ -49,6 +50,19 @@ test("requests users page by page", async () => {
   // @ts-ignore: a fake z object is enough.
   await userAdded.operation.perform(z, { authData, inputData: {}, meta: { page: 1 } })
   equal(z.calls[0].query, { count: "100", startIndex: "100" })
+})
+
+test("finds a user by email", async () => {
+  const user = { email: "john@example.com", id: "u1" }
+  const z = fakeZ({ "GET /people/email": (call) => (call.query.email === user.email ? user : null) })
+  // @ts-ignore: a fake z object is enough.
+  equal(await searchUser.operation.perform(z, { authData, inputData: { email: user.email } }), [user])
+})
+
+test("finds no user if the email is unknown", async () => {
+  const z = fakeZ({})
+  // @ts-ignore: a fake z object is enough.
+  equal(await searchUser.operation.perform(z, { authData, inputData: { email: "nobody@example.com" } }), [])
 })
 
 test.run()

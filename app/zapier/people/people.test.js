@@ -9,6 +9,7 @@ const { equal, not } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const { inviteUser } = require("./actions.js")
+const { searchUser } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
 const { userAdded } = require("./triggers.js")
 
@@ -58,6 +59,18 @@ People("returns an invited user without inviting them again", async (context) =>
   }
   const user = await tester(perform, bundle)
   equal(user.id, context.inputData.userId)
+})
+
+People("finds the invited user by email", async (context) => {
+  const { perform } = searchUser.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      email: "whatever@onlyoffice.io"
+    }
+  }
+  const users = await tester(perform, bundle)
+  equal(users[0].id, context.inputData.userId)
 })
 
 People("triggers when a user is added", async (context) => {

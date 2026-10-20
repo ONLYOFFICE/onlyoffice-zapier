@@ -59,6 +59,7 @@ const {
   searchRoom
 } = require("./zapier/files/searches.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
+const { searchUser } = require("./zapier/people/searches.js")
 const { userAdded } = require("./zapier/people/triggers.js")
 
 const App = {
@@ -92,7 +93,8 @@ const App = {
   searches: {
     [searchFile.key]: searchFile,
     [searchFolder.key]: searchFolder,
-    [searchRoom.key]: searchRoom
+    [searchRoom.key]: searchRoom,
+    [searchUser.key]: searchUser
   },
   triggers: {
     [fileCreated.key]: fileCreated,

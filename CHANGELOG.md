@@ -8,6 +8,7 @@
 - new Form Submitted trigger
 - new Form Filled Out trigger
 - new Find Room search
+- new Find User search
 
 ## 1.1.0
 - new inviteGuest action
