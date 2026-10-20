@@ -23,6 +23,7 @@
 - new Create File with Content action
 - new Get File External Link action
 - new Lock File and Unlock File actions
+- new Get Folder External Link action
 
 ## 1.1.0
 - new inviteGuest action

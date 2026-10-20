@@ -2236,6 +2236,58 @@ const unlockFile = {
   }
 }
 
+/**
+ * @typedef {Object} FolderExternalLinkFields
+ * @property {string=} id
+ * @property {string} folderId
+ * @property {boolean|string=} create
+ */
+
+const folderExternalLink = {
+  display: {
+    description: "Gets the primary external link of a folder. If the folder doesn't have one, creates it.",
+    label: "Get Folder External Link"
+  },
+  key: "folderExternalLink",
+  noun: "Link",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the folder. Use it to choose the folder from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        key: "folderId",
+        label: "Folder",
+        required: true,
+        search: "searchFolder.id",
+        type: "string"
+      },
+      createLinkField("folder")
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FolderExternalLinkFields>} bundle
+     * @returns {Promise<ExternalLinkData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const folderId = normalizeId(bundle.inputData.folderId)
+      // Boolean fields may come from Zapier as strings.
+      const create = String(bundle.inputData.create) === "true"
+      const createLink = create ? () => files.folderExternalLink(folderId) : undefined
+      return await primaryLink(z, files, "folder", folderId, createLink)
+    },
+    sample: samples.externalLink
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
@@ -2254,6 +2306,7 @@ module.exports = {
   downloadFileFromMyDocuments,
   externalLink,
   fileExternalLink,
+  folderExternalLink,
   getFile,
   getRoom,
   getRoomMembers,

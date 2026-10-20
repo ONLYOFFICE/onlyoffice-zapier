@@ -26,6 +26,7 @@ const {
   downloadFileFromMyDocuments,
   externalLink,
   fileExternalLink,
+  folderExternalLink,
   getFile,
   getRoom,
   getRoomMembers,
@@ -813,6 +814,19 @@ Files("lists the contents of the room", async (context) => {
   const result = await tester(listFolderContents.operation.perform, bundle)
   equal(result.folderId, context.inputData.rooms.roomId)
   equal(result.folders.some((folder) => folder.id === context.inputData.rooms.folderId), true)
+})
+
+Files("gets the external link of a folder", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      create: "true",
+      folderId: String(context.inputData.rooms.folderId)
+    }
+  }
+  const link = await tester(folderExternalLink.operation.perform, bundle)
+  equal(link.sharedLink?.primary, true)
+  equal(typeof link.sharedLink?.shareLink, "string")
 })
 
 Files("renames the folder of the room", async (context) => {

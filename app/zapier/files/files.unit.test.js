@@ -18,6 +18,7 @@ const {
   deleteFile,
   downloadFile,
   fileExternalLink,
+  folderExternalLink,
   getFile,
   getRoom,
   getRoomMembers,
@@ -944,6 +945,27 @@ test("locks and unlocks a file", async () => {
   const unlocked = await run(unlockFile.operation.perform, z, { inputData: { fileId: "7" } })
   equal(unlocked.locked, false)
   equal(z.calls[1].body, { lockFile: false })
+})
+
+test("gets the external link of a folder in third-party storage", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/2" } }
+  const z = fakeZ({ "GET /files/folder/sbox-8/links": [link] })
+  equal(await run(folderExternalLink.operation.perform, z, { inputData: { folderId: "sbox-8" } }), link)
+})
+
+test("gets the existing external link of a folder without creating one", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/2" } }
+  const z = fakeZ({ "GET /files/folder/8/links": [link] })
+  const result = await run(folderExternalLink.operation.perform, z, { inputData: { folderId: "8" } })
+  equal(result, link)
+})
+
+test("gets the external link of a folder", async () => {
+  const link = { access: 2, sharedLink: { shareLink: "https://example.com/s/2" } }
+  const z = fakeZ({ "GET /files/folder/8/link": link })
+  const inputData = { create: true, folderId: "8" }
+  const result = await run(folderExternalLink.operation.perform, z, { inputData })
+  equal(result, link)
 })
 
 test.run()

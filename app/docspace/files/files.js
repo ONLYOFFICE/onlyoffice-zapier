@@ -631,6 +631,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/folder/{{folderId}}/link
+   * ```
+   * @param {number|string} folderId
+   * @returns {Promise<ExternalLinkData>}
+   */
+  folderExternalLink(folderId) {
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}/link`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{id}}/link
    * ```
    * @param {number} id
