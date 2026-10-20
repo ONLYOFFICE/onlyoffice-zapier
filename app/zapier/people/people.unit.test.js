@@ -147,4 +147,60 @@ test("lists the disabled users", async () => {
   equal(z.calls[0].query.count, "100")
 })
 
+test("offers the user types that the current user can set", async () => {
+  const field = /** @type {Function} */ (changeUserType.operation.inputFields[1])
+  /**
+   * @param {Object} self
+   * @returns {Promise<string[]>}
+   */
+  async function choices(self) {
+    const z = fakeZ({ "GET /people/@self": self })
+    const [type] = await field(z, { authData, inputData: {} })
+    return Object.keys(type.choices || {}).sort()
+  }
+  equal(await choices({ isOwner: true }), [
+    "DocSpaceAdmin",
+    "Guest",
+    "RoomAdmin",
+    "User"
+  ])
+  equal(await choices({ isAdmin: true }), [
+    "Guest",
+    "RoomAdmin",
+    "User"
+  ])
+  equal(await choices({ isRoomAdmin: true }), [
+    "Guest",
+    "User"
+  ])
+  const [notice] = await field(fakeZ({ "GET /people/@self": {} }), { authData, inputData: {} })
+  equal(notice.type, "copy")
+  equal(notice.helpText, "Only Room admins and Full admins can change user types.")
+})
+
+test("explains that a user can't invite people", async () => {
+  const field = /** @type {Function} */ (inviteUser.operation.inputFields[1])
+  const [notice] = await field(fakeZ({ "GET /people/@self": { isVisitor: true } }), { authData, inputData: {} })
+  equal(notice.type, "copy")
+  const [type] = await field(fakeZ({ "GET /people/@self": { isRoomAdmin: true } }), { authData, inputData: {} })
+  equal(type.choices, { 4: "User" })
+})
+
+test("explains the lack of rights to change the user type", async () => {
+  const z = fakeZ({
+    "PUT /people/type/DocSpaceAdmin": () => {
+      throw new Error(JSON.stringify({ status: 403 }))
+    }
+  })
+  const inputData = { type: "DocSpaceAdmin", userId: "u1" }
+  try {
+    // @ts-ignore: a fake z object is enough.
+    await changeUserType.operation.perform(z, { authData, inputData })
+    throw new Error("Expected an error")
+  } catch (error) {
+    instance(error, ZapierError)
+    equal(String(error).includes("make this user a Full admin"), true)
+  }
+})
+
 test.run()

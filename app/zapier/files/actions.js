@@ -18,6 +18,7 @@ const { PeopleService } = require("../../docspace/people/people.js")
 const { downloadFile: downloadFileHydrator } = require("./hydrators.js")
 const { shareRoles } = require("./triggers.js")
 const { PAGE_SIZE } = require("../pagination.js")
+const { noRightsField } = require("../fields.js")
 const { Uploader } = require("./uploader.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
@@ -95,14 +96,6 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {Object} ExternalLinkFields
  * @property {number} id
  * @property {boolean|string=} create
- */
-
-/**
- * @typedef {Object} InvitedRole
- * @property {Record<number, string>} choices
- * @property {string} key
- * @property {string} label
- * @property {boolean} required
  */
 
 /**
@@ -728,7 +721,7 @@ const inviteGuest = {
       /**
        * @param {ZObject} z
        * @param {Bundle<SessionAuthenticationData, ShareRolesFields>} bundle
-       * @returns {Promise<InvitedRole[]>}
+       * @returns {Promise<Object[]>}
        */
       async function (z, bundle) {
         const client = new Client(bundle.authData.baseUrl, z.request)
@@ -746,14 +739,16 @@ const inviteGuest = {
             member.access === CONTENT_CREATOR
           )
         }
+        const roles = canInvite ? await shareRoles.operation.perform(z, bundle) : []
+        if (roles.length === 0) {
+          const notice = "Your account can't invite guests to this room. Check its user type and its role in the room."
+          return noRightsField(notice)
+        }
         /** @type {Record<number, string>} */
         const choices = {}
-        if (canInvite) {
-          const roles = await shareRoles.operation.perform(z, bundle)
-          for (let i = 0; i < roles.length; i = i + 1) {
-            const role = roles[i]
-            choices[role.id] = role.name
-          }
+        for (let i = 0; i < roles.length; i = i + 1) {
+          const role = roles[i]
+          choices[role.id] = role.name
         }
         return [{
           choices: choices,
@@ -886,12 +881,25 @@ const shareRoom = {
         search: "searchUser.id",
         type: "string"
       },
-      {
-        dynamic: "shareRoles.id.name",
-        key: "access",
-        label: "Role",
-        required: true,
-        type: "integer"
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData>} bundle
+       * @returns {Promise<Object[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        if (!user?.isOwner && !user?.isAdmin && !user?.isRoomAdmin) {
+          return noRightsField("Only Room admins and Full admins can add users to rooms.")
+        }
+        return [{
+          dynamic: "shareRoles.id.name",
+          key: "access",
+          label: "Role",
+          required: true,
+          type: "integer"
+        }]
       },
       ...INVITATION_FIELDS
     ],

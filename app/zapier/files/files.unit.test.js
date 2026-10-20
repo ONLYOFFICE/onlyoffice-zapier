@@ -628,6 +628,34 @@ test("keeps the ids of a file and a room in third-party storage", async () => {
   equal((await run(getRoom.operation.perform, z, { inputData: { id: "sbox-5" } })).id, "sbox-5")
 })
 
+test("explains that the account can't add users to rooms", async () => {
+  const field = /** @type {Function} */ (shareRoom.operation.inputFields[2])
+  const [notice] = await run(field, fakeZ({ "GET /people/@self": { isVisitor: true } }), { inputData: { roomId: "5" } })
+  equal(notice.type, "copy")
+  const [role] = await run(field, fakeZ({ "GET /people/@self": { isRoomAdmin: true } }), { inputData: { roomId: "5" } })
+  equal(role.dynamic, "shareRoles.id.name")
+})
+
+test("explains that the account can't invite guests to the room", async () => {
+  const field = /** @type {Function} */ (inviteGuest.operation.inputFields[2])
+  /**
+   * @param {number} access
+   * @returns {Promise<any>}
+   */
+  async function notice(access) {
+    const z = fakeZ({
+      "GET /files/rooms/5/share": [{ access, sharedToUser: { email: "a@example.com" } }],
+      "GET /people/@self": { email: "a@example.com" }
+    })
+    const [field0] = await run(field, z, { inputData: { roomId: "5" } })
+    return field0
+  }
+  // A form filler can't invite anyone.
+  equal((await notice(7)).type, "copy")
+  // A content creator with the User type gets no roles from DocSpace.
+  equal((await notice(11)).type, "copy")
+})
+
 test("gets a room by id", async () => {
   const z = fakeZ({ "GET /files/rooms/5": { id: "5", roomType: 2, title: "Sales" } })
   const room = await run(getRoom.operation.perform, z, { inputData: { id: "5" } })

@@ -4,9 +4,10 @@
 
 // @ts-check
 
-const { Client, isNotFoundError } = require("../../docspace/client/client.js")
+const { Client, isNotFoundError, responseStatus } = require("../../docspace/client/client.js")
 const { PeopleService } = require("../../docspace/people/people.js")
 const samples = require("../../docspace/people/people.samples.js")
+const { noRightsField } = require("../fields.js")
 
 /**
  * @typedef {import("../../docspace/auth/auth.js").SessionAuthenticationData} SessionAuthenticationData
@@ -62,12 +63,15 @@ const inviteUser = {
       /**
        * @param {ZObject} z
        * @param {Bundle<SessionAuthenticationData>} bundle
-       * @returns {Promise<InvitedRole[]>}
+       * @returns {Promise<Object[]>}
        */
       async function (z, bundle) {
         const client = new Client(bundle.authData.baseUrl, z.request)
         const people = new PeopleService(client)
         const user = await people.self()
+        if (!user?.isOwner && !user?.isAdmin && !user?.isRoomAdmin) {
+          return noRightsField("Only Room admins and Full admins can invite people to the workspace.")
+        }
         /** @type {Record<number, string>} */
         const choices = {}
         if (user?.isRoomAdmin) {
@@ -96,6 +100,13 @@ const inviteUser = {
      * @returns {Promise<User>}
      */
     async perform(z, bundle) {
+      if (!bundle.inputData.type) {
+        throw new z.errors.Error(
+          "Choose the user type. Only Room admins and Full admins can invite people.",
+          "InvalidData",
+          400
+        )
+      }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
       const { email } = bundle.inputData
@@ -129,6 +140,36 @@ const TYPES_WITHOUT_ROOMS = [
 const TYPE_UPDATE_CHECKS = 40
 const TYPE_UPDATE_DELAY = 500
 
+/** @type {Record<string, string>} */
+const USER_TYPES = {
+  DocSpaceAdmin: "Full admin",
+  Guest: "Guest",
+  RoomAdmin: "Room admin",
+  User: "User"
+}
+
+/**
+ * Room admins can set User and Guest. Full admins can also set Room admin.
+ * The owner can also set Full admin.
+ * @param {User} user
+ * @returns {Record<string, string>}
+ */
+function allowedUserTypes(user) {
+  /** @type {Record<string, string>} */
+  const choices = {}
+  if (user.isOwner || user.isAdmin || user.isRoomAdmin) {
+    choices.Guest = USER_TYPES.Guest
+    choices.User = USER_TYPES.User
+  }
+  if (user.isOwner || user.isAdmin) {
+    choices.RoomAdmin = USER_TYPES.RoomAdmin
+  }
+  if (user.isOwner) {
+    choices.DocSpaceAdmin = USER_TYPES.DocSpaceAdmin
+  }
+  return choices
+}
+
 /**
  * @typedef {Object} ChangeUserTypeFields
  * @property {string} userId
@@ -152,19 +193,28 @@ const changeUserType = {
         search: "searchUser.id",
         type: "string"
       },
-      {
-        choices: {
-          DocSpaceAdmin: "Full admin",
-          Guest: "Guest",
-          RoomAdmin: "Room admin",
-          User: "User"
-        },
-        helpText: "Room admins and Full admins take a paid seat. " +
-          "If the user becomes a User or a Guest, their rooms and shared files go to you.",
-        key: "type",
-        label: "User type",
-        required: true,
-        type: "string"
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData>} bundle
+       * @returns {Promise<Object[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        const choices = allowedUserTypes(user)
+        if (Object.keys(choices).length === 0) {
+          return noRightsField("Only Room admins and Full admins can change user types.")
+        }
+        return [{
+          choices,
+          helpText: "Room admins and Full admins take a paid seat. " +
+            "If the user becomes a User or a Guest, their rooms and shared files go to you.",
+          key: "type",
+          label: "User type",
+          required: true,
+          type: "string"
+        }]
       }
     ],
     /**
@@ -173,25 +223,45 @@ const changeUserType = {
      * @returns {Promise<User>}
      */
     async perform(z, bundle) {
+      const { type, userId } = bundle.inputData
+      if (!type) {
+        throw new z.errors.Error(
+          "Choose the user type. Only Room admins and Full admins can change it.",
+          "InvalidData",
+          400
+        )
+      }
       const client = new Client(bundle.authData.baseUrl, z.request)
       const people = new PeopleService(client)
-      const { type, userId } = bundle.inputData
-      if (TYPES_WITHOUT_ROOMS.includes(type)) {
-        let progress = await people.startUserTypeUpdate({ type, userId })
-        let checks = 0
-        while (!progress.isCompleted && !progress.error && checks < TYPE_UPDATE_CHECKS) {
-          await new Promise((resolve) => setTimeout(resolve, TYPE_UPDATE_DELAY))
-          progress = await people.userTypeUpdateProgress(userId)
-          checks = checks + 1
+      try {
+        if (TYPES_WITHOUT_ROOMS.includes(type)) {
+          let progress = await people.startUserTypeUpdate({ type, userId })
+          let checks = 0
+          while (!progress.isCompleted && !progress.error && checks < TYPE_UPDATE_CHECKS) {
+            await new Promise((resolve) => setTimeout(resolve, TYPE_UPDATE_DELAY))
+            progress = await people.userTypeUpdateProgress(userId)
+            checks = checks + 1
+          }
+          if (progress.error) {
+            throw new z.errors.Error(progress.error, "OperationFailed")
+          }
+          if (!progress.isCompleted) {
+            throw new z.errors.Error("The user type is still being changed. Check the user later.", "Timeout", 408)
+          }
+        } else {
+          await people.updateUserType(type, [userId])
         }
-        if (progress.error) {
-          throw new z.errors.Error(progress.error, "OperationFailed")
+      } catch (error) {
+        // DocSpace gives no clear message for these errors.
+        const name = USER_TYPES[type] || type
+        const status = responseStatus(error)
+        if (status === 403) {
+          throw new z.errors.Error(`You don't have the rights to make this user a ${name}.`, "Forbidden", 403)
         }
-        if (!progress.isCompleted) {
-          throw new z.errors.Error("The user type is still being changed. Check the user later.", "Timeout", 408)
+        if (status === 402) {
+          throw new z.errors.Error(`The tariff has no free seat for one more ${name}.`, "PaymentRequired", 402)
         }
-      } else {
-        await people.updateUserType(type, [userId])
+        throw error
       }
       return await people.user(userId)
     },
