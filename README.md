@@ -74,6 +74,7 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Get Folder External Link | [GET api/2.0/files/folder/{folderId}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/get-folder-primary-external-link) | Room id, Folder id |
 | Get External Link | [GET api/2.0/files/rooms/{id}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-primary-external-link) | Room id |
 | Create Room | [POST api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room) | Title, Type |
+| Create Room from Template | [POST api/2.0/files/rooms/fromtemplate](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room-from-template) | Template id, Title |
 | Share Room | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room id, User id, Role |
 | Upload File | [POST api/2.0/files/{folderId}/session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/create-upload-session-in-folder) | Room id, Folder id, URL or File |
 | Upload File to Files Section | [POST api/2.0/files/{folderId}/session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/create-upload-session-in-folder) | Folder id, URL or File |

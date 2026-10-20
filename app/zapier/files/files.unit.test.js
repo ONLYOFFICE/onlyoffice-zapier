@@ -15,6 +15,7 @@ const {
   copyFile,
   copyFolder,
   createFileWithContent,
+  createRoomFromTemplate,
   deleteFile,
   downloadFile,
   fileExternalLink,
@@ -50,6 +51,7 @@ const {
   roomCreated,
   roomsFiltered,
   roomTagsList,
+  roomTemplatesList,
   roomUpdated,
   shareRoles,
   tagsList,
@@ -966,6 +968,35 @@ test("gets the external link of a folder", async () => {
   const inputData = { create: true, folderId: "8" }
   const result = await run(folderExternalLink.operation.perform, z, { inputData })
   equal(result, link)
+})
+
+test("creates a room from a template", async () => {
+  const z = fakeZ({
+    "GET /files/rooms/9": { id: "9", title: "Sales Q4" },
+    "GET /files/rooms/fromtemplate/status": { error: "", isCompleted: true, progress: 100, roomId: 9 },
+    "POST /files/rooms/fromtemplate": { error: "", isCompleted: false, progress: 0, roomId: -1 }
+  })
+  const inputData = { templateId: "4", title: "Sales Q4" }
+  const room = await run(createRoomFromTemplate.operation.perform, z, { inputData })
+  equal(room.id, 9)
+  equal(z.calls[0].body, { templateId: 4, title: "Sales Q4" })
+})
+
+test("fails creating a room from a template with an error", async () => {
+  const z = fakeZ({
+    "POST /files/rooms/fromtemplate": { error: "Access denied", isCompleted: true, progress: 100, roomId: -1 }
+  })
+  const inputData = { templateId: "4", title: "Sales Q4" }
+  const error = await caught(() => run(createRoomFromTemplate.operation.perform, z, { inputData }))
+  instance(error, HaltedError)
+  equal(z.calls.length, 1)
+})
+
+test("lists the room templates", async () => {
+  const z = fakeZ({ "GET /files/rooms": { folders: [{ id: "4", title: "Sales" }] } })
+  const templates = await run(roomTemplatesList.operation.perform, z, {})
+  equal(templates[0].id, 4)
+  equal(z.calls[0].query.searchArea, "Templates")
 })
 
 test.run()

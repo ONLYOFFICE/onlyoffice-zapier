@@ -2288,6 +2288,72 @@ const folderExternalLink = {
   }
 }
 
+// DocSpace creates a room from a template in the background, so check its
+// status.
+const ROOM_FROM_TEMPLATE_CHECKS = 40
+const ROOM_FROM_TEMPLATE_DELAY = 500
+
+/**
+ * @typedef {Object} CreateRoomFromTemplateFields
+ * @property {string} templateId
+ * @property {string} title
+ */
+
+const createRoomFromTemplate = {
+  display: {
+    description: "Creates a room from a room template.",
+    label: "Create Room from Template"
+  },
+  key: "createRoomFromTemplate",
+  noun: "Room",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "roomTemplatesList.id.title",
+        key: "templateId",
+        label: "Template",
+        required: true,
+        type: "string"
+      },
+      {
+        key: "title",
+        label: "Title",
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, CreateRoomFromTemplateFields>} bundle
+     * @returns {Promise<RoomData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      let status = await files.createRoomFromTemplate({
+        templateId: Number(bundle.inputData.templateId),
+        title: bundle.inputData.title
+      })
+      let checks = 0
+      while (!status.isCompleted && !status.error && checks < ROOM_FROM_TEMPLATE_CHECKS) {
+        await new Promise((resolve) => setTimeout(resolve, ROOM_FROM_TEMPLATE_DELAY))
+        status = await files.roomFromTemplateStatus()
+        checks = checks + 1
+      }
+      if (status.error) {
+        throw new z.errors.HaltedError(status.error)
+      }
+      if (!status.isCompleted) {
+        throw new z.errors.Error("The room is still being created. Check the Rooms section later.", "Timeout", 408)
+      }
+      const room = await files.roomInfo(status.roomId)
+      room.id = normalizeId(room.id)
+      return room
+    },
+    sample: samples.room
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
@@ -2299,6 +2365,7 @@ module.exports = {
   createFileWithContent,
   createFolder,
   createFolderInMyDocuments,
+  createRoomFromTemplate,
   deleteFile,
   deleteFolder,
   deleteFolderInMyDocuments,

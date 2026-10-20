@@ -24,6 +24,7 @@
 - new Get File External Link action
 - new Lock File and Unlock File actions
 - new Get Folder External Link action
+- new Create Room from Template action
 
 ## 1.1.0
 - new inviteGuest action

@@ -164,6 +164,22 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} RoomFromTemplateStatus
+ * @property {number} roomId -1 until the room is created.
+ * @property {number} progress
+ * @property {string} error
+ * @property {boolean} isCompleted
+ */
+
+/**
+ * @typedef {Object} RoomTemplateStatus
+ * @property {number} templateId -1 until the template is created.
+ * @property {number} progress
+ * @property {string} error
+ * @property {boolean} isCompleted
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} Operation
@@ -388,6 +404,64 @@ class FilesService extends Service {
   listTags(filters) {
     const url = this.client.url("/files/tags", filters)
     return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/rooms/fromtemplate
+   * ```
+   * @param {{templateId: number, title: string}} body
+   * @returns {Promise<RoomFromTemplateStatus>}
+   */
+  createRoomFromTemplate(body) {
+    const url = this.client.url("/files/rooms/fromtemplate")
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/rooms/fromtemplate/status
+   * ```
+   * @returns {Promise<RoomFromTemplateStatus>}
+   */
+  roomFromTemplateStatus() {
+    const url = this.client.url("/files/rooms/fromtemplate/status")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/roomtemplate
+   * ```
+   * @param {{roomId: number, title: string}} body
+   * @returns {Promise<RoomTemplateStatus>}
+   */
+  createRoomTemplate(body) {
+    const url = this.client.url("/files/roomtemplate")
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/roomtemplate/status
+   * ```
+   * @returns {Promise<RoomTemplateStatus>}
+   */
+  roomTemplateStatus() {
+    const url = this.client.url("/files/roomtemplate/status")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * DELETE /files/rooms/{{id}}
+   * ```
+   * @param {number|string} id A room or a room template.
+   * @returns {Promise<ProgressData>}
+   */
+  deleteRoom(id) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}`)
+    return this.client.request("DELETE", url, { deleteAfter: false })
   }
 
   /**

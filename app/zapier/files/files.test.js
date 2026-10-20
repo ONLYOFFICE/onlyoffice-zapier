@@ -19,6 +19,7 @@ const {
   createFileWithContent,
   createFolder,
   createFolderInMyDocuments,
+  createRoomFromTemplate,
   deleteFile,
   deleteFolder,
   deleteFolderInMyDocuments,
@@ -70,6 +71,7 @@ const {
   roomCreated,
   roomsFiltered,
   roomTagsList,
+  roomTemplatesList,
   roomUpdated,
   shareRoles,
   tagsList,
@@ -82,7 +84,8 @@ const {
   searchRoom
 } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
-const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
+const { Client, CONTENT_CREATOR } = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
 
 /**
  * @typedef {import("./actions.js").ArchiveRoomFields} ArchiveRoomFields
@@ -314,6 +317,36 @@ Files("removes the invited user from the room", async (context) => {
   }
   const result = await tester(removeUserFromRoom.operation.perform, bundle)
   equal(result.status, "Removed")
+})
+
+Files("creates a room from a template", async (context) => {
+  const roomId = context.inputData.rooms.roomId
+  const templateId = await tester(async (/** @type {any} */ z, /** @type {any} */ bundle) => {
+    const files = new FilesService(new Client(bundle.authData.baseUrl, z.request))
+    let status = await files.createRoomTemplate({ roomId, title: "Test template" })
+    for (let i = 0; i < 40 && !status.isCompleted; i = i + 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      status = await files.roomTemplateStatus()
+    }
+    return status.templateId
+  }, { authData: context.authData })
+  const templates = await tester(roomTemplatesList.operation.perform, { authData: context.authData })
+  equal(templates.some((template) => template.id === templateId), true)
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      templateId: String(templateId),
+      title: "Room from template"
+    }
+  }
+  const room = await tester(createRoomFromTemplate.operation.perform, bundle)
+  equal(room.title, "Room from template")
+  // Archive the room, because active rooms count toward the room limit.
+  await tester(archiveRoom.operation.perform, { authData: context.authData, inputData: { id: room.id } })
+  await tester(async (/** @type {any} */ z, /** @type {any} */ bundle) => {
+    const files = new FilesService(new Client(bundle.authData.baseUrl, z.request))
+    return files.deleteRoom(templateId)
+  }, { authData: context.authData })
 })
 
 Files("gets the members of the room", async (context) => {

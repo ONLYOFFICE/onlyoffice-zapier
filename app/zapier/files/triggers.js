@@ -1159,6 +1159,34 @@ async function performRoomArchived(z, bundle) {
   return rooms.folders
 }
 
+const roomTemplatesList = {
+  display: {
+    description: "Hidden trigger to get a list of room templates.",
+    hidden: true,
+    label: "List of Room Templates"
+  },
+  key: "roomTemplatesList",
+  noun: "Template",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const templates = await files.listRooms({ ...pageFilters(bundle), searchArea: "Templates" })
+      templates.folders.forEach((template) => {
+        template.id = normalizeId(template.id)
+      })
+      return templates.folders
+    },
+    sample: samples.room
+  }
+}
+
 const archivedRoomsList = {
   display: {
     description: "Hidden trigger to get a list of archived rooms.",
@@ -1436,6 +1464,7 @@ module.exports = {
   roomArchived,
   roomCreated,
   roomTagsList,
+  roomTemplatesList,
   roomUpdated,
   roomsFiltered,
   shareRoles,
