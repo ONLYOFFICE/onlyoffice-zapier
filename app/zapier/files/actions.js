@@ -1066,6 +1066,72 @@ const deleteFile = {
   }
 }
 
+/**
+ * @typedef {Object} RenameFileFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ * @property {string} title
+ */
+
+const renameFile = {
+  display: {
+    description: "Renames a file.",
+    label: "Rename File"
+  },
+  key: "renameFile",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the file. Use it to choose the file from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "string"
+      },
+      {
+        helpText: "Without an extension, the file keeps its current extension.",
+        key: "title",
+        label: "New title",
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RenameFileFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const file = await files.renameFile(normalizeId(bundle.inputData.fileId), bundle.inputData.title)
+      file.id = normalizeId(file.id)
+      file.title = stripExtension(file.title)
+      return file
+    },
+    sample: samples.file
+  }
+}
+
 module.exports = {
   archiveRoom,
   createFile,
@@ -1081,6 +1147,7 @@ module.exports = {
   getFile,
   getRoom,
   inviteGuest,
+  renameFile,
   roomCreate,
   shareRoom,
   uploadFile,

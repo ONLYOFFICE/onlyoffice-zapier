@@ -15,6 +15,7 @@ const {
   getFile,
   getRoom,
   inviteGuest,
+  renameFile,
   roomCreate,
   shareRoom
 } = require("./actions.js")
@@ -554,6 +555,19 @@ test("fails deleting a file when the operation fails", async () => {
   const error = await caught(() => run(deleteFile.operation.perform, z, { inputData: { fileId: "7" } }))
   instance(error, HaltedError)
   equal(z.calls[0].body.immediately, false)
+})
+
+test("renames a file in third-party storage", async () => {
+  const z = fakeZ({ "PUT /files/file/sbox-7": { id: "sbox-7", title: "Contract.docx" } })
+  const file = await run(renameFile.operation.perform, z, { inputData: { fileId: "sbox-7", title: "Contract" } })
+  equal(file.id, "sbox-7")
+})
+
+test("renames a file", async () => {
+  const z = fakeZ({ "PUT /files/file/7": (call) => ({ id: 7, title: `${call.body.title}.docx` }) })
+  const file = await run(renameFile.operation.perform, z, { inputData: { fileId: "7", title: "Contract" } })
+  equal(file.title, "Contract")
+  equal(z.calls[0].body, { title: "Contract" })
 })
 
 test.run()

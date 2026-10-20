@@ -23,6 +23,7 @@ const {
   getFile,
   getRoom,
   inviteGuest,
+  renameFile,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -607,6 +608,26 @@ Files("search a file ignoring the case of the title", async (context) => {
   }
   const files = await tester(perform, bundle)
   not.equal(files.length, 0)
+})
+
+Files("renames a file", async (context) => {
+  const file = await tester(createFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId,
+      title: "File to rename"
+    }
+  })
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(file.id),
+      title: "Renamed file"
+    }
+  }
+  const renamed = await tester(renameFile.operation.perform, bundle)
+  equal(renamed.title, "Renamed file")
+  equal(renamed.fileExst, ".docx")
 })
 
 Files("deletes a file permanently", async (context) => {

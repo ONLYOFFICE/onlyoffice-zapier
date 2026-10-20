@@ -399,6 +399,19 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/file/{{fileId}}
+   * ```
+   * @param {number|string} fileId
+   * @param {string} title
+   * @returns {Promise<FileData>}
+   */
+  renameFile(fileId, title) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}`)
+    return this.client.request("PUT", url, { title })
+  }
+
+  /**
+   * ```http
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId
