@@ -10,11 +10,16 @@ const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const {
   changeUserType,
+  disableUser,
+  enableUser,
   inviteUser
 } = require("./actions.js")
 const { searchUser } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
-const { userAdded } = require("./triggers.js")
+const {
+  disabledUsersList,
+  userAdded
+} = require("./triggers.js")
 
 /**
  * @typedef {import("./actions.js").InviteUserFields} InviteUserFields
@@ -89,6 +94,19 @@ People("changes the type of the invited user and back", async (context) => {
   })
   equal(user.isRoomAdmin, false)
   equal(user.isCollaborator, true)
+})
+
+People("disables the invited user and enables them again", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: { userId: context.inputData.userId }
+  }
+  const disabled = await tester(disableUser.operation.perform, bundle)
+  equal(disabled.status, 2)
+  const users = await tester(disabledUsersList.operation.perform, { authData: context.authData })
+  equal(users.some((user) => user.id === context.inputData.userId), true)
+  const enabled = await tester(enableUser.operation.perform, bundle)
+  not.equal(enabled.status, 2)
 })
 
 People("triggers when a user is added", async (context) => {

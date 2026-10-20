@@ -43,6 +43,31 @@ const userAdded = {
   }
 }
 
+const disabledUsersList = {
+  display: {
+    description: "Hidden trigger to get a list of disabled users.",
+    hidden: true,
+    label: "List of Disabled Users"
+  },
+  key: "disabledUsersList",
+  noun: "User",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<User[]>}
+     */
+    perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const people = new PeopleService(client)
+      return people.listUsersByStatus("Terminated", pageFilters(bundle))
+    },
+    sample: samples.user
+  }
+}
+
 module.exports = {
+  disabledUsersList,
   userAdded
 }

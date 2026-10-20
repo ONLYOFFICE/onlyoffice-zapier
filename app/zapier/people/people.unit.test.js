@@ -11,10 +11,15 @@ const { test } = require("uvu")
 const { authData, fakeZ, HaltedError } = require("../z.fixture.js")
 const {
   changeUserType,
+  disableUser,
+  enableUser,
   inviteUser
 } = require("./actions.js")
 const { searchUser } = require("./searches.js")
-const { userAdded } = require("./triggers.js")
+const {
+  disabledUsersList,
+  userAdded
+} = require("./triggers.js")
 
 test("returns an existing user without inviting them again", async () => {
   const user = { displayName: "John Doe", email: "john@example.com", id: "u1" }
@@ -106,6 +111,40 @@ test("fails changing the user type with an error", async () => {
   } catch (error) {
     instance(error, HaltedError)
   }
+})
+
+test("disables and enables a user", async () => {
+  const z = fakeZ({
+    "PUT /people/status/Active": [{ id: "u1", status: 1 }],
+    "PUT /people/status/Terminated": [{ id: "u1", status: 2 }]
+  })
+  const inputData = { userId: "u1" }
+  // @ts-ignore: a fake z object is enough.
+  const disabled = await disableUser.operation.perform(z, { authData, inputData })
+  equal(disabled.status, 2)
+  // @ts-ignore: a fake z object is enough.
+  const enabled = await enableUser.operation.perform(z, { authData, inputData })
+  equal(enabled.status, 1)
+  equal(z.calls[0].body, { userIds: ["u1"] })
+})
+
+test("fails if the status of the user isn't changed", async () => {
+  const z = fakeZ({ "PUT /people/status/Terminated": [] })
+  try {
+    // @ts-ignore: a fake z object is enough.
+    await disableUser.operation.perform(z, { authData, inputData: { userId: "u1" } })
+    throw new Error("Expected an error")
+  } catch (error) {
+    instance(error, HaltedError)
+  }
+})
+
+test("lists the disabled users", async () => {
+  const z = fakeZ({ "GET /people/status/Terminated": [{ id: "u1" }] })
+  // @ts-ignore: a fake z object is enough.
+  const users = await disabledUsersList.operation.perform(z, { authData })
+  equal(users, [{ id: "u1" }])
+  equal(z.calls[0].query.count, "100")
 })
 
 test.run()

@@ -130,6 +130,32 @@ class PeopleService extends Service {
 
   /**
    * ```http
+   * PUT /people/status/{{status}}
+   * ```
+   * @param {"Active"|"Terminated"} status Terminated disables users.
+   * @param {string[]} userIds
+   * @returns {Promise<User[]>}
+   */
+  updateUserStatus(status, userIds) {
+    const url = this.client.url(`/people/status/${status}`)
+    return this.client.request("PUT", url, { userIds })
+  }
+
+  /**
+   * ```http
+   * GET /people/status/{{status}}
+   * ```
+   * @param {"Active"|"Terminated"} status
+   * @param {Filters=} filters
+   * @returns {Promise<User[]>}
+   */
+  listUsersByStatus(status, filters) {
+    const url = this.client.url(`/people/status/${status}`, filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * PUT /people/type/{{type}}
    * ```
    * @param {string} type For example, RoomAdmin.

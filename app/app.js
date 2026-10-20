@@ -81,6 +81,8 @@ const {
 const hydrators = require("./zapier/files/hydrators")
 const {
   changeUserType,
+  disableUser,
+  enableUser,
   inviteUser
 } = require("./zapier/people/actions.js")
 const {
@@ -90,7 +92,10 @@ const {
 } = require("./zapier/files/searches.js")
 const { sessionAuth } = require("./zapier/auth/auth.js")
 const { searchUser } = require("./zapier/people/searches.js")
-const { userAdded } = require("./zapier/people/triggers.js")
+const {
+  disabledUsersList,
+  userAdded
+} = require("./zapier/people/triggers.js")
 
 const App = {
   authentication: sessionAuth,
@@ -113,8 +118,10 @@ const App = {
     [deleteFile.key]: deleteFile,
     [deleteFolder.key]: deleteFolder,
     [deleteFolderInMyDocuments.key]: deleteFolderInMyDocuments,
+    [disableUser.key]: disableUser,
     [downloadFile.key]: downloadFile,
     [downloadFileFromMyDocuments.key]: downloadFileFromMyDocuments,
+    [enableUser.key]: enableUser,
     [externalLink.key]: externalLink,
     [fileExternalLink.key]: fileExternalLink,
     [folderExternalLink.key]: folderExternalLink,
@@ -152,6 +159,7 @@ const App = {
   triggers: {
     [archivedRoomsList.key]: archivedRoomsList,
     [destinationFoldersList.key]: destinationFoldersList,
+    [disabledUsersList.key]: disabledUsersList,
     [fileCreated.key]: fileCreated,
     [fileCreatedInMyDocuments.key]: fileCreatedInMyDocuments,
     [fileDeleted.key]: fileDeleted,
