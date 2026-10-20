@@ -12,6 +12,7 @@
 - new Get File and Get Room actions
 - new Delete File action
 - new Rename File action
+- new Rename Folder action
 
 ## 1.1.0
 - new inviteGuest action

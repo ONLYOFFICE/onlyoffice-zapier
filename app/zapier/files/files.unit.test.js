@@ -16,6 +16,7 @@ const {
   getRoom,
   inviteGuest,
   renameFile,
+  renameFolder,
   roomCreate,
   shareRoom
 } = require("./actions.js")
@@ -568,6 +569,19 @@ test("renames a file", async () => {
   const file = await run(renameFile.operation.perform, z, { inputData: { fileId: "7", title: "Contract" } })
   equal(file.title, "Contract")
   equal(z.calls[0].body, { title: "Contract" })
+})
+
+test("renames a folder in third-party storage", async () => {
+  const z = fakeZ({ "PUT /files/folder/sbox-8": { id: "sbox-8", title: "Reports" } })
+  const folder = await run(renameFolder.operation.perform, z, { inputData: { folderId: "sbox-8", title: "Reports" } })
+  equal(folder.id, "sbox-8")
+})
+
+test("renames a folder", async () => {
+  const z = fakeZ({ "PUT /files/folder/8": (call) => ({ id: "8", title: call.body.title }) })
+  const folder = await run(renameFolder.operation.perform, z, { inputData: { folderId: "8", title: "Reports" } })
+  equal(folder.id, 8)
+  equal(folder.title, "Reports")
 })
 
 test.run()

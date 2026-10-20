@@ -1132,6 +1132,61 @@ const renameFile = {
   }
 }
 
+/**
+ * @typedef {Object} RenameFolderFields
+ * @property {string=} id
+ * @property {string} folderId
+ * @property {string} title
+ */
+
+const renameFolder = {
+  display: {
+    description: "Renames a folder.",
+    label: "Rename Folder"
+  },
+  key: "renameFolder",
+  noun: "Folder",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the folder. Use it to choose the folder from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        key: "folderId",
+        label: "Folder",
+        required: true,
+        search: "searchFolder.id",
+        type: "string"
+      },
+      {
+        key: "title",
+        label: "New title",
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RenameFolderFields>} bundle
+     * @returns {Promise<FolderData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const folder = await files.renameFolder(normalizeId(bundle.inputData.folderId), bundle.inputData.title)
+      folder.id = normalizeId(folder.id)
+      return folder
+    },
+    sample: samples.folder
+  }
+}
+
 module.exports = {
   archiveRoom,
   createFile,
@@ -1148,6 +1203,7 @@ module.exports = {
   getRoom,
   inviteGuest,
   renameFile,
+  renameFolder,
   roomCreate,
   shareRoom,
   uploadFile,

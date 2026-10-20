@@ -412,6 +412,19 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/folder/{{folderId}}
+   * ```
+   * @param {number|string} folderId
+   * @param {string} title
+   * @returns {Promise<FolderData>}
+   */
+  renameFolder(folderId, title) {
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
+    return this.client.request("PUT", url, { title })
+  }
+
+  /**
+   * ```http
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId

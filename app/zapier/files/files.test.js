@@ -24,6 +24,7 @@ const {
   getRoom,
   inviteGuest,
   renameFile,
+  renameFolder,
   roomCreate,
   shareRoom,
   uploadFile,
@@ -647,6 +648,18 @@ Files("deletes a file permanently", async (context) => {
   }
   const result = await tester(deleteFile.operation.perform, bundle)
   equal(result.finished, true)
+})
+
+Files("renames the folder of the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      folderId: String(context.inputData.rooms.folderId),
+      title: "Test Folder renamed"
+    }
+  }
+  const folder = await tester(renameFolder.operation.perform, bundle)
+  equal(folder.title, "Test Folder renamed")
 })
 
 Files("delete a folder from room", async (context) => {
