@@ -542,6 +542,21 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * POST /files/{{folderId}}/text
+   * POST /files/{{folderId}}/html
+   * ```
+   * @param {number|string} folderId
+   * @param {"text"|"html"} format The text format creates a .txt file.
+   * @param {{title: string, content: string}} body
+   * @returns {Promise<FileData>}
+   */
+  createFileWithContent(folderId, format, body) {
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}/${format}`)
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
    * POST /files/file/{{fileId}}/copyas
    * ```
    * @param {number|string} fileId

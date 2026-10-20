@@ -1958,6 +1958,94 @@ const listFolderContents = {
   }
 }
 
+/**
+ * @typedef {Object} CreateFileWithContentFields
+ * @property {string} id
+ * @property {string=} folderId
+ * @property {string} title
+ * @property {string=} format
+ * @property {string} content
+ */
+
+const createFileWithContent = {
+  display: {
+    description: "Creates a text or HTML file with the given content in a room.",
+    label: "Create File with Content"
+  },
+  key: "createFileWithContent",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to create the file at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "string"
+      },
+      {
+        helpText: "The title of the file without an extension.",
+        key: "title",
+        label: "Title",
+        required: true,
+        type: "string"
+      },
+      {
+        choices: {
+          html: "HTML",
+          txt: "Plain text"
+        },
+        default: "txt",
+        key: "format",
+        label: "Format",
+        required: true,
+        type: "string"
+      },
+      {
+        key: "content",
+        label: "Content",
+        required: true,
+        type: "text"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, CreateFileWithContentFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const isHtml = bundle.inputData.format === "html"
+      const extension = isHtml ? ".html" : ".txt"
+      let { title } = bundle.inputData
+      // DocSpace adds the extension even if the title already has it.
+      if (title.toLowerCase().endsWith(extension)) {
+        title = title.slice(0, -extension.length)
+      }
+      const folderId = normalizeId(bundle.inputData.folderId || bundle.inputData.id)
+      const file = await files.createFileWithContent(folderId, isHtml ? "html" : "text", {
+        content: bundle.inputData.content,
+        title
+      })
+      file.id = normalizeId(file.id)
+      file.title = stripExtension(file.title)
+      return file
+    },
+    sample: samples.file
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
@@ -1966,6 +2054,7 @@ module.exports = {
   copyFolder,
   createFile,
   createFileInMyDocuments,
+  createFileWithContent,
   createFolder,
   createFolderInMyDocuments,
   deleteFile,

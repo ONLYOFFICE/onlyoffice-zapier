@@ -16,6 +16,7 @@ const {
   copyFolder,
   createFile,
   createFileInMyDocuments,
+  createFileWithContent,
   createFolder,
   createFolderInMyDocuments,
   deleteFile,
@@ -708,6 +709,22 @@ Files("renames a file", async (context) => {
   const renamed = await tester(renameFile.operation.perform, bundle)
   equal(renamed.title, "Renamed file")
   equal(renamed.fileExst, ".docx")
+})
+
+Files("creates a text file with content", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      content: "Hello from Zapier",
+      format: "txt",
+      id: String(context.inputData.rooms.roomId),
+      title: "Text file"
+    }
+  }
+  const file = await tester(createFileWithContent.operation.perform, bundle)
+  equal(file.title, "Text file")
+  equal(file.fileExst, ".txt")
+  equal(file.folderId, context.inputData.rooms.roomId)
 })
 
 Files("converts a file to pdf", async (context) => {

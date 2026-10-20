@@ -14,6 +14,7 @@ const {
   convertFile,
   copyFile,
   copyFolder,
+  createFileWithContent,
   deleteFile,
   downloadFile,
   getFile,
@@ -869,6 +870,30 @@ test("lists the contents of the folder instead of the room", async () => {
   equal(result.title, "Reports")
   equal(result.count, 0)
   equal(z.calls[0].query.count, "100")
+})
+
+test("creates a text file in third-party storage", async () => {
+  const z = fakeZ({ "POST /files/sbox-8/text": { id: "sbox-9", title: "Notes.txt" } })
+  const inputData = { content: "Hello", folderId: "sbox-8", id: "5", title: "Notes" }
+  const file = await run(createFileWithContent.operation.perform, z, { inputData })
+  equal(file.id, "sbox-9")
+})
+
+test("creates a text file with content", async () => {
+  const z = fakeZ({ "POST /files/5/text": (call) => ({ id: "7", title: `${call.body.title}.txt` }) })
+  const inputData = { content: "Hello", id: "5", title: "Notes.TXT" }
+  const file = await run(createFileWithContent.operation.perform, z, { inputData })
+  equal(file.id, 7)
+  equal(file.title, "Notes")
+  equal(z.calls[0].body, { content: "Hello", title: "Notes" })
+})
+
+test("creates an html file in a folder", async () => {
+  const z = fakeZ({ "POST /files/8/html": (call) => ({ id: 9, title: `${call.body.title}.html` }) })
+  const inputData = { content: "<p>Hi</p>", folderId: "8", format: "html", id: "5", title: "Page" }
+  const file = await run(createFileWithContent.operation.perform, z, { inputData })
+  equal(file.title, "Page")
+  equal(z.calls[0].path, "/files/8/html")
 })
 
 test.run()

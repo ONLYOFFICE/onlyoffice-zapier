@@ -60,6 +60,7 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Unarchive Room | [PUT api/2.0/files/rooms/{id}/unarchive](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/unarchive-room) | Room id |
 | Archive Room | [PUT api/2.0/files/rooms/{id}/archive](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/archive-room) | Room id |
 | Create File | [POST api/2.0/files/{folderId}/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-file) | Room id, Folder id, Title |
+| Create File with Content | [POST api/2.0/files/{folderId}/text](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-text-file), [POST api/2.0/files/{folderId}/html](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-html-file) | Room id, Folder id, Title, Format, Content |
 | Create File in Files Section | [POST api/2.0/files/@my/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-file-in-my-documents) | Folder id, Title |
 | Create Folder | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/create-folder) | Room id, Folder id, Title |
 | Create Folder in Files Section | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/create-folder) | Folder id, Title |

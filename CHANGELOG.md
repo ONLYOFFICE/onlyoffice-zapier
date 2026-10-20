@@ -20,6 +20,7 @@
 - new Add Room Tags and Remove Room Tags actions
 - new Convert File action
 - new List Folder Contents action
+- new Create File with Content action
 
 ## 1.1.0
 - new inviteGuest action
