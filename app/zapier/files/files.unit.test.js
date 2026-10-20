@@ -58,6 +58,7 @@ const {
   userInvited
 } = require("./triggers.js")
 const { pageFilters } = require("../pagination.js")
+const { Progress } = require("../../docspace/client/client.js")
 const { searchFile, searchRoom } = require("./searches.js")
 
 /**
@@ -117,6 +118,31 @@ test("fails archiving when the operation fails", async () => {
   const error = await caught(() => run(archiveRoom.operation.perform, z, { inputData: { id: 1 } }))
   instance(error, HaltedError)
   equal(/** @type {Error} */ (error).message, "Access denied")
+})
+
+test("fails copying a file when the operation is still running", async () => {
+  const operation = { error: "", finished: false, id: "op", progress: 40 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/copy": [operation]
+  })
+  // Use a fake clock, so that the test doesn't wait for the timeout.
+  const { now, wait } = Progress.prototype
+  let time = 0
+  Progress.prototype.now = () => time
+  Progress.prototype.wait = async (/** @type {number} */ delay) => {
+    time = time + delay
+  }
+  try {
+    const inputData = { destinationRoomId: "3", fileId: "7" }
+    const error = await caught(() => run(copyFile.operation.perform, z, { inputData }))
+    instance(error, Error)
+    equal(error instanceof HaltedError, false)
+    match(String(error), "still processing the operation")
+  } finally {
+    Progress.prototype.now = now
+    Progress.prototype.wait = wait
+  }
 })
 
 test("creates a room with a numeric type", async () => {

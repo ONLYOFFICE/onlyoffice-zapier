@@ -136,8 +136,8 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  */
 
 /**
- * Waits for an operation and fails the action if the operation fails. If the
- * operation is still running after the wait, its current state is returned.
+ * Waits for the operation. Fails if the operation fails or doesn't finish in
+ * time.
  * @param {ZObject} z
  * @param {Progress} progress
  * @returns {Promise<ProgressData>}
@@ -146,6 +146,13 @@ async function completeOperation(z, progress) {
   const result = await progress.complete()
   if (result.error) {
     throw new z.errors.HaltedError(result.error)
+  }
+  if (!result.finished) {
+    throw new z.errors.Error(
+      "The workspace is still processing the operation. It will finish in the background, check the result later.",
+      "OperationTimeout",
+      504
+    )
   }
   return result
 }

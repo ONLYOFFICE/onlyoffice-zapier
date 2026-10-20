@@ -27,6 +27,7 @@
 - new Create Room from Template action
 - new Change User Type action
 - new Disable User and Enable User actions
+- actions wait up to 20 seconds for long DocSpace operations
 
 ## 1.1.0
 - new inviteGuest action
