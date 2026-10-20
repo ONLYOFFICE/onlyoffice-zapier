@@ -265,7 +265,7 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} ShareRoomBody
  * @property {Invitations[]} invitations
  * @property {boolean} notify
- * @property {string} message
+ * @property {string=} message
  */
 
 /**
@@ -521,7 +521,7 @@ class FilesService extends Service {
    * ```http
    * PUT /files/rooms/{{id}}/share
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @param {ShareRoomBody} data
    * @returns {Promise<ShareList>}
    */
@@ -606,7 +606,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms/{{id}}/share
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @param {Filters} filters
    * @returns {Promise<UsersList>}
    */

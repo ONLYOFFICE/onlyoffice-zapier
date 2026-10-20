@@ -121,6 +121,12 @@ const externalLink = {
   subjectType: 4
 }
 
+const removedMember = {
+  roomId: 5,
+  status: "Removed",
+  userId: "11111111-2222-3333-4444-555555555555"
+}
+
 /** @type {InviteGuestData} */
 const inviteGuest = {
   status: "Invited"
@@ -224,6 +230,7 @@ module.exports = {
   inviteGuest,
   pathParts,
   progress,
+  removedMember,
   role,
   room,
   share,

@@ -1443,6 +1443,66 @@ const unarchiveRoom = {
   }
 }
 
+/**
+ * @typedef {Object} RemoveUserFromRoomFields
+ * @property {string} id
+ * @property {string} userId
+ */
+
+const removeUserFromRoom = {
+  display: {
+    description: "Removes a user from a room.",
+    label: "Remove User from Room"
+  },
+  key: "removeUserFromRoom",
+  noun: "User",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      },
+      {
+        dynamic: "userInvited.id.displayName",
+        helpText: "A member of the room. The room owner can't be removed.",
+        key: "userId",
+        label: "User",
+        required: true,
+        search: "searchUser.id",
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RemoveUserFromRoomFields>} bundle
+     * @returns {Promise<{roomId: number|string, status: string, userId: string}>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const roomId = normalizeId(bundle.inputData.id)
+      const { userId } = bundle.inputData
+      await files.shareRoom(roomId, {
+        invitations: [{ access: 0, id: userId }],
+        notify: false
+      })
+      // DocSpace gives the same answer when it ignores the removal, for example,
+      // of the room owner. So check the members.
+      const members = await files.listUsers(roomId, {})
+      if (members.some((item) => item.sharedToUser && item.sharedToUser.id === userId)) {
+        throw new z.errors.HaltedError("The user is still a member of the room. The room owner can't be removed.")
+      }
+      return { roomId, status: "Removed", userId }
+    },
+    sample: samples.removedMember
+  }
+}
+
 module.exports = {
   archiveRoom,
   copyFile,
@@ -1462,6 +1522,7 @@ module.exports = {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeUserFromRoom,
   renameFile,
   renameFolder,
   roomCreate,

@@ -19,6 +19,7 @@ const {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeUserFromRoom,
   renameFile,
   renameFolder,
   roomCreate,
@@ -677,6 +678,25 @@ test("unarchives a room and returns it", async () => {
   const room = await run(unarchiveRoom.operation.perform, z, { inputData: { id: "5" } })
   equal(room.id, 5)
   equal(room.rootFolderType, 14)
+})
+
+test("removes a user from a room", async () => {
+  const z = fakeZ({
+    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "PUT /files/rooms/5/share": { error: 0, members: [] }
+  })
+  const result = await run(removeUserFromRoom.operation.perform, z, { inputData: { id: "5", userId: "u1" } })
+  equal(result, { roomId: 5, status: "Removed", userId: "u1" })
+  equal(z.calls[0].body.invitations, [{ access: 0, id: "u1" }])
+})
+
+test("fails removing a user who is still a member", async () => {
+  const z = fakeZ({
+    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "PUT /files/rooms/5/share": { error: 0, members: [] }
+  })
+  const inputData = { id: "5", userId: "owner" }
+  instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), HaltedError)
 })
 
 test.run()

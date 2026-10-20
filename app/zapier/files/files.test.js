@@ -27,6 +27,7 @@ const {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeUserFromRoom,
   renameFile,
   renameFolder,
   roomCreate,
@@ -289,6 +290,18 @@ Files("triggers when a user invited to room", async (context) => {
   const users = await tester(perform, bundle)
   const user = users[1] // first user - me
   equal(user.id, context.inputData.user)
+})
+
+Files("removes the invited user from the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId),
+      userId: context.inputData.user
+    }
+  }
+  const result = await tester(removeUserFromRoom.operation.perform, bundle)
+  equal(result.status, "Removed")
 })
 
 Files("returns the links of a room", async (context) => {
