@@ -999,12 +999,80 @@ const getRoom = {
   }
 }
 
+/**
+ * @typedef {Object} DeleteFileFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ * @property {boolean|string=} immediately
+ */
+
+const deleteFile = {
+  display: {
+    description: "Moves a file to Trash or deletes it permanently.",
+    label: "Delete File"
+  },
+  key: "deleteFile",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the file. Use it to choose the file from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "string"
+      },
+      {
+        default: "false",
+        helpText: "Delete the file at once instead of moving it to Trash. It can't be restored.",
+        key: "immediately",
+        label: "Delete permanently",
+        type: "boolean"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, DeleteFileFields>} bundle
+     * @returns {Promise<ProgressData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      // Boolean fields may come from Zapier as strings.
+      const immediately = String(bundle.inputData.immediately) === "true"
+      const operation = await files.deleteFile(normalizeId(bundle.inputData.fileId), immediately)
+      const progress = new Progress(files.listOperations.bind(files), operation[0])
+      return completeOperation(z, progress)
+    },
+    sample: samples.progress
+  }
+}
+
 module.exports = {
   archiveRoom,
   createFile,
   createFileInMyDocuments,
   createFolder,
   createFolderInMyDocuments,
+  deleteFile,
   deleteFolder,
   deleteFolderInMyDocuments,
   downloadFile,

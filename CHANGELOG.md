@@ -10,6 +10,7 @@
 - new Find Room search
 - new Find User search
 - new Get File and Get Room actions
+- new Delete File action
 
 ## 1.1.0
 - new inviteGuest action

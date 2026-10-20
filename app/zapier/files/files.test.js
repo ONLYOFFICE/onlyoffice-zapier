@@ -14,6 +14,7 @@ const {
   createFileInMyDocuments,
   createFolder,
   createFolderInMyDocuments,
+  deleteFile,
   deleteFolder,
   deleteFolderInMyDocuments,
   downloadFile,
@@ -608,6 +609,25 @@ Files("search a file ignoring the case of the title", async (context) => {
   not.equal(files.length, 0)
 })
 
+Files("deletes a file permanently", async (context) => {
+  const file = await tester(createFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId,
+      title: "File to delete"
+    }
+  })
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(file.id),
+      immediately: true
+    }
+  }
+  const result = await tester(deleteFile.operation.perform, bundle)
+  equal(result.finished, true)
+})
+
 Files("delete a folder from room", async (context) => {
   const { perform } = deleteFolder.operation
   /** @type {DeleteFolderFields} */
@@ -622,7 +642,7 @@ Files("delete a folder from room", async (context) => {
   equal(result.finished, true)
 })
 
-// TODO: Add test for delete file action and trigger
+// TODO: Add test for the file deleted trigger
 
 Files("triggers when a folder is deleted", async (context) => {
   const { performList } = folderDeleted.operation

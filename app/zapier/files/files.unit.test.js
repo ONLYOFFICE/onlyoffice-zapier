@@ -10,6 +10,7 @@ const { equal, instance, match } = require("uvu/assert")
 const { test } = require("uvu")
 const {
   archiveRoom,
+  deleteFile,
   downloadFile,
   getFile,
   getRoom,
@@ -524,6 +525,35 @@ test("gets a room by id", async () => {
   const room = await run(getRoom.operation.perform, z, { inputData: { id: "5" } })
   equal(room.id, 5)
   equal(room.title, "Sales")
+})
+
+test("deletes a file in third-party storage", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({ "DELETE /files/file/sbox-7": [operation], "GET /files/fileops": [operation] })
+  await run(deleteFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(z.calls[0].path, "/files/file/sbox-7")
+})
+
+test("deletes a file and waits for the operation", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/file/7": [operation],
+    "GET /files/fileops": [operation]
+  })
+  const result = await run(deleteFile.operation.perform, z, { inputData: { fileId: "7", immediately: "true" } })
+  equal(result.finished, true)
+  equal(z.calls[0].body, { deleteAfter: false, immediately: true })
+})
+
+test("fails deleting a file when the operation fails", async () => {
+  const operation = { error: "Access denied", finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/file/7": [operation],
+    "GET /files/fileops": [operation]
+  })
+  const error = await caught(() => run(deleteFile.operation.perform, z, { inputData: { fileId: "7" } }))
+  instance(error, HaltedError)
+  equal(z.calls[0].body.immediately, false)
 })
 
 test.run()

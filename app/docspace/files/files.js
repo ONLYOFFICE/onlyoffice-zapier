@@ -386,6 +386,19 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * DELETE /files/file/{{fileId}}
+   * ```
+   * @param {number|string} fileId
+   * @param {boolean} immediately Don't move the file to Trash.
+   * @returns {Promise<ProgressData[]>}
+   */
+  deleteFile(fileId, immediately) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}`)
+    return this.client.request("DELETE", url, { deleteAfter: false, immediately })
+  }
+
+  /**
+   * ```http
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId
