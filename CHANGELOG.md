@@ -21,6 +21,7 @@
 - new Convert File action
 - new List Folder Contents action
 - new Create File with Content action
+- new Get File External Link action
 
 ## 1.1.0
 - new inviteGuest action

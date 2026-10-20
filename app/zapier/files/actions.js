@@ -2046,6 +2046,104 @@ const createFileWithContent = {
   }
 }
 
+/**
+ * Getting the link with `GET .../link` creates it if there is none. So without
+ * `createLink`, list the links instead, and stop if there is no primary link.
+ * @param {ZObject} z
+ * @param {FilesService} files
+ * @param {"file"|"folder"|"rooms"} entry
+ * @param {number|string} id
+ * @param {(() => Promise<ExternalLinkData>)=} createLink
+ * @returns {Promise<ExternalLinkData>}
+ */
+async function primaryLink(z, files, entry, id, createLink) {
+  if (createLink) {
+    return await createLink()
+  }
+  const links = await files.listLinks(entry, id)
+  const link = links.find((item) => (item.sharedLink || item.sharedTo).primary)
+  if (!link) {
+    const field = "Create the link if there is none"
+    throw new z.errors.HaltedError(`There is no external link. Turn on "${field}" to create it.`)
+  }
+  return link
+}
+
+/**
+ * @param {string} entry For example, "file".
+ * @returns {Object}
+ */
+function createLinkField(entry) {
+  return {
+    default: "false",
+    helpText: `If the ${entry} has no external link, create it with the default access of the room. ` +
+      "Otherwise, the Zap stops.",
+    key: "create",
+    label: "Create the link if there is none",
+    type: "boolean"
+  }
+}
+
+/**
+ * @typedef {Object} FileExternalLinkFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ * @property {boolean|string=} create
+ */
+
+const fileExternalLink = {
+  display: {
+    description: "Gets the primary external link of a file. If the file doesn't have one, creates it.",
+    label: "Get File External Link"
+  },
+  key: "fileExternalLink",
+  noun: "Link",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the file. Use it to choose the file from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "string"
+      },
+      createLinkField("file")
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, FileExternalLinkFields>} bundle
+     * @returns {Promise<ExternalLinkData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const fileId = normalizeId(bundle.inputData.fileId)
+      // Boolean fields may come from Zapier as strings.
+      const create = String(bundle.inputData.create) === "true"
+      return await primaryLink(z, files, "file", fileId, create ? () => files.fileExternalLink(fileId) : undefined)
+    },
+    sample: samples.externalLink
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
@@ -2063,6 +2161,7 @@ module.exports = {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  fileExternalLink,
   getFile,
   getRoom,
   getRoomMembers,

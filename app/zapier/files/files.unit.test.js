@@ -17,6 +17,7 @@ const {
   createFileWithContent,
   deleteFile,
   downloadFile,
+  fileExternalLink,
   getFile,
   getRoom,
   getRoomMembers,
@@ -894,6 +895,29 @@ test("creates an html file in a folder", async () => {
   const file = await run(createFileWithContent.operation.perform, z, { inputData })
   equal(file.title, "Page")
   equal(z.calls[0].path, "/files/8/html")
+})
+
+test("gets the external link of a file in third-party storage", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/1" } }
+  const z = fakeZ({ "GET /files/file/sbox-7/links": [link] })
+  equal(await run(fileExternalLink.operation.perform, z, { inputData: { fileId: "sbox-7" } }), link)
+})
+
+test("gets the existing external link of a file without creating one", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/1" } }
+  const z = fakeZ({ "GET /files/file/7/links": [link] })
+  const result = await run(fileExternalLink.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(result, link)
+  const none = fakeZ({ "GET /files/file/7/links": [] })
+  const error = await caught(() => run(fileExternalLink.operation.perform, none, { inputData: { fileId: "7" } }))
+  instance(error, HaltedError)
+})
+
+test("gets the external link of a file", async () => {
+  const link = { access: 2, sharedLink: { shareLink: "https://example.com/s/1" } }
+  const z = fakeZ({ "GET /files/file/7/link": link })
+  const result = await run(fileExternalLink.operation.perform, z, { inputData: { create: "true", fileId: "7" } })
+  equal(result, link)
 })
 
 test.run()

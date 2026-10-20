@@ -605,6 +605,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/file/{{fileId}}/link
+   * ```
+   * @param {number|string} fileId
+   * @returns {Promise<ExternalLinkData>}
+   */
+  fileExternalLink(fileId) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/link`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{id}}/link
    * ```
    * @param {number} id
@@ -760,6 +772,22 @@ class FilesService extends Service {
   uploadChunk(sessionId, chunkData) {
     const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${encodeURIComponent(sessionId)}`
     return this.client.request("POST", url, chunkData.body, chunkData.headers)
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{id}}/links
+   * GET /files/folder/{{id}}/links
+   * GET /files/rooms/{{id}}/links
+   * ```
+   * Unlike `GET .../link`, it doesn't create a link.
+   * @param {"file"|"folder"|"rooms"} entry
+   * @param {number|string} id
+   * @returns {Promise<ExternalLinkData[]>}
+   */
+  listLinks(entry, id) {
+    const url = this.client.url(`/files/${entry}/${encodeURIComponent(id)}/links`)
+    return this.client.request("GET", url)
   }
 }
 

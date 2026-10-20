@@ -25,6 +25,7 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  fileExternalLink,
   getFile,
   getRoom,
   getRoomMembers,
@@ -747,6 +748,25 @@ Files("converts a file to pdf", async (context) => {
   equal(converted.title, "Converted file")
   equal(converted.fileExst, ".pdf")
   equal(converted.folderId, context.inputData.rooms.roomId)
+})
+
+Files("gets the external link of a file", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      create: "true",
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  }
+  const link = await tester(fileExternalLink.operation.perform, bundle)
+  equal(link.sharedLink?.primary, true)
+  equal(typeof link.sharedLink?.shareLink, "string")
+  // The link exists now, so the action finds it without creating one.
+  const found = await tester(fileExternalLink.operation.perform, {
+    authData: context.authData,
+    inputData: { fileId: String(context.inputData.rooms.fileId) }
+  })
+  equal(found.sharedLink?.id, link.sharedLink?.id)
 })
 
 Files("deletes a file permanently", async (context) => {
