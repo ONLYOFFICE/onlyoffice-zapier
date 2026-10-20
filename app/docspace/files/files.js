@@ -142,6 +142,15 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} MoveBody
+ * @property {number|string} destFolderId
+ * @property {(number|string)[]} fileIds
+ * @property {(number|string)[]} folderIds
+ * @property {number} conflictResolveType 0 skips the entry, 1 replaces the
+ * existing one, 2 keeps both.
+ */
+
+/**
  * @typedef {Object} ProgressData
  * @property {string} id
  * @property {number} Operation
@@ -425,6 +434,19 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/fileops/{{operation}}
+   * ```
+   * @param {"move"|"copy"} operation
+   * @param {MoveBody} body
+   * @returns {Promise<ProgressData[]>}
+   */
+  moveOrCopy(operation, body) {
+    const url = this.client.url(`/files/fileops/${operation}`)
+    return this.client.request("PUT", url, { ...body, deleteAfter: false })
+  }
+
+  /**
+   * ```http
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId
@@ -513,7 +535,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/{{id}}
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @param {Filters} filters
    * @returns {Promise<FoldersList>}
    */

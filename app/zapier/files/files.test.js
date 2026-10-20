@@ -10,6 +10,8 @@ const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const {
   archiveRoom,
+  copyFile,
+  copyFolder,
   createFile,
   createFileInMyDocuments,
   createFolder,
@@ -23,6 +25,8 @@ const {
   getFile,
   getRoom,
   inviteGuest,
+  moveFile,
+  moveFolder,
   renameFile,
   renameFolder,
   roomCreate,
@@ -660,6 +664,47 @@ Files("renames the folder of the room", async (context) => {
   }
   const folder = await tester(renameFolder.operation.perform, bundle)
   equal(folder.title, "Test Folder renamed")
+})
+
+Files("copies the file to the top level of the room and moves the copy back", async (context) => {
+  const copy = await tester(copyFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  })
+  equal(copy.folderId, context.inputData.rooms.roomId)
+  const moved = await tester(moveFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationFolderId: String(context.inputData.rooms.folderId),
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      fileId: String(copy.id)
+    }
+  })
+  equal(moved.id, copy.id)
+  equal(moved.folderId, context.inputData.rooms.folderId)
+})
+
+Files("copies the folder and moves the copy into it", async (context) => {
+  const copy = await tester(copyFolder.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      folderId: String(context.inputData.rooms.folderId)
+    }
+  })
+  const moved = await tester(moveFolder.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationFolderId: String(context.inputData.rooms.folderId),
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      folderId: String(copy.id)
+    }
+  })
+  equal(moved.id, copy.id)
+  equal(moved.parentId, context.inputData.rooms.folderId)
 })
 
 Files("delete a folder from room", async (context) => {

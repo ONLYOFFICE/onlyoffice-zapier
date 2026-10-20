@@ -1187,8 +1187,224 @@ const renameFolder = {
   }
 }
 
+/**
+ * @typedef {Object} MoveFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string=} fileId
+ * @property {string} destinationRoomId
+ * @property {string=} destinationFolderId
+ * @property {string=} conflict
+ */
+
+const MOVE_FILE_FIELDS = [
+  {
+    altersDynamicFields: true,
+    dynamic: "roomCreated.id.title",
+    helpText: "The room with the file. Use it to choose the file from the list.",
+    key: "id",
+    label: "Room",
+    type: "string"
+  },
+  {
+    altersDynamicFields: true,
+    dynamic: "foldersList.id.title",
+    helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+    key: "folderId",
+    label: "Folder",
+    type: "string"
+  },
+  {
+    dynamic: "filesList.id.title",
+    key: "fileId",
+    label: "File",
+    required: true,
+    search: "searchFile.id",
+    type: "string"
+  }
+]
+
+const MOVE_FOLDER_FIELDS = [
+  {
+    altersDynamicFields: true,
+    dynamic: "roomCreated.id.title",
+    helpText: "The room with the folder. Use it to choose the folder from the list.",
+    key: "id",
+    label: "Room",
+    type: "string"
+  },
+  {
+    dynamic: "foldersList.id.title",
+    key: "folderId",
+    label: "Folder",
+    required: true,
+    search: "searchFolder.id",
+    type: "string"
+  }
+]
+
+/**
+ * @param {boolean} isFile
+ * @returns {Object[]}
+ */
+function moveFields(isFile) {
+  /** @type {Object[]} */
+  const source = isFile ? MOVE_FILE_FIELDS : MOVE_FOLDER_FIELDS
+  return source.concat([
+    {
+      altersDynamicFields: true,
+      dynamic: "roomCreated.id.title",
+      key: "destinationRoomId",
+      label: "Destination room",
+      required: true,
+      type: "string"
+    },
+    {
+      dynamic: "destinationFoldersList.id.title",
+      helpText: "Leave empty to use the top level of the destination room.",
+      key: "destinationFolderId",
+      label: "Destination folder",
+      type: "string"
+    },
+    {
+      choices: {
+        "0": "Skip",
+        "1": "Overwrite",
+        "2": "Keep both"
+      },
+      default: "2",
+      helpText: "What to do if the destination already has an item with the same name.",
+      key: "conflict",
+      label: "If the name is taken",
+      type: "string"
+    }
+  ])
+}
+
+/**
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, MoveFields>} bundle
+ * @param {"move"|"copy"} operation
+ * @param {boolean} isFile
+ * @returns {Promise<any>}
+ */
+async function moveOrCopy(z, bundle, operation, isFile) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const { inputData } = bundle
+  const id = normalizeId(String(isFile ? inputData.fileId : inputData.folderId))
+  const destFolderId = normalizeId(String(inputData.destinationFolderId || inputData.destinationRoomId))
+  const operations = await files.moveOrCopy(operation, {
+    conflictResolveType: Number(inputData.conflict || 2),
+    destFolderId,
+    fileIds: isFile ? [id] : [],
+    folderIds: isFile ? [] : [id]
+  })
+  const progress = new Progress(files.listOperations.bind(files), operations[0])
+  const result = await completeOperation(z, progress)
+  // The finished operation lists the entries in their new place. For folders,
+  // the list also has the destination folder.
+  /** @type {any[]} */
+  const entries = (isFile ? result.files : result.folders) || []
+  const entry = entries.find((item) => String(item.id) !== String(destFolderId))
+  if (!entry) {
+    throw new z.errors.HaltedError("Nothing was changed: the destination already has an item with the same name.")
+  }
+  entry.id = normalizeId(entry.id)
+  if (isFile) {
+    entry.title = stripExtension(entry.title)
+  }
+  return entry
+}
+
+const moveFile = {
+  display: {
+    description: "Moves a file to another folder or room.",
+    label: "Move File"
+  },
+  key: "moveFile",
+  noun: "File",
+  operation: {
+    inputFields: moveFields(true),
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, MoveFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    perform(z, bundle) {
+      return moveOrCopy(z, bundle, "move", true)
+    },
+    sample: samples.file
+  }
+}
+
+const copyFile = {
+  display: {
+    description: "Copies a file to another folder or room.",
+    label: "Copy File"
+  },
+  key: "copyFile",
+  noun: "File",
+  operation: {
+    inputFields: moveFields(true),
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, MoveFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    perform(z, bundle) {
+      return moveOrCopy(z, bundle, "copy", true)
+    },
+    sample: samples.file
+  }
+}
+
+const moveFolder = {
+  display: {
+    description: "Moves a folder to another folder or room.",
+    label: "Move Folder"
+  },
+  key: "moveFolder",
+  noun: "Folder",
+  operation: {
+    inputFields: moveFields(false),
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, MoveFields>} bundle
+     * @returns {Promise<FolderData>}
+     */
+    perform(z, bundle) {
+      return moveOrCopy(z, bundle, "move", false)
+    },
+    sample: samples.folder
+  }
+}
+
+const copyFolder = {
+  display: {
+    description: "Copies a folder to another folder or room.",
+    label: "Copy Folder"
+  },
+  key: "copyFolder",
+  noun: "Folder",
+  operation: {
+    inputFields: moveFields(false),
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, MoveFields>} bundle
+     * @returns {Promise<FolderData>}
+     */
+    perform(z, bundle) {
+      return moveOrCopy(z, bundle, "copy", false)
+    },
+    sample: samples.folder
+  }
+}
+
 module.exports = {
   archiveRoom,
+  copyFile,
+  copyFolder,
   createFile,
   createFileInMyDocuments,
   createFolder,
@@ -1202,6 +1418,8 @@ module.exports = {
   getFile,
   getRoom,
   inviteGuest,
+  moveFile,
+  moveFolder,
   renameFile,
   renameFolder,
   roomCreate,

@@ -90,7 +90,7 @@ const {
 
 /**
  * @typedef {Object} FolderCreatedFields
- * @property {number=} id
+ * @property {(number|string)=} id
  * @property {number=} folderId
  */
 
@@ -970,6 +970,33 @@ const foldersList = {
   }
 }
 
+const destinationFoldersList = {
+  display: {
+    description: "Hidden trigger to get a list of folders of the destination room.",
+    hidden: true,
+    label: "List of Destination Folders"
+  },
+  key: "destinationFoldersList",
+  noun: "Folder",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, {destinationRoomId?: string}>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      // The dropdown is empty until a destination room is selected.
+      if (!bundle.inputData.destinationRoomId) {
+        return []
+      }
+      const inputData = { id: normalizeId(bundle.inputData.destinationRoomId) }
+      return performFolderCreated(z, { ...bundle, inputData })
+    },
+    sample: samples.folder
+  }
+}
+
 const foldersInMyDocumentsList = {
   display: {
     description: "Hidden trigger to get a list of folders from the Files section.",
@@ -1292,6 +1319,7 @@ const userInvited = {
 }
 
 module.exports = {
+  destinationFoldersList,
   fileCreated,
   fileCreatedInMyDocuments,
   fileDeleted,

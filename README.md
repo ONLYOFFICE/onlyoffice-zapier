@@ -78,6 +78,8 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Delete File | [DELETE api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/delete-file) | Room id, Folder id, File id, Delete permanently |
 | Rename File | [PUT api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/update-file) | Room id, Folder id, File id, New title |
 | Rename Folder | [PUT api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/rename-folder) | Room id, Folder id, New title |
+| Move File, Move Folder | [PUT api/2.0/files/fileops/move](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/move-batch-items) | Room id, Folder id, File id, Destination room, Destination folder, If the name is taken |
+| Copy File, Copy Folder | [PUT api/2.0/files/fileops/copy](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/copy-batch-items) | Room id, Folder id, File id, Destination room, Destination folder, If the name is taken |
 
 When creating a new Zap, we set up a chain of actions that follows the trigger. Zapier automatically performs these actions on new data when the trigger fires. You can manually start the Zap by clicking the **Run Zap** button.
 

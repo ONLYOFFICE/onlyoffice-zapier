@@ -10,11 +10,15 @@ const { equal, instance, match } = require("uvu/assert")
 const { test } = require("uvu")
 const {
   archiveRoom,
+  copyFile,
+  copyFolder,
   deleteFile,
   downloadFile,
   getFile,
   getRoom,
   inviteGuest,
+  moveFile,
+  moveFolder,
   renameFile,
   renameFolder,
   roomCreate,
@@ -582,6 +586,75 @@ test("renames a folder", async () => {
   const folder = await run(renameFolder.operation.perform, z, { inputData: { folderId: "8", title: "Reports" } })
   equal(folder.id, 8)
   equal(folder.title, "Reports")
+})
+
+test("copies a file in third-party storage", async () => {
+  const operation = { files: [{ id: "sbox-9", title: "Report.docx" }], finished: true, id: "op", progress: 100 }
+  const z = fakeZ({ "GET /files/fileops": [operation], "PUT /files/fileops/copy": [operation] })
+  const inputData = { destinationRoomId: "sbox-3", fileId: "sbox-7" }
+  const file = await run(copyFile.operation.perform, z, { inputData })
+  equal(file.id, "sbox-9")
+  equal(z.calls[0].body.fileIds, ["sbox-7"])
+  equal(z.calls[0].body.destFolderId, "sbox-3")
+})
+
+test("copies a file and returns the copy", async () => {
+  const operation = { files: [{ id: "9", title: "Report.docx" }], finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/copy": [operation]
+  })
+  const inputData = { destinationFolderId: "4", destinationRoomId: "3", fileId: "7" }
+  const file = await run(copyFile.operation.perform, z, { inputData })
+  equal(file.id, 9)
+  equal(file.title, "Report")
+  equal(z.calls[0].body, {
+    conflictResolveType: 2,
+    deleteAfter: false,
+    destFolderId: 4,
+    fileIds: [7],
+    folderIds: []
+  })
+})
+
+test("moves a folder to the top level of the destination room", async () => {
+  const operation = { finished: true, folders: [{ id: "8", title: "Reports" }], id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/move": [operation]
+  })
+  const inputData = { conflict: "1", destinationRoomId: "3", folderId: "8" }
+  const folder = await run(moveFolder.operation.perform, z, { inputData })
+  equal(folder.id, 8)
+  equal(z.calls[0].body.destFolderId, 3)
+  equal(z.calls[0].body.folderIds, [8])
+  equal(z.calls[0].body.conflictResolveType, 1)
+})
+
+test("copies a folder and returns the copy", async () => {
+  const folders = [
+    { id: 3, title: "Sales" },
+    { id: "10", title: "Reports" }
+  ]
+  const operation = { finished: true, folders, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/copy": [operation]
+  })
+  const inputData = { destinationRoomId: "3", folderId: "8" }
+  const folder = await run(copyFolder.operation.perform, z, { inputData })
+  equal(folder.id, 10)
+  equal(z.calls[0].body.folderIds, [8])
+})
+
+test("fails moving a file that was skipped", async () => {
+  const operation = { files: [], finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/move": [operation]
+  })
+  const inputData = { conflict: "0", destinationRoomId: "3", fileId: "7" }
+  instance(await caught(() => run(moveFile.operation.perform, z, { inputData })), HaltedError)
 })
 
 test.run()

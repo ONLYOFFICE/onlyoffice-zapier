@@ -8,6 +8,8 @@ const { version: platformVersion } = require("zapier-platform-core")
 const { version } = require("../package.json")
 const {
   archiveRoom,
+  copyFile,
+  copyFolder,
   createFile,
   createFileInMyDocuments,
   createFolder,
@@ -21,6 +23,8 @@ const {
   getFile,
   getRoom,
   inviteGuest,
+  moveFile,
+  moveFolder,
   renameFile,
   renameFolder,
   roomCreate,
@@ -30,6 +34,7 @@ const {
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspace/auth/auth.js")
 const {
+  destinationFoldersList,
   fileCreated,
   fileCreatedInMyDocuments,
   fileDeleted,
@@ -74,6 +79,8 @@ const App = {
   ],
   creates: {
     [archiveRoom.key]: archiveRoom,
+    [copyFile.key]: copyFile,
+    [copyFolder.key]: copyFolder,
     [createFile.key]: createFile,
     [createFileInMyDocuments.key]: createFileInMyDocuments,
     [createFolder.key]: createFolder,
@@ -88,6 +95,8 @@ const App = {
     [getRoom.key]: getRoom,
     [inviteGuest.key]: inviteGuest,
     [inviteUser.key]: inviteUser,
+    [moveFile.key]: moveFile,
+    [moveFolder.key]: moveFolder,
     [renameFile.key]: renameFile,
     [renameFolder.key]: renameFolder,
     [roomCreate.key]: roomCreate,
@@ -107,22 +116,23 @@ const App = {
     [searchUser.key]: searchUser
   },
   triggers: {
+    [destinationFoldersList.key]: destinationFoldersList,
     [fileCreated.key]: fileCreated,
     [fileCreatedInMyDocuments.key]: fileCreatedInMyDocuments,
     [fileDeleted.key]: fileDeleted,
     [fileDeletedInMyDocuments.key]: fileDeletedInMyDocuments,
     [fileMoved.key]: fileMoved,
-    [fileUpdated.key]: fileUpdated,
     [filesList.key]: filesList,
     [filesListFromMyDocuments.key]: filesListFromMyDocuments,
+    [fileUpdated.key]: fileUpdated,
     [filteredSections.key]: filteredSections,
     [folderCreated.key]: folderCreated,
     [folderCreatedInMyDocuments.key]: folderCreatedInMyDocuments,
     [folderDeleted.key]: folderDeleted,
     [folderDeletedInMyDocuments.key]: folderDeletedInMyDocuments,
+    [folderMoved.key]: folderMoved,
     [foldersInMyDocumentsList.key]: foldersInMyDocumentsList,
     [foldersList.key]: foldersList,
-    [folderMoved.key]: folderMoved,
     [folderUpdated.key]: folderUpdated,
     [formFilledOut.key]: formFilledOut,
     [formSubmitted.key]: formSubmitted,
