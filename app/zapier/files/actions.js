@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, Progress, ROOM_MANAGER, stripExtension } = require("../../docspace/client/client.js")
+const { Client, normalizeId, Progress, ROOM_MANAGER, stripExtension } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 const { PeopleService } = require("../../docspace/people/people.js")
@@ -902,6 +902,103 @@ const uploadFileToMyDocuments = {
   }
 }
 
+/**
+ * @typedef {Object} GetFileFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ */
+
+const getFile = {
+  display: {
+    description: "Gets a file by its ID.",
+    label: "Get File"
+  },
+  key: "getFile",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the file. Use it to choose the file from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, GetFileFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const file = await files.fileInfo(normalizeId(bundle.inputData.fileId))
+      file.id = normalizeId(file.id)
+      file.title = stripExtension(file.title)
+      return file
+    },
+    sample: samples.file
+  }
+}
+
+/**
+ * @typedef {Object} GetRoomFields
+ * @property {string} id
+ */
+
+const getRoom = {
+  display: {
+    description: "Gets a room by its ID.",
+    label: "Get Room"
+  },
+  key: "getRoom",
+  noun: "Room",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, GetRoomFields>} bundle
+     * @returns {Promise<RoomData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.roomInfo(normalizeId(bundle.inputData.id))
+      room.id = normalizeId(room.id)
+      return room
+    },
+    sample: samples.room
+  }
+}
+
 module.exports = {
   archiveRoom,
   createFile,
@@ -913,6 +1010,8 @@ module.exports = {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  getFile,
+  getRoom,
   inviteGuest,
   roomCreate,
   shareRoom,

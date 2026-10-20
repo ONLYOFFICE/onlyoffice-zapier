@@ -557,7 +557,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms/{{folderId}}
    * ```
-   * @param {number} folderId
+   * @param {number|string} folderId
    * @returns {Promise<RoomData>}
    */
   roomInfo(folderId) {

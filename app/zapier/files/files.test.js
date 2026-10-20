@@ -19,6 +19,8 @@ const {
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  getFile,
+  getRoom,
   inviteGuest,
   roomCreate,
   shareRoom,
@@ -504,6 +506,31 @@ Files("hidden files list trigger returned file via folder id", async (context) =
   const files = await tester(perform, bundle)
   const file = files[0]
   equal(file.title, "Test File")
+})
+
+Files("gets the file by id", async (context) => {
+  const { perform } = getFile.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  }
+  const file = await tester(perform, bundle)
+  equal(file.id, context.inputData.rooms.fileId)
+  equal(file.title, "Test File")
+})
+
+Files("gets the room by id", async (context) => {
+  const { perform } = getRoom.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const room = await tester(perform, bundle)
+  equal(room.id, context.inputData.rooms.roomId)
 })
 
 Files("downloads file from folder that is in room", async (context) => {

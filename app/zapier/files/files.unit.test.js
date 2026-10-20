@@ -11,6 +11,8 @@ const { test } = require("uvu")
 const {
   archiveRoom,
   downloadFile,
+  getFile,
+  getRoom,
   inviteGuest,
   roomCreate,
   shareRoom
@@ -498,6 +500,30 @@ test("finds rooms by title, including form filling rooms", async () => {
     2
   ])
   equal(z.calls[0].query.filterValue, "sales")
+})
+
+test("gets a file by id without the extension in the title", async () => {
+  const z = fakeZ({ "GET /files/file/7": { fileExst: ".docx", id: "7", title: "Report.docx" } })
+  const file = await run(getFile.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(file.id, 7)
+  equal(file.title, "Report")
+  equal(file.fileExst, ".docx")
+})
+
+test("keeps the ids of a file and a room in third-party storage", async () => {
+  const z = fakeZ({
+    "GET /files/file/sbox-7": { id: "sbox-7", title: "Report.docx" },
+    "GET /files/rooms/sbox-5": { id: "sbox-5", title: "Box" }
+  })
+  equal((await run(getFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })).id, "sbox-7")
+  equal((await run(getRoom.operation.perform, z, { inputData: { id: "sbox-5" } })).id, "sbox-5")
+})
+
+test("gets a room by id", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: "5", roomType: 2, title: "Sales" } })
+  const room = await run(getRoom.operation.perform, z, { inputData: { id: "5" } })
+  equal(room.id, 5)
+  equal(room.title, "Sales")
 })
 
 test.run()
