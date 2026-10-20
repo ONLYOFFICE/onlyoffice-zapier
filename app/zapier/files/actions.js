@@ -1563,9 +1563,11 @@ const removeUserFromRoom = {
         notify: false
       })
       // DocSpace gives the same answer when it ignores the removal, for example,
-      // of the room owner. So check the members.
-      const members = await files.listUsers(roomId, {})
-      if (members.some((item) => item.sharedToUser && item.sharedToUser.id === userId)) {
+      // of the room owner. So check the members. The list of members has pages,
+      // so search for the user by email.
+      const people = new PeopleService(client)
+      const user = await people.user(userId)
+      if (await findMember(files, roomId, user.email)) {
         throw new z.errors.Error(
           "The user is still a member of the room. The room owner can't be removed.",
           "OperationFailed"

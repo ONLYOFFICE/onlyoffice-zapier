@@ -1392,7 +1392,7 @@ const shareRoles = {
 async function performUserInvited(z, bundle) {
   const client = new Client(bundle.authData.baseUrl, z.request)
   const files = new FilesService(client)
-  const members = await files.listUsers(bundle.inputData.id, {})
+  const members = await files.listUsers(bundle.inputData.id, pageFilters(bundle))
   // The list has users and groups. Only users have `sharedToUser`.
   /** @type {User[]} */
   let users = []
@@ -1419,6 +1419,7 @@ const userInvited = {
   key: "userInvited",
   noun: "User",
   operation: {
+    canPaginate: true,
     inputFields: [
       {
         dynamic: "roomCreated.id.title",

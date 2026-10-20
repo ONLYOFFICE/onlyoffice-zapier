@@ -320,6 +320,12 @@ test("returns room members without groups", async () => {
   equal(pluck(active, "id"), ["u1"])
 })
 
+test("lists the next page of room members", async () => {
+  const z = fakeZ({ "GET /files/rooms/5/share": [{ sharedToUser: { email: "a@example.com", id: "u1" } }] })
+  await run(userInvited.operation.perform, z, { inputData: { id: "5" }, meta: { page: 1 } })
+  equal(z.calls[0].query, { count: "100", startIndex: "100" })
+})
+
 test("offers the room manager role to the workspace owner", async () => {
   const z = fakeZ({
     "GET /files/rooms/5": { id: 5, roomType: 8 },
@@ -756,7 +762,11 @@ test("unarchives a room and returns it", async () => {
 
 test("removes a user from a room", async () => {
   const z = fakeZ({
-    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "GET /files/rooms/5/share": (call) => {
+      equal(call.query.filterValue, "u1@example.com")
+      return [{ sharedToUser: { email: "owner@example.com", id: "owner" } }]
+    },
+    "GET /people/u1": { email: "u1@example.com", id: "u1" },
     "PUT /files/rooms/5/share": { error: 0, members: [] }
   })
   const result = await run(removeUserFromRoom.operation.perform, z, { inputData: { id: "5", userId: "u1" } })
@@ -766,7 +776,8 @@ test("removes a user from a room", async () => {
 
 test("fails removing a user who is still a member", async () => {
   const z = fakeZ({
-    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "GET /files/rooms/5/share": [{ sharedToUser: { email: "owner@example.com", id: "owner" } }],
+    "GET /people/owner": { email: "owner@example.com", id: "owner" },
     "PUT /files/rooms/5/share": { error: 0, members: [] }
   })
   const inputData = { id: "5", userId: "owner" }
