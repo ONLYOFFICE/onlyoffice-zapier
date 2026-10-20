@@ -162,6 +162,18 @@ test("returns the user of the shared room", async () => {
   const inputData = { access: 10, roomId: 1, userId: "u1" }
   const result = await run(shareRoom.operation.perform, z, { inputData })
   equal(result, user)
+  // Old Zaps without the email fields keep sending the email.
+  equal(z.calls[0].body.notify, true)
+  equal(z.calls[0].body.message, "Invitation from Zapier")
+})
+
+test("adds a user to a room without an email", async () => {
+  const member = { sharedToUser: { id: "u1" } }
+  const z = fakeZ({ "PUT /files/rooms/1/share": { members: [member] } })
+  const inputData = { access: 10, message: "Hello", notify: "false", roomId: 1, userId: "u1" }
+  await run(shareRoom.operation.perform, z, { inputData })
+  equal(z.calls[0].body.notify, false)
+  equal(z.calls[0].body.message, "Hello")
 })
 
 test("downloads a file in third-party storage", async () => {

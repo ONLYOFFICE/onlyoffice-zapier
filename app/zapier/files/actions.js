@@ -110,6 +110,8 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @property {number} roomId
  * @property {string} email
  * @property {number} access
+ * @property {boolean|string=} notify
+ * @property {string=} message
  */
 
 /**
@@ -123,6 +125,8 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @property {number} roomId
  * @property {string} userId
  * @property {number} access
+ * @property {boolean|string=} notify
+ * @property {string=} message
  */
 
 /**
@@ -647,6 +651,38 @@ async function findMember(files, roomId, email) {
   })
 }
 
+const INVITATION_MESSAGE = "Invitation from Zapier"
+
+const INVITATION_FIELDS = [
+  {
+    default: "true",
+    helpText: "Send an email about the invitation.",
+    key: "notify",
+    label: "Notify",
+    type: "boolean"
+  },
+  {
+    default: INVITATION_MESSAGE,
+    helpText: "The message in the email about the invitation.",
+    key: "message",
+    label: "Message",
+    type: "text"
+  }
+]
+
+/**
+ * @param {{notify?: boolean|string, message?: string}} inputData
+ * @returns {{message: string, notify: boolean}}
+ */
+function invitationEmail(inputData) {
+  return {
+    message: inputData.message || INVITATION_MESSAGE,
+    // Zapier may send booleans as strings. Old Zaps don't have this field, so
+    // they keep sending emails.
+    notify: String(inputData.notify) !== "false"
+  }
+}
+
 /**
  * @param {number|string} roomId
  * @param {string} email
@@ -724,7 +760,8 @@ const inviteGuest = {
           label: "Role",
           required: true
         }]
-      }
+      },
+      ...INVITATION_FIELDS
     ],
     /**
      * @param {ZObject} z
@@ -745,8 +782,7 @@ const inviteGuest = {
           access: bundle.inputData.access,
           email
         }],
-        message: "Invitation from Zapier",
-        notify: true
+        ...invitationEmail(bundle.inputData)
       }
       await files.shareRoom(roomId, body)
       const guest = await findMember(files, roomId, email)
@@ -841,7 +877,8 @@ const shareRoom = {
         label: "Role",
         required: true,
         type: "integer"
-      }
+      },
+      ...INVITATION_FIELDS
     ],
     /**
      * @param {ZObject} z
@@ -856,8 +893,7 @@ const shareRoom = {
           access: bundle.inputData.access,
           id: bundle.inputData.userId
         }],
-        message: "Invitation from Zapier",
-        notify: true
+        ...invitationEmail(bundle.inputData)
       }
       const response = await files.shareRoom(bundle.inputData.roomId, body)
       const member = response.members.length > 0 && response.members[0].sharedToUser

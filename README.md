@@ -75,10 +75,10 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Get Room External Link | [GET api/2.0/files/rooms/{id}/links](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-room-links), [GET api/2.0/files/rooms/{id}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-primary-external-link) | Room, Create the link if there is none |
 | Create Room | [POST api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room) | Title, Room type |
 | Create Room from Template | [POST api/2.0/files/rooms/fromtemplate](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room-from-template) | Template, Title |
-| Add User to Room | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room, User, Role |
+| Add User to Room | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room, User, Role, Notify, Message |
 | Upload File | [POST api/2.0/files/{folderId}/session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/create-upload-session-in-folder) | Room, Folder, File |
 | Upload File to Files Section | [POST api/2.0/files/{folderId}/session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/create-upload-session-in-folder) | Folder, File |
-| Invite Guest | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room, Email, Role |
+| Invite Guest | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room, Email, Role, Notify, Message |
 | Remove User from Room | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room, User |
 | Get Room Members | [GET api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-room-security-info) | Room |
 | Add Room Tags | [PUT api/2.0/files/rooms/{id}/tags](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/add-room-tags) | Room, Tags |
