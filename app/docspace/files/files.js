@@ -96,6 +96,18 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} FilesSettings
+ * @property {Record<string, string[]>} extsConvertible For each format, the
+ * formats that it can be converted to.
+ */
+
+/**
+ * @typedef {Object} CopyAsBody
+ * @property {string} destTitle
+ * @property {number|string} destFolderId
+ */
+
+/**
  * @typedef {Object} FolderData
  * @property {number} parentId
  * @property {number=} rootFolderId
@@ -517,6 +529,30 @@ class FilesService extends Service {
    */
   downloadLink(fileId) {
     const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/presigned`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/file/{{fileId}}/copyas
+   * ```
+   * @param {number|string} fileId
+   * @param {CopyAsBody} body
+   * @returns {Promise<FileData>}
+   */
+  copyFileAs(fileId, body) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/copyas`)
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/settings
+   * ```
+   * @returns {Promise<FilesSettings>}
+   */
+  settings() {
+    const url = this.client.url("/files/settings")
     return this.client.request("GET", url)
   }
 

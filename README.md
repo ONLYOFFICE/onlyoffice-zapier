@@ -82,6 +82,7 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Get Room | [GET api/2.0/files/rooms/{id}](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-room-info) | Room id |
 | Delete File | [DELETE api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/delete-file) | Room id, Folder id, File id, Delete permanently |
 | Rename File | [PUT api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/update-file) | Room id, Folder id, File id, New title |
+| Convert File | [POST api/2.0/files/file/{fileId}/copyas](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/copy-file-as) | Room id, Folder id, File id, Format, New title |
 | Rename Folder | [PUT api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/rename-folder) | Room id, Folder id, New title |
 | Move File, Move Folder | [PUT api/2.0/files/fileops/move](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/move-batch-items) | Room id, Folder id, File id, Destination room, Destination folder, If the name is taken |
 | Copy File, Copy Folder | [PUT api/2.0/files/fileops/copy](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/copy-batch-items) | Room id, Folder id, File id, Destination room, Destination folder, If the name is taken |

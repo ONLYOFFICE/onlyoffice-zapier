@@ -18,6 +18,7 @@
 - new Remove User from Room action
 - new Get Room Members action
 - new Add Room Tags and Remove Room Tags actions
+- new Convert File action
 
 ## 1.1.0
 - new inviteGuest action

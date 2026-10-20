@@ -9,6 +9,7 @@ const { version } = require("../package.json")
 const {
   addRoomTags,
   archiveRoom,
+  convertFile,
   copyFile,
   copyFolder,
   createFile,
@@ -88,6 +89,7 @@ const App = {
   creates: {
     [addRoomTags.key]: addRoomTags,
     [archiveRoom.key]: archiveRoom,
+    [convertFile.key]: convertFile,
     [copyFile.key]: copyFile,
     [copyFolder.key]: copyFolder,
     [createFile.key]: createFile,

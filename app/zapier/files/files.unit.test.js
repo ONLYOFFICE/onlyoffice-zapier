@@ -11,6 +11,7 @@ const { test } = require("uvu")
 const {
   addRoomTags,
   archiveRoom,
+  convertFile,
   copyFile,
   copyFolder,
   deleteFile,
@@ -772,6 +773,60 @@ test("lists the tags for a dropdown", async () => {
   const tags = await run(tagsList.operation.perform, z, {})
   equal(tags, [{ id: "Sales", name: "Sales" }])
   equal(z.calls[0].query.count, "100")
+})
+
+const convertSettings = {
+  extsConvertible: {
+    ".docx": [
+      ".odt",
+      ".pdf"
+    ]
+  }
+}
+
+test("converts a file in third-party storage", async () => {
+  const z = fakeZ({
+    "GET /files/file/sbox-7": { fileExst: ".docx", folderId: "sbox-3", id: "sbox-7", title: "Contract.docx" },
+    "GET /files/settings": { extsConvertible: { ".docx": [".pdf"] } },
+    "POST /files/file/sbox-7/copyas": { fileExst: ".pdf", id: "sbox-9", title: "Contract.pdf" }
+  })
+  const file = await run(convertFile.operation.perform, z, { inputData: { fileId: "sbox-7", format: "pdf" } })
+  equal(file.id, "sbox-9")
+  equal(z.calls[2].body.destFolderId, "sbox-3")
+})
+
+test("converts a file next to the original", async () => {
+  const z = fakeZ({
+    "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" },
+    "GET /files/settings": convertSettings,
+    "POST /files/file/7/copyas": (call) => ({ fileExst: ".pdf", id: "9", title: call.body.destTitle })
+  })
+  const file = await run(convertFile.operation.perform, z, { inputData: { fileId: "7", format: "PDF" } })
+  equal(file.id, 9)
+  equal(file.title, "Contract")
+  equal(z.calls[2].body, { destFolderId: 3, destTitle: "Contract.pdf" })
+})
+
+test("fails converting to a format that isn't available", async () => {
+  const z = fakeZ({
+    "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" },
+    "GET /files/settings": convertSettings
+  })
+  const inputData = { fileId: "7", format: "xlsx" }
+  const error = await caught(() => run(convertFile.operation.perform, z, { inputData }))
+  match(String(error), "Available formats: .odt, .pdf")
+})
+
+test("offers the formats the file can be converted to", async () => {
+  const z = fakeZ({
+    "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" },
+    "GET /files/settings": convertSettings
+  })
+  const field = /** @type {Function} */ (convertFile.operation.inputFields[3])
+  const [format] = await run(field, z, { inputData: { fileId: "7" } })
+  equal(format.choices, { odt: "ODT", pdf: "PDF" })
+  const [empty] = await run(field, z, { inputData: {} })
+  equal(empty.choices, undefined)
 })
 
 test.run()

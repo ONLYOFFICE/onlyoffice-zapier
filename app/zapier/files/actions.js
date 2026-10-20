@@ -1707,9 +1707,132 @@ const removeRoomTags = {
   }
 }
 
+/**
+ * @param {string} format
+ * @returns {string}
+ */
+function extension(format) {
+  const value = format.trim().toLowerCase()
+  return value.startsWith(".") ? value : `.${value}`
+}
+
+/**
+ * @typedef {Object} ConvertFileFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ * @property {string} format
+ * @property {string=} title
+ */
+
+const convertFile = {
+  display: {
+    description: "Converts a file to another format. The converted file is saved next to the original.",
+    label: "Convert File"
+  },
+  key: "convertFile",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room with the file. Use it to choose the file from the list.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "filesList.id.title",
+        key: "fileId",
+        label: "File",
+        required: true,
+        search: "searchFile.id",
+        type: "string"
+      },
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData, ConvertFileFields>} bundle
+       * @returns {Promise<Object[]>}
+       */
+      async function (z, bundle) {
+        const field = {
+          helpText: "The format to convert the file to, for example, pdf.",
+          key: "format",
+          label: "Format",
+          required: true,
+          type: "string"
+        }
+        const fileId = normalizeId(bundle.inputData.fileId)
+        // The file can come from an earlier step. Then it isn't known yet.
+        if (!fileId) {
+          return [field]
+        }
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const files = new FilesService(client)
+        const file = await files.fileInfo(fileId)
+        const settings = await files.settings()
+        const formats = settings.extsConvertible[file.fileExst] || []
+        /** @type {Record<string, string>} */
+        const choices = {}
+        formats.forEach((format) => {
+          choices[format.slice(1)] = format.slice(1).toUpperCase()
+        })
+        return [{ ...field, choices }]
+      },
+      {
+        helpText: "The title of the converted file without an extension. Leave empty to keep the title of the file.",
+        key: "title",
+        label: "New title",
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ConvertFileFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const file = await files.fileInfo(normalizeId(bundle.inputData.fileId))
+      const settings = await files.settings()
+      const format = extension(bundle.inputData.format)
+      const formats = settings.extsConvertible[file.fileExst] || []
+      if (!formats.includes(format)) {
+        const available = formats.length > 0 ? formats.join(", ") : "none"
+        throw new z.errors.Error(
+          `Can't convert ${file.fileExst} to ${format}. Available formats: ${available}.`,
+          "InvalidData",
+          400
+        )
+      }
+      const title = bundle.inputData.title || stripExtension(file.title)
+      const converted = await files.copyFileAs(file.id, {
+        destFolderId: file.folderId,
+        destTitle: `${title}${format}`
+      })
+      converted.id = normalizeId(converted.id)
+      converted.title = stripExtension(converted.title)
+      return converted
+    },
+    sample: samples.file
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
+  convertFile,
   copyFile,
   copyFolder,
   createFile,

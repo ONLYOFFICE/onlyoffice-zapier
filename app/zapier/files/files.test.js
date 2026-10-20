@@ -11,6 +11,7 @@ const { App } = require("../../app.js")
 const {
   addRoomTags,
   archiveRoom,
+  convertFile,
   copyFile,
   copyFolder,
   createFile,
@@ -706,6 +707,28 @@ Files("renames a file", async (context) => {
   const renamed = await tester(renameFile.operation.perform, bundle)
   equal(renamed.title, "Renamed file")
   equal(renamed.fileExst, ".docx")
+})
+
+Files("converts a file to pdf", async (context) => {
+  const file = await tester(createFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId,
+      title: "File to convert"
+    }
+  })
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(file.id),
+      format: "pdf",
+      title: "Converted file"
+    }
+  }
+  const converted = await tester(convertFile.operation.perform, bundle)
+  equal(converted.title, "Converted file")
+  equal(converted.fileExst, ".pdf")
+  equal(converted.folderId, context.inputData.rooms.roomId)
 })
 
 Files("deletes a file permanently", async (context) => {
