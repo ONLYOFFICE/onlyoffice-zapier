@@ -171,6 +171,12 @@ const role = {
   name: "Viewer"
 }
 
+// Dropdowns need objects, so the tag lists return tags as objects.
+const tag = {
+  id: "Sales",
+  name: "Sales"
+}
+
 /** @type {RoomData} */
 const room = {
   created: CREATED,
@@ -251,5 +257,6 @@ module.exports = {
   roomMembers,
   share,
   submittedForm,
+  tag,
   upload
 }

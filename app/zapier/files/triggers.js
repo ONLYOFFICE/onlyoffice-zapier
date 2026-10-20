@@ -970,6 +970,67 @@ const foldersList = {
   }
 }
 
+/**
+ * @param {string[]} names
+ * @returns {{id: string, name: string}[]}
+ */
+function tagChoices(names) {
+  return names.map((name) => ({ id: name, name }))
+}
+
+const tagsList = {
+  display: {
+    description: "Hidden trigger to get a list of tags.",
+    hidden: true,
+    label: "List of Tags"
+  },
+  key: "tagsList",
+  noun: "Tag",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<{id: string, name: string}[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const names = await files.listTags(pageFilters(bundle))
+      return tagChoices(names)
+    },
+    sample: samples.tag
+  }
+}
+
+const roomTagsList = {
+  display: {
+    description: "Hidden trigger to get a list of tags of a room.",
+    hidden: true,
+    label: "List of Room Tags"
+  },
+  key: "roomTagsList",
+  noun: "Tag",
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, {id?: string}>} bundle
+     * @returns {Promise<{id: string, name: string}[]>}
+     */
+    async perform(z, bundle) {
+      // The dropdown is empty until a room is selected.
+      if (!bundle.inputData.id) {
+        return []
+      }
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.roomInfo(normalizeId(bundle.inputData.id))
+      return tagChoices(room.tags || [])
+    },
+    sample: samples.tag
+  }
+}
+
 const destinationFoldersList = {
   display: {
     description: "Hidden trigger to get a list of folders of the destination room.",
@@ -1374,8 +1435,10 @@ module.exports = {
   formSubmitted,
   roomArchived,
   roomCreated,
+  roomTagsList,
   roomUpdated,
   roomsFiltered,
   shareRoles,
+  tagsList,
   userInvited
 }

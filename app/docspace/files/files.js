@@ -333,6 +333,44 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/rooms/{{id}}/tags
+   * ```
+   * @param {number|string} id
+   * @param {string[]} names
+   * @returns {Promise<RoomData>}
+   */
+  addRoomTags(id, names) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/tags`)
+    return this.client.request("PUT", url, { names })
+  }
+
+  /**
+   * ```http
+   * DELETE /files/rooms/{{id}}/tags
+   * ```
+   * @param {number|string} id
+   * @param {string[]} names
+   * @returns {Promise<RoomData>}
+   */
+  removeRoomTags(id, names) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/tags`)
+    return this.client.request("DELETE", url, { names })
+  }
+
+  /**
+   * ```http
+   * GET /files/tags
+   * ```
+   * @param {Filters} filters
+   * @returns {Promise<string[]>}
+   */
+  listTags(filters) {
+    const url = this.client.url("/files/tags", filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * PUT /files/rooms/{{id}}/unarchive
    * ```
    * @param {number|string} id

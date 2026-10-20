@@ -9,6 +9,7 @@ const { equal, match, not } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const {
+  addRoomTags,
   archiveRoom,
   copyFile,
   copyFolder,
@@ -28,6 +29,7 @@ const {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeRoomTags,
   removeUserFromRoom,
   renameFile,
   renameFolder,
@@ -60,8 +62,10 @@ const {
   roomArchived,
   roomCreated,
   roomsFiltered,
+  roomTagsList,
   roomUpdated,
   shareRoles,
+  tagsList,
   userInvited
 } = require("./triggers.js")
 const { invitedUser } = require("../people/people.fixture.js")
@@ -315,6 +319,48 @@ Files("gets the members of the room", async (context) => {
   const result = await tester(getRoomMembers.operation.perform, bundle)
   equal(result.roomId, context.inputData.rooms.roomId)
   equal(result.members.some((member) => member.role === "Owner"), true)
+})
+
+Files("adds tags to the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId),
+      tags: [
+        "zapier-test-a",
+        "zapier-test-b"
+      ]
+    }
+  }
+  const room = await tester(addRoomTags.operation.perform, bundle)
+  equal(room.tags?.includes("zapier-test-a"), true)
+  equal(room.tags?.includes("zapier-test-b"), true)
+})
+
+Files("hidden tags list triggers return the tags", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const roomTags = await tester(roomTagsList.operation.perform, bundle)
+  equal(roomTags.some((item) => item.id === "zapier-test-a"), true)
+  const tags = await tester(tagsList.operation.perform, { authData: context.authData })
+  equal(tags.some((item) => item.id === "zapier-test-a"), true)
+})
+
+Files("removes a tag from the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId),
+      tags: ["zapier-test-a"]
+    }
+  }
+  const room = await tester(removeRoomTags.operation.perform, bundle)
+  equal(room.tags?.includes("zapier-test-a"), false)
+  equal(room.tags?.includes("zapier-test-b"), true)
 })
 
 Files("returns the links of a room", async (context) => {

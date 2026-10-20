@@ -1598,7 +1598,117 @@ const getRoomMembers = {
   }
 }
 
+/**
+ * @param {string[]|string} tags
+ * @returns {string[]}
+ */
+function tagNames(tags) {
+  const list = Array.isArray(tags) ? tags : [tags]
+  return list.map((item) => String(item).trim()).filter((item) => item !== "")
+}
+
+/**
+ * @typedef {Object} RoomTagsFields
+ * @property {string} id
+ * @property {string[]|string} tags
+ */
+
+const addRoomTags = {
+  display: {
+    description: "Adds tags to a room. Creates the tags that don't exist yet.",
+    label: "Add Room Tags"
+  },
+  key: "addRoomTags",
+  noun: "Room",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      },
+      {
+        dynamic: "tagsList.id.name",
+        helpText: "Choose existing tags or enter new ones.",
+        key: "tags",
+        label: "Tags",
+        list: true,
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomTagsFields>} bundle
+     * @returns {Promise<RoomData>}
+     */
+    async perform(z, bundle) {
+      const names = tagNames(bundle.inputData.tags)
+      if (names.length === 0) {
+        throw new z.errors.Error("Enter at least one tag.", "InvalidData", 400)
+      }
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.addRoomTags(normalizeId(bundle.inputData.id), names)
+      room.id = normalizeId(room.id)
+      return room
+    },
+    sample: samples.room
+  }
+}
+
+const removeRoomTags = {
+  display: {
+    description: "Removes tags from a room.",
+    label: "Remove Room Tags"
+  },
+  key: "removeRoomTags",
+  noun: "Room",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      },
+      {
+        dynamic: "roomTagsList.id.name",
+        key: "tags",
+        label: "Tags",
+        list: true,
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, RoomTagsFields>} bundle
+     * @returns {Promise<RoomData>}
+     */
+    async perform(z, bundle) {
+      const names = tagNames(bundle.inputData.tags)
+      if (names.length === 0) {
+        throw new z.errors.Error("Enter at least one tag.", "InvalidData", 400)
+      }
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.removeRoomTags(normalizeId(bundle.inputData.id), names)
+      room.id = normalizeId(room.id)
+      return room
+    },
+    sample: samples.room
+  }
+}
+
 module.exports = {
+  addRoomTags,
   archiveRoom,
   copyFile,
   copyFolder,
@@ -1618,6 +1728,7 @@ module.exports = {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeRoomTags,
   removeUserFromRoom,
   renameFile,
   renameFolder,

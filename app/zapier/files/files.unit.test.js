@@ -9,6 +9,7 @@
 const { equal, instance, match } = require("uvu/assert")
 const { test } = require("uvu")
 const {
+  addRoomTags,
   archiveRoom,
   copyFile,
   copyFolder,
@@ -20,6 +21,7 @@ const {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeRoomTags,
   removeUserFromRoom,
   renameFile,
   renameFolder,
@@ -40,8 +42,10 @@ const {
   formSubmitted,
   roomCreated,
   roomsFiltered,
+  roomTagsList,
   roomUpdated,
   shareRoles,
+  tagsList,
   userInvited
 } = require("./triggers.js")
 const { pageFilters } = require("../pagination.js")
@@ -722,6 +726,52 @@ test("gets the members of a room page by page", async () => {
   equal(result.members[0].role, "Viewer")
   equal(result.members[100].role, "Owner")
   equal(result.members[101], { access: 10, displayName: "Team", email: "", id: "g", role: "Editor", type: "Group" })
+})
+
+test("adds tags to a room", async () => {
+  const z = fakeZ({ "PUT /files/rooms/5/tags": (call) => ({ id: "5", tags: call.body.names }) })
+  const inputData = {
+    id: "5",
+    tags: [
+      " Sales ",
+      "",
+      "Q4"
+    ]
+  }
+  const room = await run(addRoomTags.operation.perform, z, { inputData })
+  equal(room.id, 5)
+  equal(z.calls[0].body.names, [
+    "Sales",
+    "Q4"
+  ])
+})
+
+test("removes a tag from a room", async () => {
+  const z = fakeZ({ "DELETE /files/rooms/5/tags": { id: "5", tags: [] } })
+  const room = await run(removeRoomTags.operation.perform, z, { inputData: { id: "5", tags: "Sales" } })
+  equal(room.tags, [])
+  equal(z.calls[0].body, { names: ["Sales"] })
+})
+
+test("fails adding no tags", async () => {
+  const z = fakeZ({})
+  const error = await caught(() => run(addRoomTags.operation.perform, z, { inputData: { id: "5", tags: [" "] } }))
+  match(String(error), "Enter at least one tag")
+  equal(z.calls.length, 0)
+})
+
+test("lists the tags of a room for a dropdown", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: "5", tags: ["Sales"] } })
+  const tags = await run(roomTagsList.operation.perform, z, { inputData: { id: "5" } })
+  equal(tags, [{ id: "Sales", name: "Sales" }])
+  equal(await run(roomTagsList.operation.perform, z, { inputData: {} }), [])
+})
+
+test("lists the tags for a dropdown", async () => {
+  const z = fakeZ({ "GET /files/tags": ["Sales"] })
+  const tags = await run(tagsList.operation.perform, z, {})
+  equal(tags, [{ id: "Sales", name: "Sales" }])
+  equal(z.calls[0].query.count, "100")
 })
 
 test.run()

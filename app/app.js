@@ -7,6 +7,7 @@
 const { version: platformVersion } = require("zapier-platform-core")
 const { version } = require("../package.json")
 const {
+  addRoomTags,
   archiveRoom,
   copyFile,
   copyFolder,
@@ -26,6 +27,7 @@ const {
   inviteGuest,
   moveFile,
   moveFolder,
+  removeRoomTags,
   removeUserFromRoom,
   renameFile,
   renameFolder,
@@ -61,8 +63,10 @@ const {
   roomArchived,
   roomCreated,
   roomsFiltered,
+  roomTagsList,
   roomUpdated,
   shareRoles,
+  tagsList,
   userInvited
 } = require("./zapier/files/triggers.js")
 const hydrators = require("./zapier/files/hydrators")
@@ -82,6 +86,7 @@ const App = {
     ...beforeSessionAuthRequest
   ],
   creates: {
+    [addRoomTags.key]: addRoomTags,
     [archiveRoom.key]: archiveRoom,
     [copyFile.key]: copyFile,
     [copyFolder.key]: copyFolder,
@@ -102,6 +107,7 @@ const App = {
     [inviteUser.key]: inviteUser,
     [moveFile.key]: moveFile,
     [moveFolder.key]: moveFolder,
+    [removeRoomTags.key]: removeRoomTags,
     [removeUserFromRoom.key]: removeUserFromRoom,
     [renameFile.key]: renameFile,
     [renameFolder.key]: renameFolder,
@@ -147,8 +153,10 @@ const App = {
     [roomArchived.key]: roomArchived,
     [roomCreated.key]: roomCreated,
     [roomsFiltered.key]: roomsFiltered,
+    [roomTagsList.key]: roomTagsList,
     [roomUpdated.key]: roomUpdated,
     [shareRoles.key]: shareRoles,
+    [tagsList.key]: tagsList,
     [userAdded.key]: userAdded,
     [userInvited.key]: userInvited
   },

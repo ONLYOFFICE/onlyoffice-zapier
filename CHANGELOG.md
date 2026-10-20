@@ -17,6 +17,7 @@
 - new Unarchive Room action
 - new Remove User from Room action
 - new Get Room Members action
+- new Add Room Tags and Remove Room Tags actions
 
 ## 1.1.0
 - new inviteGuest action
