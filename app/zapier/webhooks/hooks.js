@@ -351,7 +351,9 @@ async function performWebhook(z, bundle, filters = {}, normalize) {
  * @param {number[]} eventIds
  * @param {Object} options
  * @param {Object[]=} options.inputFields
- * @param {WebhookTriggerOperation["performList"]} [options.pollingFallback]
+ * @param {WebhookTriggerOperation["performList"]} [options.performList] Returns
+ * the test records of the Zap editor. Zapier calls it only there: a running Zap
+ * gets its data from the webhook.
  * @param {Object=} options.sample
  * @param {string=} options.noun
  * @param {WebhookFilters=} options.filters
@@ -378,7 +380,7 @@ function createWebhookTrigger(key, label, description, eventIds, options = {}) {
         return performWebhook(z, bundle, options.filters, options.normalize)
       },
 
-      performList: options.pollingFallback,
+      performList: options.performList,
 
       /**
        * @param {ZObject} z

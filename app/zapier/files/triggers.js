@@ -184,7 +184,7 @@ const fileCreated = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileCreated,
+    performList: performFileCreated,
     sample: samples.file
   }
 )
@@ -225,7 +225,7 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileCreatedInMyDocuments,
+    performList: performFileCreatedInMyDocuments,
     sample: samples.file
   }
 )
@@ -279,7 +279,7 @@ const fileDeleted = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileDeleted,
+    performList: performFileDeleted,
     sample: samples.file
   }
 )
@@ -317,7 +317,7 @@ const fileDeletedInMyDocuments = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileDeletedInMyDocuments,
+    performList: performFileDeletedInMyDocuments,
     sample: samples.file
   }
 )
@@ -372,7 +372,7 @@ const fileUpdated = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileUpdated,
+    performList: performFileUpdated,
     sample: samples.file
   }
 )
@@ -404,7 +404,7 @@ const fileMoved = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileUpdated,
+    performList: performFileUpdated,
     sample: samples.file
   }
 )
@@ -538,7 +538,7 @@ const folderCreated = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderCreated,
+    performList: performFolderCreated,
     sample: samples.folder
   }
 )
@@ -575,7 +575,7 @@ const folderCreatedInMyDocuments = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderCreatedInMyDocuments,
+    performList: performFolderCreatedInMyDocuments,
     sample: samples.folder
   }
 )
@@ -629,7 +629,7 @@ const folderDeleted = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderDeleted,
+    performList: performFolderDeleted,
     sample: samples.folder
   }
 )
@@ -666,7 +666,7 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderDeletedInMyDocuments,
+    performList: performFolderDeletedInMyDocuments,
     sample: samples.folder
   }
 )
@@ -723,7 +723,7 @@ const folderUpdated = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderUpdated,
+    performList: performFolderUpdated,
     sample: samples.folder
   }
 )
@@ -754,7 +754,7 @@ const folderMoved = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderUpdated,
+    performList: performFolderUpdated,
     sample: samples.folder
   }
 )
@@ -870,7 +870,7 @@ const formSubmitted = createWebhookTrigger(
     ],
     normalize: normalizeForm,
     noun: "Form",
-    pollingFallback: performFormSubmitted,
+    performList: performFormSubmitted,
     sample: samples.submittedForm
   }
 )
@@ -939,7 +939,7 @@ const formFilledOut = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "Form",
-    pollingFallback: performFormFilledOut,
+    performList: performFormFilledOut,
     sample: samples.file
   }
 )
@@ -1078,7 +1078,7 @@ const roomArchived = createWebhookTrigger(
   [ROOM_ARCHIVED],
   {
     noun: "Room",
-    pollingFallback: performRoomArchived,
+    performList: performRoomArchived,
     sample: samples.room
   }
 )
@@ -1133,7 +1133,7 @@ const roomUpdated = createWebhookTrigger(
       }
     ],
     noun: "Room",
-    pollingFallback: performRoomUpdated,
+    performList: performRoomUpdated,
     sample: samples.room
   }
 )
