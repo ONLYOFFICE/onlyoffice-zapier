@@ -15,12 +15,19 @@ const {
   roomCreate,
   shareRoom
 } = require("./actions.js")
-const { authData, fakeZ, HaltedError } = require("../z.fixture.js")
+const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
 const {
   fileCreated,
+  fileMoved,
+  fileUpdated,
+  folderMoved,
   foldersList,
+  folderUpdated,
+  formFilledOut,
+  formSubmitted,
   roomCreated,
   roomsFiltered,
+  roomUpdated,
   shareRoles,
   userInvited
 } = require("./triggers.js")
@@ -259,6 +266,206 @@ test("searches the first page if the server search finds nothing", async () => {
   const result = await run(searchFile.operation.perform, z, { inputData: { folderId: 9, title: "test file" } })
   equal(pluck(result, "id"), [1])
   equal(z.calls.length, 2)
+})
+
+/**
+ * @param {any} trigger
+ * @param {number} mask
+ */
+async function checkSubscription(trigger, mask) {
+  const z = fakeZ({ "POST /settings/webhook": { id: 1 } })
+  await run(trigger.operation.performSubscribe, z, { inputData: {}, targetUrl: "https://hooks.zapier.com/1" })
+  equal(z.calls[0].body.triggers, mask)
+}
+
+test("file updated trigger subscribes to the file.updated event", async () => {
+  await checkSubscription(fileUpdated, 512)
+})
+
+test("file updated trigger fires for files of the selected folder", async () => {
+  const z = fakeZ({ "GET /files/file/7": { folderId: 3, id: 7, title: "Report.docx" } })
+  const payload = { id: 7, parentId: 3, rootFolderType: 14, title: "Report.docx" }
+  const perform = /** @type {any} */ (fileUpdated.operation.perform)
+  const files = await perform(z, webhookBundle("file.updated", payload, { folderId: "3", id: "1" }))
+  equal(pluck(files, "title"), ["Report"])
+  equal(await perform(z, webhookBundle("file.updated", payload, { folderId: "4", id: "1" })), [])
+  equal((await perform(z, webhookBundle("file.updated", payload))).length, 1)
+})
+
+test("file updated trigger lists the files section if nothing is selected", async () => {
+  const z = fakeZ({
+    "GET /files/10": { files: [{ id: 2, title: "Report.docx" }] },
+    "GET /files/@my": { pathParts: [{ id: 10, title: "Files" }] }
+  })
+  const performList = /** @type {any} */ (fileUpdated.operation.performList)
+  const files = await run(performList, z, { inputData: {} })
+  equal(pluck(files, "title"), ["Report"])
+  equal(z.calls[1].query.sortBy, "DateAndTime")
+})
+
+test("file moved trigger subscribes to the file.moved event", async () => {
+  await checkSubscription(fileMoved, 16384)
+})
+
+test("file moved trigger fires for files moved to the selected folder", async () => {
+  const z = fakeZ({ "GET /files/file/7": { folderId: 4, id: 7, title: "Report.docx" } })
+  const payload = { id: 7, parentId: 4, rootFolderType: 14, title: "Report.docx" }
+  const perform = /** @type {any} */ (fileMoved.operation.perform)
+  const files = await perform(z, webhookBundle("file.moved", payload, { folderId: "4", id: "1" }))
+  equal(pluck(files, "id"), [7])
+  equal(await perform(z, webhookBundle("file.moved", payload, { folderId: "3", id: "1" })), [])
+})
+
+test("folder updated trigger subscribes to the folder.updated event", async () => {
+  await checkSubscription(folderUpdated, 65536)
+})
+
+test("folder updated trigger fires for folders of the selected room", async () => {
+  const z = fakeZ({ "GET /files/folder/8": { id: 8, parentId: 1, title: "Reports" } })
+  const payload = { id: 8, parentId: 1, rootFolderType: 14, title: "Reports" }
+  const perform = /** @type {any} */ (folderUpdated.operation.perform)
+  const folders = await perform(z, webhookBundle("folder.updated", payload, { id: "1" }))
+  equal(pluck(folders, "title"), ["Reports"])
+  equal(await perform(z, webhookBundle("folder.updated", payload, { id: "2" })), [])
+})
+
+test("folder updated trigger lists the files section if nothing is selected", async () => {
+  const z = fakeZ({
+    "GET /files/10": { folders: [{ id: "3", title: "Reports" }] },
+    "GET /files/@my": { pathParts: [{ id: 10, title: "Files" }] }
+  })
+  const performList = /** @type {any} */ (folderUpdated.operation.performList)
+  const folders = await run(performList, z, { inputData: {} })
+  equal(pluck(folders, "id"), [3])
+  equal(z.calls[1].query.filterType, "FoldersOnly")
+})
+
+test("folder moved trigger subscribes to the folder.moved event", async () => {
+  await checkSubscription(folderMoved, 2097152)
+})
+
+test("folder moved trigger fires for folders moved to the selected folder", async () => {
+  const z = fakeZ({ "GET /files/folder/8": { id: 8, parentId: 4, title: "Reports" } })
+  const payload = { id: 8, parentId: 4, rootFolderType: 14, title: "Reports" }
+  const perform = /** @type {any} */ (folderMoved.operation.perform)
+  const folders = await perform(z, webhookBundle("folder.moved", payload, { folderId: "4", id: "1" }))
+  equal(pluck(folders, "id"), [8])
+  equal(await perform(z, webhookBundle("folder.moved", payload, { id: "1" })), [])
+})
+
+test("room updated trigger subscribes to the room.updated event", async () => {
+  await checkSubscription(roomUpdated, 8388608)
+})
+
+test("room updated trigger fires only for the selected room", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: 5, roomType: 2, title: "Sales" } })
+  const payload = { id: 5, parentId: 1, rootFolderType: 14, title: "Sales" }
+  const perform = /** @type {any} */ (roomUpdated.operation.perform)
+  const rooms = await perform(z, webhookBundle("room.updated", payload, { roomId: "5" }))
+  equal(pluck(rooms, "roomType"), [2])
+  equal(await perform(z, webhookBundle("room.updated", payload, { roomId: "6" })), [])
+  equal((await perform(z, webhookBundle("room.updated", payload))).length, 1)
+})
+
+test("room updated trigger returns the selected room for samples", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: "5", title: "Sales" } })
+  const performList = /** @type {any} */ (roomUpdated.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { roomId: "5" } }), "id"), [5])
+})
+
+test("form submitted trigger subscribes to the form.submit event", async () => {
+  await checkSubscription(formSubmitted, 268435456)
+})
+
+test("form submitted trigger returns the filled form with the original form", async () => {
+  const z = fakeZ({
+    "GET /files/file/5": { folderId: 3, id: 5, title: "Application.pdf" },
+    "GET /files/file/6": { folderId: 9, id: 6, title: "Application - John Doe.pdf" }
+  })
+  const payload = {
+    originalForm: { id: 5, parentId: 3, rootFolderType: 14, title: "Application.pdf" },
+    submittedForm: { id: 6, parentId: 9, rootFolderType: 14, title: "Application - John Doe.pdf" }
+  }
+  const perform = /** @type {any} */ (formSubmitted.operation.perform)
+  const forms = await perform(z, webhookBundle("form.submit", payload, { formId: "5", id: "3" }))
+  equal(pluck(forms, "id"), [6])
+  equal(forms[0].title, "Application - John Doe")
+  equal(forms[0].originalForm.title, "Application")
+  equal(await perform(z, webhookBundle("form.submit", payload, { formId: "4" })), [])
+  equal(await perform(z, webhookBundle("form.submit", payload, { id: "8" })), [])
+})
+
+test("form submitted trigger returns no original form if the event has none", async () => {
+  const z = fakeZ({ "GET /files/file/6": { folderId: 9, id: 6, title: "Application - John Doe.pdf" } })
+  const payload = { submittedForm: { id: 6, parentId: 9, title: "Application - John Doe.pdf" } }
+  const perform = /** @type {any} */ (formSubmitted.operation.perform)
+  const forms = await perform(z, webhookBundle("form.submit", payload))
+  equal(pluck(forms, "title"), ["Application - John Doe"])
+  equal(Object.hasOwn(forms[0], "originalForm"), false)
+})
+
+test("form submitted trigger lists the filled forms with their original forms", async () => {
+  const z = fakeZ({
+    "GET /files/12": {
+      folders: [
+        { id: 20, originalFormId: 5, type: 25 },
+        { id: 21, originalFormId: 7, type: 25 }
+      ]
+    },
+    "GET /files/20": {
+      files: [
+        { created: "2026-01-02T00:00:00Z", fileExst: ".xlsx", id: 9, title: "Application.xlsx" },
+        { created: "2026-01-02T00:00:00Z", fileExst: ".pdf", id: 6, title: "Application - John Doe.pdf" }
+      ]
+    },
+    "GET /files/21": {
+      files: [{ created: "2026-01-03T00:00:00Z", fileExst: ".pdf", id: 8, title: "Order - Jane Doe.pdf" }]
+    },
+    "GET /files/3": {
+      folders: [
+        { id: 11, type: 26 },
+        { id: 12, type: 25 }
+      ]
+    },
+    "GET /files/file/5": { folderId: 3, id: 5, title: "Application.pdf" },
+    "GET /files/file/7": { folderId: 4, id: 7, title: "Order.pdf" }
+  })
+  const performList = /** @type {any} */ (formSubmitted.operation.performList)
+  const forms = await run(performList, z, { inputData: { id: "3" } })
+  equal(pluck(forms, "title"), ["Application - John Doe"])
+  equal(forms[0].originalForm.title, "Application")
+  equal(pluck(await run(performList, z, { inputData: { folderId: "4", id: "3" } }), "id"), [8])
+  equal(await run(performList, z, { inputData: { formId: "7", id: "3" } }), [])
+  equal(await run(performList, z, { inputData: {} }), [])
+})
+
+test("form filled out trigger subscribes to the form.filled.out event", async () => {
+  await checkSubscription(formFilledOut, 536870912)
+})
+
+test("form filled out trigger returns the filled out form", async () => {
+  const z = fakeZ({ "GET /files/file/5": { folderId: 3, formFillingStatus: 4, id: 5, title: "Contract.pdf" } })
+  const payload = { id: 5, parentId: 3, rootFolderType: 14, title: "Contract.pdf" }
+  const perform = /** @type {any} */ (formFilledOut.operation.perform)
+  const forms = await perform(z, webhookBundle("form.filled.out", payload, { formId: "5", id: "3" }))
+  equal(pluck(forms, "title"), ["Contract"])
+  equal(await perform(z, webhookBundle("form.filled.out", payload, { formId: "4" })), [])
+  equal(await perform(z, webhookBundle("form.filled.out", payload, { id: "8" })), [])
+})
+
+test("form filled out trigger lists only filled out forms", async () => {
+  const z = fakeZ({
+    "GET /files/3": {
+      files: [
+        { formFillingStatus: 3, id: 6, title: "Draft.pdf" },
+        { formFillingStatus: 4, id: 5, title: "Contract.pdf" }
+      ]
+    }
+  })
+  const performList = /** @type {any} */ (formFilledOut.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { id: "3" } }), "id"), [5])
+  equal(await run(performList, z, { inputData: { formId: "6", id: "3" } }), [])
+  equal(await run(performList, z, { inputData: {} }), [])
 })
 
 test.run()

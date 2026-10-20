@@ -29,12 +29,19 @@ At the moment, the following triggers are available for ONLYOFFICE Apps:
 | File Created in Files Section | Folder id |
 | File Deleted | Room id, Folder id |
 | File Deleted from Files Section | Folder id |
+| File Moved | Room id, Folder id |
+| File Updated | Room id, Folder id |
 | Folder Created | Room id, Folder id |
 | Folder Created in Files Section | Folder id |
 | Folder Deleted | Room id, Folder id |
 | Folder Deleted from Files Section | Folder id |
+| Folder Moved | Room id, Folder id |
+| Folder Updated | Room id, Folder id |
+| Form Filled Out | Room id, Folder id, Form id |
+| Form Submitted | Room id, Folder id, Form id |
 | Room Archived | - |
 | Room Created | - |
+| Room Updated | Room id |
 | User Joined | Room id, active |
 | User Added | - |
 

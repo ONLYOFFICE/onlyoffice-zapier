@@ -87,6 +87,7 @@ const { Service } = require("../client/client.js")
  * @property {Account} updatedBy
  * @property {number=} originId
  * @property {string=} originTitle
+ * @property {number=} formFillingStatus 4 if all roles have filled out the form.
  */
 
 /**
@@ -111,6 +112,10 @@ const { Service } = require("../client/client.js")
  * @property {Account} updatedBy
  * @property {number=} originRoomId
  * @property {number=} originId
+ * @property {number=} type The type of a system folder, for example, 25 for the
+ * "Complete" folder of a form filling room.
+ * @property {number=} originalFormId The form whose filled copies are in this
+ * subfolder of the "Complete" folder.
  */
 
 /**

@@ -30,18 +30,25 @@ const {
   fileCreatedInMyDocuments,
   //fileDeleted,
   //fileDeletedInMyDocuments, TODO:
+  fileMoved,
   filesList,
   //filesListFromMyDocuments, TODO:
+  fileUpdated,
   filteredSections,
   folderCreated,
   folderCreatedInMyDocuments,
   folderDeleted,
   folderDeletedInMyDocuments,
+  folderMoved,
   //foldersInMyDocumentsList, TODO:
   foldersList,
+  folderUpdated,
+  formFilledOut,
+  formSubmitted,
   roomArchived,
   roomCreated,
   roomsFiltered,
+  roomUpdated,
   shareRoles,
   userInvited
 } = require("./triggers.js")
@@ -164,6 +171,49 @@ Files("triggers when a room is created", async (context) => {
   const rooms = await tester(perform, bundle)
   const room = rooms[0]
   equal(room.id, context.inputData.rooms.roomId)
+})
+
+Files("lists the updated room", async (context) => {
+  const { performList } = roomUpdated.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      roomId: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const rooms = await tester(performList, bundle)
+  equal(rooms[0].id, context.inputData.rooms.roomId)
+})
+
+Files("lists no filled out forms in a room without forms", async (context) => {
+  const { performList } = formFilledOut.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  equal(await tester(performList, bundle), [])
+})
+
+Files("lists no submitted forms in a room without forms", async (context) => {
+  const { performList } = formSubmitted.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  equal(await tester(performList, bundle), [])
 })
 
 Files("hidden rooms filtered trigger returns rooms with external links", async (context) => {
@@ -311,6 +361,38 @@ Files("triggers when a folder is created in room", async (context) => {
   equal(folder.id, context.inputData.rooms.folderId)
 })
 
+Files("lists updated folders of the room", async (context) => {
+  const { performList } = folderUpdated.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
+  const folder = /** @type {import("../../docspace/files/files.js").FolderData} */ (folders[0])
+  equal(folder.id, context.inputData.rooms.folderId)
+})
+
+Files("lists moved folders of the room", async (context) => {
+  const { performList } = folderMoved.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const folders = await tester(performList, bundle)
+  const folder = /** @type {import("../../docspace/files/files.js").FolderData} */ (folders[0])
+  equal(folder.id, context.inputData.rooms.folderId)
+})
+
 Files("hidden folders list trigger returns folders of the room", async (context) => {
   const { perform } = foldersList.operation
   const empty = await tester(perform, { authData: context.authData, inputData: {} })
@@ -367,6 +449,38 @@ Files("triggers when a file is created in folder that is in room", async (contex
   const bundle = {
     authData: context.authData,
     inputData
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const files = await tester(performList, bundle)
+  const file = /** @type {import("../../docspace/files/files.js").FileData} */ (files[0])
+  equal(file.title, "Test File")
+})
+
+Files("lists updated files of a folder that is in room", async (context) => {
+  const { performList } = fileUpdated.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      folderId: context.inputData.rooms.folderId
+    }
+  }
+  if (!performList) {
+    throw new Error("performList is required")
+  }
+  const files = await tester(performList, bundle)
+  const file = /** @type {import("../../docspace/files/files.js").FileData} */ (files[0])
+  equal(file.title, "Test File")
+})
+
+Files("lists moved files of a folder that is in room", async (context) => {
+  const { performList } = fileMoved.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      folderId: context.inputData.rooms.folderId
+    }
   }
   if (!performList) {
     throw new Error("performList is required")

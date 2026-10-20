@@ -207,6 +207,8 @@ async function unsubscribeWebhook(z, bundle) {
 /**
  * @typedef {Object} WebhookFilters
  * @property {number=} rootFolderType
+ * @property {string=} entryField The input field with the id of the entry
+ * itself: a room, or a form (the original form of a submitted form).
  */
 
 /**
@@ -229,6 +231,14 @@ function isSet(value) {
  * @returns {Promise<any>}
  */
 async function fetchEntry(z, bundle, trigger, payload) {
+  // A submitted form has two entries: the filled copy and the original form.
+  if (payload.submittedForm) {
+    const form = await fetchEntry(z, bundle, "file", payload.submittedForm)
+    if (payload.originalForm) {
+      form.originalForm = await fetchEntry(z, bundle, "file", payload.originalForm)
+    }
+    return form
+  }
   if (!trigger || !isSet(payload.id)) {
     return payload
   }
@@ -236,7 +246,7 @@ async function fetchEntry(z, bundle, trigger, payload) {
   const files = new FilesService(client)
   const type = trigger.split(".")[0]
   try {
-    if (type === "file") {
+    if (type === "file" || type === "form") {
       return await files.fileInfo(payload.id)
     }
     if (type === "folder") {
@@ -294,13 +304,21 @@ async function performWebhook(z, bundle, filters = {}, normalize) {
   // entry before the event. For example, the API response of a file moved to
   // the trash from a room doesn't have the room anymore.
   const payload = webhookBody.payload || webhookBody
+  // The filters of a submitted form use the original form.
+  const entry = payload.originalForm || payload
 
   // Filter by rootFolderType
   if (filters.rootFolderType !== undefined) {
     if (
-      payload.rootFolderType === undefined ||
-      Number(payload.rootFolderType) !== Number(filters.rootFolderType)
+      entry.rootFolderType === undefined ||
+      Number(entry.rootFolderType) !== Number(filters.rootFolderType)
     ) {
+      return []
+    }
+  }
+
+  if (filters.entryField && isSet(inputData[filters.entryField])) {
+    if (String(entry.id) !== String(inputData[filters.entryField])) {
       return []
     }
   }
@@ -309,7 +327,7 @@ async function performWebhook(z, bundle, filters = {}, normalize) {
   // folder, or of the room if no folder is selected.
   const expectedParentId = isSet(inputData.folderId) ? inputData.folderId : inputData.id
   if (isSet(expectedParentId)) {
-    if (!isSet(payload.parentId) || String(payload.parentId) !== String(expectedParentId)) {
+    if (!isSet(entry.parentId) || String(entry.parentId) !== String(expectedParentId)) {
       return []
     }
   }
@@ -333,7 +351,9 @@ async function performWebhook(z, bundle, filters = {}, normalize) {
  * @param {number[]} eventIds
  * @param {Object} options
  * @param {Object[]=} options.inputFields
- * @param {WebhookTriggerOperation["performList"]} [options.pollingFallback]
+ * @param {WebhookTriggerOperation["performList"]} [options.performList] Returns
+ * the test records of the Zap editor. Zapier calls it only there: a running Zap
+ * gets its data from the webhook.
  * @param {Object=} options.sample
  * @param {string=} options.noun
  * @param {WebhookFilters=} options.filters
@@ -360,7 +380,7 @@ function createWebhookTrigger(key, label, description, eventIds, options = {}) {
         return performWebhook(z, bundle, options.filters, options.normalize)
       },
 
-      performList: options.pollingFallback,
+      performList: options.performList,
 
       /**
        * @param {ZObject} z

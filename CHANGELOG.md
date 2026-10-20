@@ -1,5 +1,12 @@
 ## 1.1.2
 - add webhooks
+- new File Updated trigger
+- new File Moved trigger
+- new Folder Updated trigger
+- new Folder Moved trigger
+- new Room Updated trigger
+- new Form Submitted trigger
+- new Form Filled Out trigger
 
 ## 1.1.0
 - new inviteGuest action

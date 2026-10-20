@@ -32,10 +32,17 @@ const { pageFilters } = require("../pagination.js")
 const {
   FILE_CREATED,
   FILE_DELETED,
+  FILE_MOVED,
+  FILE_UPDATED,
   FILE_UPLOADED,
   FOLDER_CREATED,
   FOLDER_DELETED,
-  ROOM_ARCHIVED
+  FOLDER_MOVED,
+  FOLDER_UPDATED,
+  FORM_FILLED_OUT,
+  FORM_SUBMITTED,
+  ROOM_ARCHIVED,
+  ROOM_UPDATED
 } = require("../../docspace/webhooks/events.js")
 
 /**
@@ -177,7 +184,7 @@ const fileCreated = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileCreated,
+    performList: performFileCreated,
     sample: samples.file
   }
 )
@@ -218,7 +225,7 @@ const fileCreatedInMyDocuments = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileCreatedInMyDocuments,
+    performList: performFileCreatedInMyDocuments,
     sample: samples.file
   }
 )
@@ -272,7 +279,7 @@ const fileDeleted = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileDeleted,
+    performList: performFileDeleted,
     sample: samples.file
   }
 )
@@ -310,7 +317,94 @@ const fileDeletedInMyDocuments = createWebhookTrigger(
     ],
     normalize: normalizeFile,
     noun: "File",
-    pollingFallback: performFileDeletedInMyDocuments,
+    performList: performFileDeletedInMyDocuments,
+    sample: samples.file
+  }
+)
+
+/**
+ * Lists the files of the selected folder or room, or of the Files section if
+ * nothing is selected. Recently changed files go first.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FileCreatedFields>} bundle
+ * @returns {Promise<FileData[]>}
+ */
+async function performFileUpdated(z, bundle) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  let folderId = bundle.inputData.folderId || bundle.inputData.id
+  if (!folderId) {
+    const section = await files.myDocumentsSection()
+    folderId = section.pathParts[0].id
+  }
+  const filters = {
+    ...pageFilters(bundle),
+    filterType: "FilesOnly",
+    sortBy: "DateAndTime",
+    sortOrder: "descending"
+  }
+  const filesList = await files.listFiles(folderId, filters)
+  return filesList.files.slice(0, 100).map(normalizeFile)
+}
+
+const fileUpdated = createWebhookTrigger(
+  "fileUpdated",
+  "File Updated",
+  "Triggers when a file is changed, for example edited, renamed or restored to an earlier version.",
+  [FILE_UPDATED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    normalize: normalizeFile,
+    noun: "File",
+    performList: performFileUpdated,
+    sample: samples.file
+  }
+)
+
+// DocSpace doesn't keep a history of moves, so the test records of the Zap
+// editor are the recently changed files of the selected place.
+const fileMoved = createWebhookTrigger(
+  "fileMoved",
+  "File Moved",
+  "Triggers when a file is moved to another folder or room.",
+  [FILE_MOVED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room the file is moved to. Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "The folder the file is moved to. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    normalize: normalizeFile,
+    noun: "File",
+    performList: performFileUpdated,
     sample: samples.file
   }
 )
@@ -444,7 +538,7 @@ const folderCreated = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderCreated,
+    performList: performFolderCreated,
     sample: samples.folder
   }
 )
@@ -481,7 +575,7 @@ const folderCreatedInMyDocuments = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderCreatedInMyDocuments,
+    performList: performFolderCreatedInMyDocuments,
     sample: samples.folder
   }
 )
@@ -535,7 +629,7 @@ const folderDeleted = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderDeleted,
+    performList: performFolderDeleted,
     sample: samples.folder
   }
 )
@@ -572,8 +666,281 @@ const folderDeletedInMyDocuments = createWebhookTrigger(
       }
     ],
     noun: "Folder",
-    pollingFallback: performFolderDeletedInMyDocuments,
+    performList: performFolderDeletedInMyDocuments,
     sample: samples.folder
+  }
+)
+
+/**
+ * Lists the folders of the selected folder or room, or of the Files section if
+ * nothing is selected. Recently changed folders go first.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FolderCreatedFields>} bundle
+ * @returns {Promise<FolderData[]>}
+ */
+async function performFolderUpdated(z, bundle) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  let folderId = bundle.inputData.folderId || bundle.inputData.id
+  if (!folderId) {
+    const section = await files.myDocumentsSection()
+    folderId = section.pathParts[0].id
+  }
+  const filters = {
+    ...pageFilters(bundle),
+    filterType: "FoldersOnly",
+    sortBy: "DateAndTime",
+    sortOrder: "descending"
+  }
+  const folders = await files.listFolders(folderId, filters)
+  folders.folders.forEach((folder) => {
+    folder.id = normalizeId(folder.id)
+  })
+  return folders.folders.slice(0, 100)
+}
+
+const folderUpdated = createWebhookTrigger(
+  "folderUpdated",
+  "Folder Updated",
+  "Triggers when a folder is changed, for example renamed.",
+  [FOLDER_UPDATED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    noun: "Folder",
+    performList: performFolderUpdated,
+    sample: samples.folder
+  }
+)
+
+// DocSpace doesn't keep a history of moves, so the test records of the Zap
+// editor are the recently changed folders of the selected place.
+const folderMoved = createWebhookTrigger(
+  "folderMoved",
+  "Folder Moved",
+  "Triggers when a folder is moved to another folder or room.",
+  [FOLDER_MOVED],
+  {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The room the folder is moved to. Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "The folder the folder is moved to. Leave empty to watch only the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      }
+    ],
+    noun: "Folder",
+    performList: performFolderUpdated,
+    sample: samples.folder
+  }
+)
+
+/**
+ * @param {any} form
+ * @returns {any}
+ */
+function normalizeForm(form) {
+  normalizeFile(form)
+  // DocSpace always sends the original form, but an event without it must not
+  // fail the run.
+  if (form.originalForm && form.originalForm.title) {
+    normalizeFile(form.originalForm)
+  }
+  return form
+}
+
+// The type of the "Complete" folder of form filling rooms.
+const COMPLETE_FOLDER_TYPE = 25
+
+/**
+ * @typedef {Object} FormSubmittedFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string=} formId
+ */
+
+/**
+ * Lists the filled forms of the selected room with their original forms, like
+ * the webhook returns them. Form filling rooms keep the filled forms in
+ * subfolders of the "Complete" folder, one subfolder for each original form,
+ * together with a spreadsheet of the answers.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FormSubmittedFields>} bundle
+ * @returns {Promise<FileData[]>}
+ */
+async function performFormSubmitted(z, bundle) {
+  if (!bundle.inputData.id) {
+    return []
+  }
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const room = await files.listFolders(Number(bundle.inputData.id), { filterType: "FoldersOnly" })
+  const complete = room.folders.find((folder) => Number(folder.type) === COMPLETE_FOLDER_TYPE)
+  if (!complete) {
+    return []
+  }
+  const done = await files.listFolders(complete.id, { filterType: "FoldersOnly" })
+  // Like the webhook, the original form must be in the selected folder, or at
+  // the top level of the room.
+  const parentId = String(bundle.inputData.folderId || bundle.inputData.id)
+  /** @type {FileData[]} */
+  const result = []
+  for (const folder of done.folders) {
+    const { originalFormId } = folder
+    if (!originalFormId) {
+      continue
+    }
+    if (bundle.inputData.formId && String(originalFormId) !== String(bundle.inputData.formId)) {
+      continue
+    }
+    const original = await files.fileInfo(originalFormId)
+    if (String(original.folderId) !== parentId) {
+      continue
+    }
+    const filters = {
+      filterType: "FilesOnly",
+      sortBy: "DateAndTimeCreation",
+      sortOrder: "descending"
+    }
+    const forms = await files.listFiles(folder.id, filters)
+    forms.files
+      .filter((form) => form.fileExst === ".pdf")
+      .forEach((form) => result.push(normalizeForm({ ...form, originalForm: { ...original } })))
+  }
+  return result
+    .sort((a, b) => Date.parse(b.created) - Date.parse(a.created))
+    .slice(0, 100)
+}
+
+const formSubmitted = createWebhookTrigger(
+  "formSubmitted",
+  "Form Submitted",
+  "Triggers when a form is filled out and submitted.",
+  [FORM_SUBMITTED],
+  {
+    filters: { entryField: "formId" },
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder with forms. Leave empty to watch only the forms at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        helpText: "Leave empty to watch all forms of the room or folder.",
+        key: "formId",
+        label: "Form",
+        type: "string"
+      }
+    ],
+    normalize: normalizeForm,
+    noun: "Form",
+    performList: performFormSubmitted,
+    sample: samples.submittedForm
+  }
+)
+
+// The form filling status of a form that all roles have filled out.
+const COMPLETE_FORM_STATUS = 4
+
+/**
+ * Lists the filled out forms of the selected folder or room.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, FormSubmittedFields>} bundle
+ * @returns {Promise<FileData[]>}
+ */
+async function performFormFilledOut(z, bundle) {
+  const folderId = bundle.inputData.folderId || bundle.inputData.id
+  if (!folderId) {
+    return []
+  }
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const filters = {
+    filterType: "FilesOnly",
+    sortBy: "DateAndTime",
+    sortOrder: "descending"
+  }
+  const forms = await files.listFiles(Number(folderId), filters)
+  const { formId } = bundle.inputData
+  return forms.files
+    .filter((form) => form.formFillingStatus === COMPLETE_FORM_STATUS)
+    .filter((form) => !formId || String(form.id) === String(formId))
+    .slice(0, 100)
+    .map(normalizeFile)
+}
+
+const formFilledOut = createWebhookTrigger(
+  "formFilledOut",
+  "Form Filled Out",
+  "Triggers when all roles have filled out a form in a virtual data room.",
+  [FORM_FILLED_OUT],
+  {
+    filters: { entryField: "formId" },
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch the whole workspace.",
+        key: "id",
+        label: "Room",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder with forms. Leave empty to watch only the forms at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        helpText: "Leave empty to watch all forms of the room or folder.",
+        key: "formId",
+        label: "Form",
+        type: "string"
+      }
+    ],
+    normalize: normalizeFile,
+    noun: "Form",
+    performList: performFormFilledOut,
+    sample: samples.file
   }
 )
 
@@ -711,7 +1078,62 @@ const roomArchived = createWebhookTrigger(
   [ROOM_ARCHIVED],
   {
     noun: "Room",
-    pollingFallback: performRoomArchived,
+    performList: performRoomArchived,
+    sample: samples.room
+  }
+)
+
+/**
+ * @typedef {Object} RoomUpdatedFields
+ * @property {string=} roomId
+ */
+
+/**
+ * Returns the selected room, or the rooms of the workspace if no room is
+ * selected. Recently changed rooms go first.
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, RoomUpdatedFields>} bundle
+ * @returns {Promise<RoomData[]>}
+ */
+async function performRoomUpdated(z, bundle) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  /** @type {RoomData[]} */
+  let rooms
+  if (bundle.inputData.roomId) {
+    rooms = [await files.roomInfo(Number(bundle.inputData.roomId))]
+  } else {
+    const filters = {
+      ...pageFilters(bundle),
+      sortBy: "DateAndTime",
+      sortOrder: "descending"
+    }
+    rooms = (await files.listRooms(filters)).folders
+  }
+  rooms.forEach((room) => {
+    room.id = normalizeId(room.id)
+  })
+  return rooms
+}
+
+const roomUpdated = createWebhookTrigger(
+  "roomUpdated",
+  "Room Updated",
+  "Triggers when a room is changed, for example renamed or its logo, tags or settings are changed.",
+  [ROOM_UPDATED],
+  {
+    filters: { entryField: "roomId" },
+    inputFields: [
+      {
+        dynamic: "roomCreated.id.title",
+        helpText: "Leave empty to watch all rooms.",
+        key: "roomId",
+        label: "Room",
+        type: "string"
+      }
+    ],
+    noun: "Room",
+    performList: performRoomUpdated,
     sample: samples.room
   }
 )
@@ -874,6 +1296,8 @@ module.exports = {
   fileCreatedInMyDocuments,
   fileDeleted,
   fileDeletedInMyDocuments,
+  fileMoved,
+  fileUpdated,
   filesList,
   filesListFromMyDocuments,
   filteredSections,
@@ -881,10 +1305,15 @@ module.exports = {
   folderCreatedInMyDocuments,
   folderDeleted,
   folderDeletedInMyDocuments,
+  folderMoved,
+  folderUpdated,
   foldersInMyDocumentsList,
   foldersList,
+  formFilledOut,
+  formSubmitted,
   roomArchived,
   roomCreated,
+  roomUpdated,
   roomsFiltered,
   shareRoles,
   userInvited
