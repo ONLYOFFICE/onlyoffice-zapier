@@ -733,7 +733,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms/{{id}}/link
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @returns {Promise<ExternalLinkData>}
    */
   externalLink(id) {

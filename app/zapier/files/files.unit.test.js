@@ -21,6 +21,7 @@ const {
   deleteFolder,
   deleteFolderInMyDocuments,
   downloadFile,
+  externalLink,
   fileExternalLink,
   folderExternalLink,
   getFile,
@@ -1039,6 +1040,14 @@ test("gets the external link of a folder", async () => {
   const inputData = { create: true, folderId: "8" }
   const result = await run(folderExternalLink.operation.perform, z, { inputData })
   equal(result, link)
+})
+
+test("creates the external link of a room in the Zaps made before the field", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/3" } }
+  const z = fakeZ({ "GET /files/rooms/5/link": link, "GET /files/rooms/5/links": [] })
+  equal(await run(externalLink.operation.perform, z, { inputData: { id: "5" } }), link)
+  const error = await caught(() => run(externalLink.operation.perform, z, { inputData: { create: false, id: "5" } }))
+  instance(error, HaltedError)
 })
 
 test("creates a room from a template", async () => {

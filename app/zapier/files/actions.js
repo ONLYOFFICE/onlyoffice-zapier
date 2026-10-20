@@ -94,6 +94,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 /**
  * @typedef {Object} ExternalLinkFields
  * @property {number} id
+ * @property {boolean|string=} create
  */
 
 /**
@@ -173,6 +174,7 @@ const archiveRoom = {
         key: "id",
         label: "Room",
         required: true,
+        search: "searchRoom.id",
         type: "string"
       }
     ],
@@ -210,6 +212,7 @@ const createFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -312,10 +315,12 @@ const createFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to create the folder at the top level of the room.",
         key: "folderId",
         label: "Folder",
         search: "searchFolder.id",
@@ -410,6 +415,7 @@ const deleteFolder = {
         helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -491,6 +497,7 @@ const downloadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -577,8 +584,8 @@ const downloadFileFromMyDocuments = {
 
 const externalLink = {
   display: {
-    description: "Gets the primary external link of a room. If the room doesn't have one, creates it.",
-    label: "Get External Link"
+    description: "Gets the primary external link of a room. Can create it if the room doesn't have one.",
+    label: "Get Room External Link"
   },
   key: "externalLink",
   noun: "Link",
@@ -590,7 +597,8 @@ const externalLink = {
         label: "Room",
         required: true,
         type: "string"
-      }
+      },
+      createLinkField("room")
     ],
     /**
      * @param {ZObject} z
@@ -600,7 +608,11 @@ const externalLink = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return await files.externalLink(bundle.inputData.id)
+      const id = normalizeId(bundle.inputData.id)
+      // Old Zaps don't have this field, so they keep creating the link.
+      const { create } = bundle.inputData
+      const createLink = create === undefined || String(create) === "true"
+      return await primaryLink(z, files, "rooms", id, createLink ? () => files.externalLink(id) : undefined)
     },
     sample: samples.externalLink
   }
@@ -668,6 +680,7 @@ const inviteGuest = {
         key: "roomId",
         label: "Room",
         required: true,
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -799,7 +812,7 @@ const roomCreate = {
 const shareRoom = {
   display: {
     description: "Adds a workspace user to a room with the selected role.",
-    label: "Share Room"
+    label: "Add User to Room"
   },
   key: "shareRoom",
   noun: "Room",
@@ -811,6 +824,7 @@ const shareRoom = {
         key: "roomId",
         label: "Room",
         required: true,
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -818,6 +832,7 @@ const shareRoom = {
         key: "userId",
         label: "User",
         required: true,
+        search: "searchUser.id",
         type: "string"
       },
       {
@@ -869,10 +884,12 @@ const uploadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to upload the file to the top level of the room.",
         key: "folderId",
         label: "Folder",
         search: "searchFolder.id",
@@ -994,6 +1011,7 @@ const getFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1006,6 +1024,7 @@ const getFile = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1092,6 +1111,7 @@ const deleteFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1104,6 +1124,7 @@ const deleteFile = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1160,6 +1181,7 @@ const renameFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1172,6 +1194,7 @@ const renameFile = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1225,10 +1248,12 @@ const renameFolder = {
         helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "To use a folder from the Files section, enter its ID or find it with Find Folder.",
         key: "folderId",
         label: "Folder",
         required: true,
@@ -1275,6 +1300,7 @@ const MOVE_FILE_FIELDS = [
     helpText: "The room with the file. Use it to choose the file from the list.",
     key: "id",
     label: "Room",
+    search: "searchRoom.id",
     type: "string"
   },
   {
@@ -1287,6 +1313,7 @@ const MOVE_FILE_FIELDS = [
   },
   {
     dynamic: "filesList.id.title",
+    helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
     key: "fileId",
     label: "File",
     required: true,
@@ -1302,10 +1329,12 @@ const MOVE_FOLDER_FIELDS = [
     helpText: "The room with the folder. Use it to choose the folder from the list.",
     key: "id",
     label: "Room",
+    search: "searchRoom.id",
     type: "string"
   },
   {
     dynamic: "foldersList.id.title",
+    helpText: "To use a folder from the Files section, enter its ID or find it with Find Folder.",
     key: "folderId",
     label: "Folder",
     required: true,
@@ -1328,6 +1357,7 @@ function moveFields(isFile) {
       key: "destinationRoomId",
       label: "Destination room",
       required: true,
+      search: "searchRoom.id",
       type: "string"
     },
     {
@@ -1796,6 +1826,7 @@ const convertFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1809,6 +1840,7 @@ const convertFile = {
       {
         altersDynamicFields: true,
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -2149,7 +2181,8 @@ function createLinkField(entry) {
 
 const fileExternalLink = {
   display: {
-    description: "Gets the primary external link of a file. If the file doesn't have one, creates it.",
+    description: "Gets the primary external link of a file. Can create it if the file doesn't have one, " +
+      "with the default access of the room, for example, only for workspace users in Virtual Data Rooms.",
     label: "Get File External Link"
   },
   key: "fileExternalLink",
@@ -2162,6 +2195,7 @@ const fileExternalLink = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -2174,6 +2208,7 @@ const fileExternalLink = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -2206,6 +2241,7 @@ const LOCK_FILE_FIELDS = [
     helpText: "The room with the file. Use it to choose the file from the list.",
     key: "id",
     label: "Room",
+    search: "searchRoom.id",
     type: "string"
   },
   {
@@ -2218,6 +2254,7 @@ const LOCK_FILE_FIELDS = [
   },
   {
     dynamic: "filesList.id.title",
+    helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
     key: "fileId",
     label: "File",
     required: true,
@@ -2300,7 +2337,8 @@ const unlockFile = {
 
 const folderExternalLink = {
   display: {
-    description: "Gets the primary external link of a folder. If the folder doesn't have one, creates it.",
+    description: "Gets the primary external link of a folder. Can create it if the folder doesn't have one, " +
+      "with the default access of the room, for example, only for workspace users in Virtual Data Rooms.",
     label: "Get Folder External Link"
   },
   key: "folderExternalLink",
@@ -2313,10 +2351,12 @@ const folderExternalLink = {
         helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "To use a folder from the Files section, enter its ID or find it with Find Folder.",
         key: "folderId",
         label: "Folder",
         required: true,

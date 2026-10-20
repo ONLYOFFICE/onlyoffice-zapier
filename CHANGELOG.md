@@ -32,6 +32,7 @@
 - Archive Room returns the room; Invite Guest and Download File return more data; Upload File and Find File return titles without the extension, like other actions
 - Delete Folder from Files Section can delete a folder for good; the delete actions say that rooms have no Trash
 - fix Remove User from Room in rooms with more than 100 members
+- Get External Link is now Get Room External Link and Share Room is now Add User to Room; Get Room External Link can get the link without creating it; room and user fields can use Find Room and Find User; clearer help texts
 
 ## 1.1.0
 - new inviteGuest action
