@@ -36,8 +36,14 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} DownloadFileData
- * @property {number} id
+ * @property {string=} contentLength
  * @property {string} file
+ * @property {string} fileExst
+ * @property {number} folderId
+ * @property {number} id
+ * @property {string} title Without the extension.
+ * @property {string} viewUrl
+ * @property {string} webUrl
  */
 
 /**
@@ -145,7 +151,12 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} InviteGuestData
+ * @property {number} access
+ * @property {string} email
+ * @property {string} role
+ * @property {number|string} roomId
  * @property {string} status
+ * @property {string} userId
  */
 
 /**
@@ -360,7 +371,7 @@ class FilesService extends Service {
    * ```http
    * PUT /files/rooms/{{id}}/archive
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @returns {Promise<ProgressData>}
    */
   archiveRoom(id) {

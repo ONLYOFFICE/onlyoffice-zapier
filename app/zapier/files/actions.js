@@ -177,16 +177,20 @@ const archiveRoom = {
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData, ArchiveRoomFields>} bundle
-     * @returns {Promise<ProgressData>}
+     * @returns {Promise<RoomData>}
      */
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const operation = await files.archiveRoom(bundle.inputData.id)
+      const id = normalizeId(bundle.inputData.id)
+      const operation = await files.archiveRoom(id)
       const progress = new Progress(files.listOperations.bind(files), operation)
-      return completeOperation(z, progress)
+      await completeOperation(z, progress)
+      const room = await files.roomInfo(id)
+      room.id = normalizeId(room.id)
+      return room
     },
-    sample: samples.progress
+    sample: samples.archivedRoom
   }
 }
 
@@ -500,10 +504,19 @@ const downloadFile = {
      * @returns {Promise<DownloadFileData>}
      */
     async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const file = await files.fileInfo(normalizeId(bundle.inputData.fileId))
       const hydrate = z.dehydrateFile(downloadFileHydrator, { fileId: bundle.inputData.fileId })
       return {
+        contentLength: file.contentLength,
         file: hydrate,
-        id: bundle.inputData.fileId
+        fileExst: file.fileExst,
+        folderId: file.folderId,
+        id: normalizeId(file.id),
+        title: stripExtension(file.title),
+        viewUrl: file.viewUrl,
+        webUrl: file.webUrl
       }
     },
     sample: samples.hydratedFile
@@ -580,11 +593,23 @@ const externalLink = {
   }
 }
 
+/** @type {Record<number, string>} */
+const ROLE_NAMES = {
+  1: "Full access",
+  10: "Editor",
+  11: "Content creator",
+  2: "Viewer",
+  5: "Reviewer",
+  6: "Commenter",
+  7: "Form filler",
+  9: "Room manager"
+}
+
 /**
  * Finds a room member by the exact email. The API searches by a part of the
  * name or email and also returns groups.
  * @param {FilesService} files
- * @param {number} roomId
+ * @param {number|string} roomId
  * @param {string} email
  * @returns {Promise<UserData | undefined>}
  */
@@ -595,6 +620,24 @@ async function findMember(files, roomId, email) {
     const user = item.sharedToUser
     return !!user && typeof user.email === "string" && user.email.toLowerCase() === expected
   })
+}
+
+/**
+ * @param {number|string} roomId
+ * @param {string} email
+ * @param {UserData} member
+ * @param {string} status
+ * @returns {InviteGuestData}
+ */
+function guestData(roomId, email, member, status) {
+  return {
+    access: member.access,
+    email,
+    role: ROLE_NAMES[member.access] || "",
+    roomId,
+    status,
+    userId: member.sharedToUser ? member.sharedToUser.id : ""
+  }
 }
 
 const inviteGuest = {
@@ -665,26 +708,24 @@ const inviteGuest = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const member = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      const roomId = normalizeId(bundle.inputData.roomId)
+      const { email } = bundle.inputData
+      const member = await findMember(files, roomId, email)
       if (member) {
-        return {
-          status: "User is already a member"
-        }
+        return guestData(roomId, email, member, "User is already a member")
       }
       const body = {
         invitations: [{
           access: bundle.inputData.access,
-          email: bundle.inputData.email
+          email
         }],
         message: "Invitation from Zapier",
         notify: true
       }
-      await files.shareRoom(bundle.inputData.roomId, body)
-      const guest = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      await files.shareRoom(roomId, body)
+      const guest = await findMember(files, roomId, email)
       if (guest) {
-        return {
-          status: "Invited"
-        }
+        return guestData(roomId, email, guest, "Invited")
       }
       throw new z.errors.Error(
         "Failed to invite the guest. Check that the workspace allows guest invitations.",
@@ -859,10 +900,15 @@ const uploadFile = {
           fileSize: headers.fileSize,
           fileStash
         }
-        return await uploader.upload(
+        const uploaded = await uploader.upload(
           bodyUpload,
           (chunkData) => files.uploadChunk(session.id, chunkData)
         )
+        uploaded.title = stripExtension(uploaded.title)
+        if (uploaded.file) {
+          uploaded.file.title = stripExtension(uploaded.file.title)
+        }
+        return uploaded
       }
       throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
@@ -1515,18 +1561,6 @@ const removeUserFromRoom = {
     },
     sample: samples.removedMember
   }
-}
-
-/** @type {Record<number, string>} */
-const ROLE_NAMES = {
-  1: "Full access",
-  10: "Editor",
-  11: "Content creator",
-  2: "Viewer",
-  5: "Reviewer",
-  6: "Commenter",
-  7: "Form filler",
-  9: "Room manager"
 }
 
 /**

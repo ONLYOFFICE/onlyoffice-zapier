@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, normalizeId } = require("../../docspace/client/client.js")
+const { Client, normalizeId, stripExtension } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 
@@ -99,10 +99,11 @@ const searchFile = {
       )
       results.forEach((file) => {
         file.id = normalizeId(file.id)
+        file.title = stripExtension(file.title)
       })
       return results
     },
-    sample: samples.foundFile
+    sample: samples.file
   }
 }
 

@@ -161,11 +161,20 @@ test("returns the user of the shared room", async () => {
   equal(result, user)
 })
 
-test("dehydrates the downloaded file by its id", async () => {
-  const z = fakeZ({})
+test("downloads a file in third-party storage", async () => {
+  const z = fakeZ({ "GET /files/file/sbox-7": { fileExst: ".docx", id: "sbox-7", title: "Contract.docx" } })
+  const result = await run(downloadFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(result.id, "sbox-7")
+})
+
+test("dehydrates the downloaded file by its id and returns its data", async () => {
+  const z = fakeZ({ "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" } })
   const result = await run(downloadFile.operation.perform, z, { inputData: { fileId: 7 } })
   match(result.file, "\"fileId\":7")
-  equal(z.calls.length, 0)
+  equal(result.id, 7)
+  equal(result.title, "Contract")
+  equal(result.fileExst, ".docx")
+  equal(result.folderId, 3)
 })
 
 test("invites a guest whose email is a substring of a member email", async () => {
@@ -185,14 +194,36 @@ test("invites a guest whose email is a substring of a member email", async () =>
   const inputData = { access: 11, email: "A@example.com", roomId: 1 }
   const result = await run(inviteGuest.operation.perform, z, { inputData })
   equal(result.status, "Invited")
+  equal(result.email, "A@example.com")
+  equal(result.roomId, 1)
 })
 
 test("doesn't invite a guest who is already a member", async () => {
-  const z = fakeZ({ "GET /files/rooms/1/share": [{ sharedToUser: { email: "a@example.com" } }] })
-  const inputData = { access: 11, email: "a@example.com", roomId: 1 }
+  const member = { access: 11, sharedToUser: { email: "a@example.com", id: "u1" } }
+  const z = fakeZ({ "GET /files/rooms/1/share": [member] })
+  const inputData = { access: 11, email: "a@example.com", roomId: "1" }
   const result = await run(inviteGuest.operation.perform, z, { inputData })
-  equal(result.status, "User is already a member")
+  equal(result, {
+    access: 11,
+    email: "a@example.com",
+    role: "Content creator",
+    roomId: 1,
+    status: "User is already a member",
+    userId: "u1"
+  })
   equal(z.calls.length, 1)
+})
+
+test("archives a room and returns it", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "GET /files/rooms/5": { id: "5", rootFolderType: 20, title: "Sales" },
+    "PUT /files/rooms/5/archive": operation
+  })
+  const room = await run(archiveRoom.operation.perform, z, { inputData: { id: "5" } })
+  equal(room.id, 5)
+  equal(room.rootFolderType, 20)
 })
 
 test("keeps titles of files without an extension", async () => {
@@ -1047,6 +1078,13 @@ test("passes the errors of the workspace through when uploading a file", async (
 test("fails creating a file without a room or a folder", async () => {
   const error = await caught(() => run(createFile.operation.perform, fakeZ({}), { inputData: { title: "Report" } }))
   instance(error, ZapierError)
+})
+
+test("finds files and returns their titles without the extension", async () => {
+  const z = fakeZ({ "GET /files/9": { files: [{ fileExst: ".pdf", id: "1", title: "Report.pdf" }] } })
+  const result = await run(searchFile.operation.perform, z, { inputData: { folderId: 9, title: ".pdf" } })
+  equal(result[0].title, "Report")
+  equal(result[0].fileExst, ".pdf")
 })
 
 test.run()

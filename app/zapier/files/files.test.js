@@ -432,6 +432,8 @@ Files("invited a guest", async (context) => {
   }
   const result = await tester(perform, bundle)
   equal(result.status, "Invited")
+  equal(result.role, "Content creator")
+  equal(typeof result.userId, "string")
 })
 
 Files("doesn't invite a guest twice", async (context) => {
@@ -666,6 +668,8 @@ Files("downloads file from folder that is in room", async (context) => {
   const result = await tester(perform, bundle)
   match(result.file, "hydrate|||")
   match(result.file, "hydrators.downloadFile")
+  equal(result.id, context.inputData.rooms.fileId)
+  equal(result.fileExst, ".docx")
 })
 
 Files("upload a file", async (context) => {
@@ -682,6 +686,7 @@ Files("upload a file", async (context) => {
   const result = await tester(perform, bundle)
   equal(result.uploaded, true)
   not.equal(result.id, 0)
+  equal(result.title, "demo")
 })
 
 Files("finds the room by title", async (context) => {
@@ -958,8 +963,10 @@ Files("archive the room", async (context) => {
     authData: context.authData,
     inputData
   }
-  const result = await tester(perform, bundle)
-  equal(result.finished, true)
+  const room = await tester(perform, bundle)
+  equal(room.id, context.inputData.rooms.roomId)
+  // 20 is the Archive.
+  equal(room.rootFolderType, 20)
 })
 
 Files("triggers when a room is archived", async (context) => {
