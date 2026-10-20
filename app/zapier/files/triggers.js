@@ -1098,6 +1098,38 @@ async function performRoomArchived(z, bundle) {
   return rooms.folders
 }
 
+const archivedRoomsList = {
+  display: {
+    description: "Hidden trigger to get a list of archived rooms.",
+    hidden: true,
+    label: "List of Archived Rooms"
+  },
+  key: "archivedRoomsList",
+  noun: "Room",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        ...pageFilters(bundle),
+        searchArea: "Archive"
+      }
+      const rooms = await files.listRooms(filters)
+      rooms.folders.forEach((room) => {
+        room.id = normalizeId(room.id)
+      })
+      return rooms.folders
+    },
+    sample: samples.room
+  }
+}
+
 const roomArchived = createWebhookTrigger(
   "roomArchived",
   "Room Archived",
@@ -1319,6 +1351,7 @@ const userInvited = {
 }
 
 module.exports = {
+  archivedRoomsList,
   destinationFoldersList,
   fileCreated,
   fileCreatedInMyDocuments,

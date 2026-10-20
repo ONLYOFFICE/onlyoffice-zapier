@@ -29,11 +29,13 @@ const {
   renameFolder,
   roomCreate,
   shareRoom,
+  unarchiveRoom,
   uploadFile,
   uploadFileToMyDocuments
 } = require("./zapier/files/actions.js")
 const { beforeSessionAuthRequest } = require("./docspace/auth/auth.js")
 const {
+  archivedRoomsList,
   destinationFoldersList,
   fileCreated,
   fileCreatedInMyDocuments,
@@ -101,6 +103,7 @@ const App = {
     [renameFolder.key]: renameFolder,
     [roomCreate.key]: roomCreate,
     [shareRoom.key]: shareRoom,
+    [unarchiveRoom.key]: unarchiveRoom,
     [uploadFile.key]: uploadFile,
     [uploadFileToMyDocuments.key]: uploadFileToMyDocuments
   },
@@ -116,6 +119,7 @@ const App = {
     [searchUser.key]: searchUser
   },
   triggers: {
+    [archivedRoomsList.key]: archivedRoomsList,
     [destinationFoldersList.key]: destinationFoldersList,
     [fileCreated.key]: fileCreated,
     [fileCreatedInMyDocuments.key]: fileCreatedInMyDocuments,

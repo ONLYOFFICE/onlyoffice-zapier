@@ -57,6 +57,7 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 
 | Actions | API method | Fields |
 | ------------- | ------------- | ------------- |
+| Unarchive Room | [PUT api/2.0/files/rooms/{id}/unarchive](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/unarchive-room) | Room id |
 | Archive Room | [PUT api/2.0/files/rooms/{id}/archive](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/archive-room) | Room id |
 | Create File | [POST api/2.0/files/{folderId}/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-file) | Room id, Folder id, Title |
 | Create File in Files Section | [POST api/2.0/files/@my/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-file-in-my-documents) | Folder id, Title |

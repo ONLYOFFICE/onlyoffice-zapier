@@ -22,10 +22,12 @@ const {
   renameFile,
   renameFolder,
   roomCreate,
-  shareRoom
+  shareRoom,
+  unarchiveRoom
 } = require("./actions.js")
 const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
 const {
+  archivedRoomsList,
   fileCreated,
   fileMoved,
   fileUpdated,
@@ -655,6 +657,26 @@ test("fails moving a file that was skipped", async () => {
   })
   const inputData = { conflict: "0", destinationRoomId: "3", fileId: "7" }
   instance(await caught(() => run(moveFile.operation.perform, z, { inputData })), HaltedError)
+})
+
+test("lists the archived rooms without sorting in the request", async () => {
+  const z = fakeZ({ "GET /files/rooms": { folders: [{ id: "5", title: "Sales" }] } })
+  const rooms = await run(archivedRoomsList.operation.perform, z, {})
+  equal(pluck(rooms, "id"), [5])
+  equal(z.calls[0].query.searchArea, "Archive")
+  equal(z.calls[0].query.sortBy, undefined)
+})
+
+test("unarchives a room and returns it", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "GET /files/rooms/5": { id: "5", rootFolderType: 14, title: "Sales" },
+    "PUT /files/rooms/5/unarchive": operation
+  })
+  const room = await run(unarchiveRoom.operation.perform, z, { inputData: { id: "5" } })
+  equal(room.id, 5)
+  equal(room.rootFolderType, 14)
 })
 
 test.run()

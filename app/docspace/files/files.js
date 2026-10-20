@@ -332,6 +332,18 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/rooms/{{id}}/unarchive
+   * ```
+   * @param {number|string} id
+   * @returns {Promise<ProgressData>}
+   */
+  unarchiveRoom(id) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/unarchive`)
+    return this.client.request("PUT", url, { deleteAfter: false })
+  }
+
+  /**
+   * ```http
    * POST /files/{{folderId}}/file
    * ```
    * @param {number } folderId

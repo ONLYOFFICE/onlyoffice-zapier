@@ -1401,6 +1401,48 @@ const copyFolder = {
   }
 }
 
+/**
+ * @typedef {Object} UnarchiveRoomFields
+ * @property {string} id
+ */
+
+const unarchiveRoom = {
+  display: {
+    description: "Restores a room from the Archive.",
+    label: "Unarchive Room"
+  },
+  key: "unarchiveRoom",
+  noun: "Room",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "archivedRoomsList.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, UnarchiveRoomFields>} bundle
+     * @returns {Promise<RoomData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const id = normalizeId(bundle.inputData.id)
+      const operation = await files.unarchiveRoom(id)
+      const progress = new Progress(files.listOperations.bind(files), operation)
+      await completeOperation(z, progress)
+      const room = await files.roomInfo(id)
+      room.id = normalizeId(room.id)
+      return room
+    },
+    sample: samples.room
+  }
+}
+
 module.exports = {
   archiveRoom,
   copyFile,
@@ -1424,6 +1466,7 @@ module.exports = {
   renameFolder,
   roomCreate,
   shareRoom,
+  unarchiveRoom,
   uploadFile,
   uploadFileToMyDocuments
 }

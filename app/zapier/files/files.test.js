@@ -31,6 +31,7 @@ const {
   renameFolder,
   roomCreate,
   shareRoom,
+  unarchiveRoom,
   uploadFile,
   uploadFileToMyDocuments
 } = require("./actions.js")
@@ -765,6 +766,26 @@ Files("triggers when a room is archived", async (context) => {
   const folders = await tester(performList, bundle)
   const room = folders[0]
   equal(room.id, context.inputData.rooms.roomId)
+})
+
+Files("unarchives the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const room = await tester(unarchiveRoom.operation.perform, bundle)
+  equal(room.id, context.inputData.rooms.roomId)
+  equal(room.rootFolderType, 14)
+  // Archive the room again, because active rooms count toward the room
+  // limit.
+  await tester(archiveRoom.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  })
 })
 
 Files("creates a file in the my documents", async (context) => {
