@@ -72,11 +72,13 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {Object} DeleteFolderFields
  * @property {number} folderId
  * @property {number=} id
+ * @property {boolean|string=} immediately
  */
 
 /**
  * @typedef {Object} DeleteFolderInMyDocumentsFields
  * @property {number} folderId
+ * @property {boolean|string=} immediately
  */
 
 /**
@@ -395,7 +397,7 @@ const createFolderInMyDocuments = {
 
 const deleteFolder = {
   display: {
-    description: "Moves a folder in a room to Trash.",
+    description: "Deletes a folder in a room with everything in it. Rooms have no Trash, so it can't be restored.",
     label: "Delete Folder"
   },
   key: "deleteFolder",
@@ -405,6 +407,7 @@ const deleteFolder = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
+        helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
         type: "string"
@@ -426,7 +429,9 @@ const deleteFolder = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const operation = await files.deleteFolder(bundle.inputData.folderId)
+      // Boolean fields may come from Zapier as strings.
+      const immediately = String(bundle.inputData.immediately) === "true"
+      const operation = await files.deleteFolder(normalizeId(bundle.inputData.folderId), immediately)
       const progress = new Progress(files.listOperations.bind(files), operation[0])
       return completeOperation(z, progress)
     },
@@ -436,7 +441,7 @@ const deleteFolder = {
 
 const deleteFolderInMyDocuments = {
   display: {
-    description: "Moves a folder in the Files section to Trash.",
+    description: "Moves a folder in the Files section to Trash or deletes it permanently.",
     label: "Delete Folder from Files Section"
   },
   key: "deleteFolderInMyDocuments",
@@ -450,6 +455,14 @@ const deleteFolderInMyDocuments = {
         required: true,
         search: "searchFolder.id",
         type: "string"
+      },
+      {
+        default: "false",
+        helpText: "Delete the folder and everything in it at once instead of moving it to Trash. " +
+          "It can't be restored.",
+        key: "immediately",
+        label: "Delete permanently",
+        type: "boolean"
       }
     ],
     /**
@@ -1066,7 +1079,7 @@ const getRoom = {
 
 const deleteFile = {
   display: {
-    description: "Moves a file to Trash or deletes it permanently.",
+    description: "Deletes a file. Files in the Files section go to Trash unless deleted permanently.",
     label: "Delete File"
   },
   key: "deleteFile",
@@ -1099,7 +1112,8 @@ const deleteFile = {
       },
       {
         default: "false",
-        helpText: "Delete the file at once instead of moving it to Trash. It can't be restored.",
+        helpText: "For files in the Files section: delete the file at once instead of moving it to Trash. " +
+          "Rooms have no Trash, so files in rooms are always deleted permanently.",
         key: "immediately",
         label: "Delete permanently",
         type: "boolean"

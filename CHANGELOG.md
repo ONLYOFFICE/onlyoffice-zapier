@@ -30,6 +30,7 @@
 - actions wait up to 20 seconds for long DocSpace operations
 - failed actions show as errors, not as halted; errors about missing rights or tariff limits are clear; Upload File doesn't ask to reconnect the account when the server of the file URL refuses access
 - Archive Room returns the room; Invite Guest and Download File return more data; Upload File and Find File return titles without the extension, like other actions
+- Delete Folder from Files Section can delete a folder for good; the delete actions say that rooms have no Trash
 
 ## 1.1.0
 - new inviteGuest action

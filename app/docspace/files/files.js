@@ -555,7 +555,8 @@ class FilesService extends Service {
    * DELETE /files/file/{{fileId}}
    * ```
    * @param {number|string} fileId
-   * @param {boolean} immediately Don't move the file to Trash.
+   * @param {boolean} immediately Don't move the file to Trash. Rooms have no
+   * Trash, so files in rooms are always deleted for good.
    * @returns {Promise<ProgressData[]>}
    */
   deleteFile(fileId, immediately) {
@@ -607,11 +608,13 @@ class FilesService extends Service {
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId
+   * @param {boolean} immediately Don't move the folder to Trash. Rooms have no
+   * Trash, so folders in rooms are always deleted for good.
    * @returns {Promise<ProgressData[]>}
    */
-  deleteFolder(folderId) {
+  deleteFolder(folderId, immediately) {
     const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
-    return this.client.request("DELETE", url)
+    return this.client.request("DELETE", url, { deleteAfter: false, immediately })
   }
 
   /**

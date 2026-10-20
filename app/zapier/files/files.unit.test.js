@@ -18,6 +18,8 @@ const {
   createFileWithContent,
   createRoomFromTemplate,
   deleteFile,
+  deleteFolder,
+  deleteFolderInMyDocuments,
   downloadFile,
   fileExternalLink,
   folderExternalLink,
@@ -1085,6 +1087,35 @@ test("finds files and returns their titles without the extension", async () => {
   const result = await run(searchFile.operation.perform, z, { inputData: { folderId: 9, title: ".pdf" } })
   equal(result[0].title, "Report")
   equal(result[0].fileExst, ".pdf")
+})
+
+test("deletes a folder from the Files section permanently", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/folder/8": [operation],
+    "GET /files/fileops": [operation]
+  })
+  const inputData = { folderId: "8", immediately: "true" }
+  const result = await run(deleteFolderInMyDocuments.operation.perform, z, { inputData })
+  equal(result.finished, true)
+  equal(z.calls[0].body, { deleteAfter: false, immediately: true })
+})
+
+test("deletes a folder in third-party storage", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({ "DELETE /files/folder/sbox-8": [operation], "GET /files/fileops": [operation] })
+  await run(deleteFolder.operation.perform, z, { inputData: { folderId: "sbox-8" } })
+  equal(z.calls[0].path, "/files/folder/sbox-8")
+})
+
+test("deletes a folder from a room", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/folder/8": [operation],
+    "GET /files/fileops": [operation]
+  })
+  await run(deleteFolder.operation.perform, z, { inputData: { folderId: "8" } })
+  equal(z.calls[0].body, { deleteAfter: false, immediately: false })
 })
 
 test.run()
