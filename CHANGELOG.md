@@ -25,6 +25,7 @@
 - new Lock File and Unlock File actions
 - new Get Folder External Link action
 - new Create Room from Template action
+- new Change User Type action
 
 ## 1.1.0
 - new inviteGuest action

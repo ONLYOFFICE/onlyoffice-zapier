@@ -36,6 +36,15 @@ const { Service } = require("../client/client")
  */
 
 /**
+ * @typedef {Object} TypeUpdateProgress
+ * @property {string} id
+ * @property {string} error
+ * @property {number} percentage
+ * @property {boolean} isCompleted
+ * @property {number} status
+ */
+
+/**
  * @typedef {Object} User
  * @property {string} firstName
  * @property {string} lastName
@@ -116,6 +125,43 @@ class PeopleService extends Service {
    */
   userByEmail(email) {
     const url = this.client.url("/people/email", { email })
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * PUT /people/type/{{type}}
+   * ```
+   * @param {string} type For example, RoomAdmin.
+   * @param {string[]} userIds
+   * @returns {Promise<User[]>}
+   */
+  updateUserType(type, userIds) {
+    const url = this.client.url(`/people/type/${encodeURIComponent(type)}`)
+    return this.client.request("PUT", url, { userIds })
+  }
+
+  /**
+   * ```http
+   * POST /people/type
+   * ```
+   * @param {{type: string, userId: string}} body
+   * @returns {Promise<TypeUpdateProgress>}
+   */
+  startUserTypeUpdate(body) {
+    const url = this.client.url("/people/type")
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /people/type/progress/{{userId}}
+   * ```
+   * @param {string} userId
+   * @returns {Promise<TypeUpdateProgress>}
+   */
+  userTypeUpdateProgress(userId) {
+    const url = this.client.url(`/people/type/progress/${encodeURIComponent(userId)}`)
     return this.client.request("GET", url)
   }
 

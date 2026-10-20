@@ -120,7 +120,87 @@ const inviteUser = {
   }
 }
 
+// For the types that can't own rooms, DocSpace changes the type in the
+// background and gives the rooms and shared files of the user to the caller.
+const TYPES_WITHOUT_ROOMS = [
+  "Guest",
+  "User"
+]
+const TYPE_UPDATE_CHECKS = 40
+const TYPE_UPDATE_DELAY = 500
+
+/**
+ * @typedef {Object} ChangeUserTypeFields
+ * @property {string} userId
+ * @property {string} type
+ */
+
+const changeUserType = {
+  display: {
+    description: "Changes the type of a workspace user.",
+    label: "Change User Type"
+  },
+  key: "changeUserType",
+  noun: "User",
+  operation: {
+    inputFields: [
+      {
+        dynamic: "userAdded.id.displayName",
+        key: "userId",
+        label: "User",
+        required: true,
+        search: "searchUser.id",
+        type: "string"
+      },
+      {
+        choices: {
+          DocSpaceAdmin: "Full admin",
+          Guest: "Guest",
+          RoomAdmin: "Room admin",
+          User: "User"
+        },
+        helpText: "Room admins and Full admins take a paid seat. " +
+          "If the user becomes a User or a Guest, their rooms and shared files go to you.",
+        key: "type",
+        label: "User type",
+        required: true,
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ChangeUserTypeFields>} bundle
+     * @returns {Promise<User>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const people = new PeopleService(client)
+      const { type, userId } = bundle.inputData
+      if (TYPES_WITHOUT_ROOMS.includes(type)) {
+        let progress = await people.startUserTypeUpdate({ type, userId })
+        let checks = 0
+        while (!progress.isCompleted && !progress.error && checks < TYPE_UPDATE_CHECKS) {
+          await new Promise((resolve) => setTimeout(resolve, TYPE_UPDATE_DELAY))
+          progress = await people.userTypeUpdateProgress(userId)
+          checks = checks + 1
+        }
+        if (progress.error) {
+          throw new z.errors.HaltedError(progress.error)
+        }
+        if (!progress.isCompleted) {
+          throw new z.errors.Error("The user type is still being changed. Check the user later.", "Timeout", 408)
+        }
+      } else {
+        await people.updateUserType(type, [userId])
+      }
+      return await people.user(userId)
+    },
+    sample: samples.user
+  }
+}
+
 module.exports = {
+  changeUserType,
   inviteUser
 }
 

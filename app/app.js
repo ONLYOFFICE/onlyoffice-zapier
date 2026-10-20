@@ -79,7 +79,10 @@ const {
   userInvited
 } = require("./zapier/files/triggers.js")
 const hydrators = require("./zapier/files/hydrators")
-const { inviteUser } = require("./zapier/people/actions.js")
+const {
+  changeUserType,
+  inviteUser
+} = require("./zapier/people/actions.js")
 const {
   searchFile,
   searchFolder,
@@ -97,6 +100,7 @@ const App = {
   creates: {
     [addRoomTags.key]: addRoomTags,
     [archiveRoom.key]: archiveRoom,
+    [changeUserType.key]: changeUserType,
     [convertFile.key]: convertFile,
     [copyFile.key]: copyFile,
     [copyFolder.key]: copyFolder,
