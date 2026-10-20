@@ -28,6 +28,7 @@ const {
   getRoom,
   getRoomMembers,
   inviteGuest,
+  listFolderContents,
   moveFile,
   moveFolder,
   removeRoomTags,
@@ -748,6 +749,18 @@ Files("deletes a file permanently", async (context) => {
   }
   const result = await tester(deleteFile.operation.perform, bundle)
   equal(result.finished, true)
+})
+
+Files("lists the contents of the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const result = await tester(listFolderContents.operation.perform, bundle)
+  equal(result.folderId, context.inputData.rooms.roomId)
+  equal(result.folders.some((folder) => folder.id === context.inputData.rooms.folderId), true)
 })
 
 Files("renames the folder of the room", async (context) => {

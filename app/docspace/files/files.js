@@ -289,6 +289,14 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} FolderContents
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
+ * @property {FolderData} current
+ * @property {number} total All files and folders, not only this page.
+ */
+
+/**
  * @typedef {Section[]} SectionList
  */
 
@@ -614,6 +622,19 @@ class FilesService extends Service {
    * @returns {Promise<FilesList>}
    */
   listFiles(folderId, filters) {
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}`, filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/{{folderId}}
+   * ```
+   * @param {number|string} folderId
+   * @param {Filters} filters
+   * @returns {Promise<FolderContents>}
+   */
+  folderContents(folderId, filters) {
     const url = this.client.url(`/files/${encodeURIComponent(folderId)}`, filters)
     return this.client.request("GET", url)
   }

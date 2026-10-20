@@ -79,6 +79,7 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Remove Room Tags | [DELETE api/2.0/files/rooms/{id}/tags](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/delete-room-tags) | Room id, Tags |
 | Invite User | [POST api/2.0/people/invite](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/profiles/invite-users) | Email, Role |
 | Get File | [GET api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-file-info) | Room id, Folder id, File id |
+| List Folder Contents | [GET api/2.0/files/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/get-folder) | Room id, Folder id, Limit |
 | Get Room | [GET api/2.0/files/rooms/{id}](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-room-info) | Room id |
 | Delete File | [DELETE api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/delete-file) | Room id, Folder id, File id, Delete permanently |
 | Rename File | [PUT api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/update-file) | Room id, Folder id, File id, New title |

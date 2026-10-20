@@ -25,6 +25,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {import("../../docspace/files/files.js").DownloadFileData} DownloadFileData
  * @typedef {import("../../docspace/files/files.js").ExternalLinkData} ExternalLinkData
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
+ * @typedef {import("../../docspace/files/files.js").FolderContents} FolderContents
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
  * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
@@ -1829,6 +1830,134 @@ const convertFile = {
   }
 }
 
+const MAX_CONTENTS = 500
+
+/**
+ * @typedef {Object} ListedFile
+ * @property {string=} contentLength
+ * @property {string} created
+ * @property {string} fileExst
+ * @property {number} id
+ * @property {string} title
+ * @property {string} updated
+ * @property {string} viewUrl
+ * @property {string} webUrl
+ */
+
+/**
+ * @typedef {Object} ListedFolder
+ * @property {string} created
+ * @property {number=} filesCount
+ * @property {number=} foldersCount
+ * @property {number} id
+ * @property {string} title
+ * @property {string} updated
+ */
+
+/**
+ * @typedef {Object} ListedContents
+ * @property {number} count
+ * @property {ListedFile[]} files
+ * @property {number} folderId
+ * @property {ListedFolder[]} folders
+ * @property {string} title
+ * @property {number} total
+ */
+
+/**
+ * @typedef {Object} ListFolderContentsFields
+ * @property {string} id
+ * @property {string=} folderId
+ * @property {string|number=} limit
+ */
+
+const listFolderContents = {
+  display: {
+    description: "Lists the files and folders of a room or a folder.",
+    label: "List Folder Contents"
+  },
+  key: "listFolderContents",
+  noun: "Folder",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        key: "id",
+        label: "Room",
+        required: true,
+        search: "searchRoom.id",
+        type: "string"
+      },
+      {
+        dynamic: "foldersList.id.title",
+        helpText: "Leave empty to list the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        search: "searchFolder.id",
+        type: "string"
+      },
+      {
+        default: "100",
+        helpText: `The maximum number of files and folders to return, up to ${MAX_CONTENTS}. Folders come first.`,
+        key: "limit",
+        label: "Limit",
+        type: "integer"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, ListFolderContentsFields>} bundle
+     * @returns {Promise<ListedContents>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const folderId = normalizeId(bundle.inputData.folderId || bundle.inputData.id)
+      const limit = Math.min(Number(bundle.inputData.limit) || PAGE_SIZE, MAX_CONTENTS)
+      /** @type {FileData[]} */
+      const fileList = []
+      /** @type {FolderData[]} */
+      const folderList = []
+      /** @type {FolderContents} */
+      let page
+      let startIndex = 0
+      do {
+        const count = Math.min(PAGE_SIZE, limit - startIndex)
+        page = await files.folderContents(folderId, { count, startIndex })
+        fileList.push(...page.files)
+        folderList.push(...page.folders)
+        startIndex = fileList.length + folderList.length
+      } while (startIndex < limit && startIndex < page.total && page.files.length + page.folders.length > 0)
+      return {
+        count: fileList.length + folderList.length,
+        files: fileList.map((file) => ({
+          contentLength: file.contentLength,
+          created: file.created,
+          fileExst: file.fileExst,
+          id: normalizeId(file.id),
+          title: stripExtension(file.title),
+          updated: file.updated,
+          viewUrl: file.viewUrl,
+          webUrl: file.webUrl
+        })),
+        folderId: normalizeId(page.current.id),
+        folders: folderList.map((folder) => ({
+          created: folder.created,
+          filesCount: folder.filesCount,
+          foldersCount: folder.foldersCount,
+          id: normalizeId(folder.id),
+          title: folder.title,
+          updated: folder.updated
+        })),
+        title: page.current.title,
+        total: page.total
+      }
+    },
+    sample: samples.folderContents
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
@@ -1849,6 +1978,7 @@ module.exports = {
   getRoom,
   getRoomMembers,
   inviteGuest,
+  listFolderContents,
   moveFile,
   moveFolder,
   removeRoomTags,

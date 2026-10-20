@@ -20,6 +20,7 @@ const {
   getRoom,
   getRoomMembers,
   inviteGuest,
+  listFolderContents,
   moveFile,
   moveFolder,
   removeRoomTags,
@@ -827,6 +828,47 @@ test("offers the formats the file can be converted to", async () => {
   equal(format.choices, { odt: "ODT", pdf: "PDF" })
   const [empty] = await run(field, z, { inputData: {} })
   equal(empty.choices, undefined)
+})
+
+test("lists the contents of a folder page by page up to the limit", async () => {
+  const folder = { id: "3", title: "Reports" }
+  const file = { fileExst: ".docx", id: "2", title: "README.docx" }
+  const z = fakeZ({
+    "GET /files/5": (call) => {
+      if (call.query.startIndex === "0") {
+        return { current: { id: "5", title: "Sales" }, files: [], folders: Array(100).fill(folder), total: 300 }
+      }
+      return {
+        current: { id: "5", title: "Sales" },
+        files: Array(Number(call.query.count)).fill(file),
+        folders: [],
+        total: 300
+      }
+    }
+  })
+  const result = await run(listFolderContents.operation.perform, z, { inputData: { id: "5", limit: "150" } })
+  equal(result.count, 150)
+  equal(result.total, 300)
+  equal(result.folderId, 5)
+  equal(result.folders.length, 100)
+  equal(result.files[0].title, "README")
+  equal(result.files[0].id, 2)
+  equal(z.calls[1].query, { count: "50", startIndex: "100" })
+})
+
+test("lists the contents of a folder in third-party storage", async () => {
+  const folder = { current: { id: "sbox-8", title: "Box" }, files: [], folders: [], total: 0 }
+  const z = fakeZ({ "GET /files/sbox-8": folder })
+  const result = await run(listFolderContents.operation.perform, z, { inputData: { folderId: "sbox-8", id: "5" } })
+  equal(result.folderId, "sbox-8")
+})
+
+test("lists the contents of the folder instead of the room", async () => {
+  const z = fakeZ({ "GET /files/8": { current: { id: 8, title: "Reports" }, files: [], folders: [], total: 0 } })
+  const result = await run(listFolderContents.operation.perform, z, { inputData: { folderId: "8", id: "5" } })
+  equal(result.title, "Reports")
+  equal(result.count, 0)
+  equal(z.calls[0].query.count, "100")
 })
 
 test.run()

@@ -121,6 +121,35 @@ const externalLink = {
   subjectType: 4
 }
 
+const folderContents = {
+  count: 2,
+  files: [
+    {
+      contentLength: "7.54 KB",
+      created: CREATED,
+      fileExst: ".docx",
+      id: 2,
+      title: "README",
+      updated: CREATED,
+      viewUrl: "https://example.onlyoffice.com/filehandler.ashx?action=download&fileid=2",
+      webUrl: "https://example.onlyoffice.com/doceditor?fileid=2&version=1"
+    }
+  ],
+  folderId: 5,
+  folders: [
+    {
+      created: CREATED,
+      filesCount: 0,
+      foldersCount: 0,
+      id: 3,
+      title: "Reports",
+      updated: CREATED
+    }
+  ],
+  title: "Sales",
+  total: 2
+}
+
 const roomMembers = {
   count: 1,
   members: [
@@ -246,6 +275,7 @@ module.exports = {
   externalLink,
   file,
   folder,
+  folderContents,
   foundFile,
   hydratedFile,
   inviteGuest,
