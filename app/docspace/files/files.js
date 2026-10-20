@@ -88,6 +88,7 @@ const { Service } = require("../client/client.js")
  * @property {number=} originId
  * @property {string=} originTitle
  * @property {number=} formFillingStatus 4 if all roles have filled out the form.
+ * @property {boolean=} locked DocSpace omits it for unlocked files.
  */
 
 /**
@@ -601,6 +602,19 @@ class FilesService extends Service {
   folderInfo(folderId) {
     const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
     return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * PUT /files/file/{{fileId}}/lock
+   * ```
+   * @param {number|string} fileId
+   * @param {boolean} lockFile
+   * @returns {Promise<FileData>}
+   */
+  lockFile(fileId, lockFile) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/lock`)
+    return this.client.request("PUT", url, { lockFile })
   }
 
   /**

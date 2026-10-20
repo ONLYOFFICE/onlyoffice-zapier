@@ -68,6 +68,8 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Delete Folder from Files Section | [DELETE api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/delete-folder) | Folder id |
 | Download File | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-presigned-file-uri) | Room id, Folder id, File id |
 | Download File from Files Section | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-presigned-file-uri) | Folder id, File id |
+| Lock File | [PUT api/2.0/files/file/{fileId}/lock](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/lock-file) | Room id, Folder id, File id |
+| Unlock File | [PUT api/2.0/files/file/{fileId}/lock](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/lock-file) | Room id, Folder id, File id |
 | Get File External Link | [GET api/2.0/files/file/{fileId}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-file-primary-external-link) | Room id, Folder id, File id |
 | Get External Link | [GET api/2.0/files/rooms/{id}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-primary-external-link) | Room id |
 | Create Room | [POST api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room) | Title, Type |

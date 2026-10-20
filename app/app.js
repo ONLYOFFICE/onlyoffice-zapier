@@ -29,6 +29,7 @@ const {
   getRoomMembers,
   inviteGuest,
   listFolderContents,
+  lockFile,
   moveFile,
   moveFolder,
   removeRoomTags,
@@ -38,6 +39,7 @@ const {
   roomCreate,
   shareRoom,
   unarchiveRoom,
+  unlockFile,
   uploadFile,
   uploadFileToMyDocuments
 } = require("./zapier/files/actions.js")
@@ -113,6 +115,7 @@ const App = {
     [inviteGuest.key]: inviteGuest,
     [inviteUser.key]: inviteUser,
     [listFolderContents.key]: listFolderContents,
+    [lockFile.key]: lockFile,
     [moveFile.key]: moveFile,
     [moveFolder.key]: moveFolder,
     [removeRoomTags.key]: removeRoomTags,
@@ -122,6 +125,7 @@ const App = {
     [roomCreate.key]: roomCreate,
     [shareRoom.key]: shareRoom,
     [unarchiveRoom.key]: unarchiveRoom,
+    [unlockFile.key]: unlockFile,
     [uploadFile.key]: uploadFile,
     [uploadFileToMyDocuments.key]: uploadFileToMyDocuments
   },

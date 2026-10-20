@@ -31,6 +31,7 @@ const {
   getRoomMembers,
   inviteGuest,
   listFolderContents,
+  lockFile,
   moveFile,
   moveFolder,
   removeRoomTags,
@@ -40,6 +41,7 @@ const {
   roomCreate,
   shareRoom,
   unarchiveRoom,
+  unlockFile,
   uploadFile,
   uploadFileToMyDocuments
 } = require("./actions.js")
@@ -748,6 +750,19 @@ Files("converts a file to pdf", async (context) => {
   equal(converted.title, "Converted file")
   equal(converted.fileExst, ".pdf")
   equal(converted.folderId, context.inputData.rooms.roomId)
+})
+
+Files("locks and unlocks a file", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  }
+  const locked = await tester(lockFile.operation.perform, bundle)
+  equal(locked.locked, true)
+  const unlocked = await tester(unlockFile.operation.perform, bundle)
+  equal(unlocked.locked, false)
 })
 
 Files("gets the external link of a file", async (context) => {

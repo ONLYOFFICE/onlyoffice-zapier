@@ -2144,6 +2144,98 @@ const fileExternalLink = {
   }
 }
 
+const LOCK_FILE_FIELDS = [
+  {
+    altersDynamicFields: true,
+    dynamic: "roomCreated.id.title",
+    helpText: "The room with the file. Use it to choose the file from the list.",
+    key: "id",
+    label: "Room",
+    type: "string"
+  },
+  {
+    altersDynamicFields: true,
+    dynamic: "foldersList.id.title",
+    helpText: "A folder to choose the file from. Leave empty to list the files at the top level of the room.",
+    key: "folderId",
+    label: "Folder",
+    type: "string"
+  },
+  {
+    dynamic: "filesList.id.title",
+    key: "fileId",
+    label: "File",
+    required: true,
+    search: "searchFile.id",
+    type: "string"
+  }
+]
+
+/**
+ * @typedef {Object} LockFileFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ */
+
+/**
+ * @param {ZObject} z
+ * @param {Bundle<SessionAuthenticationData, LockFileFields>} bundle
+ * @param {boolean} lock
+ * @returns {Promise<FileData>}
+ */
+async function setFileLock(z, bundle, lock) {
+  const client = new Client(bundle.authData.baseUrl, z.request)
+  const files = new FilesService(client)
+  const file = await files.lockFile(normalizeId(bundle.inputData.fileId), lock)
+  file.id = normalizeId(file.id)
+  file.title = stripExtension(file.title)
+  file.locked = !!file.locked
+  return file
+}
+
+const lockFile = {
+  display: {
+    description: "Locks a file so that only you can edit it.",
+    label: "Lock File"
+  },
+  key: "lockFile",
+  noun: "File",
+  operation: {
+    inputFields: LOCK_FILE_FIELDS,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, LockFileFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    perform(z, bundle) {
+      return setFileLock(z, bundle, true)
+    },
+    sample: { ...samples.file, locked: true }
+  }
+}
+
+const unlockFile = {
+  display: {
+    description: "Unlocks a locked file.",
+    label: "Unlock File"
+  },
+  key: "unlockFile",
+  noun: "File",
+  operation: {
+    inputFields: LOCK_FILE_FIELDS,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, LockFileFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    perform(z, bundle) {
+      return setFileLock(z, bundle, false)
+    },
+    sample: { ...samples.file, locked: false }
+  }
+}
+
 module.exports = {
   addRoomTags,
   archiveRoom,
@@ -2167,6 +2259,7 @@ module.exports = {
   getRoomMembers,
   inviteGuest,
   listFolderContents,
+  lockFile,
   moveFile,
   moveFolder,
   removeRoomTags,
@@ -2176,6 +2269,7 @@ module.exports = {
   roomCreate,
   shareRoom,
   unarchiveRoom,
+  unlockFile,
   uploadFile,
   uploadFileToMyDocuments
 }

@@ -23,6 +23,7 @@ const {
   getRoomMembers,
   inviteGuest,
   listFolderContents,
+  lockFile,
   moveFile,
   moveFolder,
   removeRoomTags,
@@ -31,7 +32,8 @@ const {
   renameFolder,
   roomCreate,
   shareRoom,
-  unarchiveRoom
+  unarchiveRoom,
+  unlockFile
 } = require("./actions.js")
 const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
 const {
@@ -918,6 +920,30 @@ test("gets the external link of a file", async () => {
   const z = fakeZ({ "GET /files/file/7/link": link })
   const result = await run(fileExternalLink.operation.perform, z, { inputData: { create: "true", fileId: "7" } })
   equal(result, link)
+})
+
+test("locks a file in third-party storage", async () => {
+  const z = fakeZ({ "PUT /files/file/sbox-7/lock": { id: "sbox-7", locked: true, title: "Contract.docx" } })
+  const file = await run(lockFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(file.id, "sbox-7")
+})
+
+test("locks and unlocks a file", async () => {
+  const z = fakeZ({
+    "PUT /files/file/7/lock": (call) => {
+      if (call.body.lockFile) {
+        return { id: "7", locked: true, title: "Contract.docx" }
+      }
+      // DocSpace omits the field for unlocked files.
+      return { id: "7", title: "Contract.docx" }
+    }
+  })
+  const locked = await run(lockFile.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(locked.locked, true)
+  equal(locked.title, "Contract")
+  const unlocked = await run(unlockFile.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(unlocked.locked, false)
+  equal(z.calls[1].body, { lockFile: false })
 })
 
 test.run()
