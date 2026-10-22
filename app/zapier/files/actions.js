@@ -1926,8 +1926,13 @@ const convertFile = {
         }
         const client = new Client(bundle.authData.baseUrl, z.request)
         const files = new FilesService(client)
-        const file = await files.fileInfo(fileId)
-        const settings = await files.settings()
+        const [
+          file,
+          settings
+        ] = await Promise.all([
+          files.fileInfo(fileId),
+          files.settings()
+        ])
         const formats = settings.extsConvertible[file.fileExst] || []
         /** @type {Record<string, string>} */
         const choices = {}
@@ -1951,8 +1956,13 @@ const convertFile = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const file = await files.fileInfo(normalizeId(bundle.inputData.fileId))
-      const settings = await files.settings()
+      const [
+        file,
+        settings
+      ] = await Promise.all([
+        files.fileInfo(normalizeId(bundle.inputData.fileId)),
+        files.settings()
+      ])
       const format = extension(bundle.inputData.format)
       const formats = settings.extsConvertible[file.fileExst] || []
       if (!formats.includes(format)) {

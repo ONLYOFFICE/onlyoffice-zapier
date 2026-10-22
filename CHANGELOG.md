@@ -38,6 +38,7 @@
 - Invite User and Change User Type show only the user types you can set, and clear errors; Add User to Room and Invite Guest explain when your account can't add people to the room
 - fix Room Updated, Form Submitted and Form Filled Out with rooms and folders in third-party storage
 - List Folder Contents shows an error when the limit isn't a number from 1 to 500
+- Find Room and Convert File send their requests at once and work faster
 
 ## 1.1.0
 - new inviteGuest action
