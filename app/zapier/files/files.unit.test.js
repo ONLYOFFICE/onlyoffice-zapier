@@ -1007,6 +1007,31 @@ test("lists the contents of a folder in third-party storage", async () => {
   equal(result.folderId, "sbox-8")
 })
 
+test("checks the limit of the folder contents", async () => {
+  const z = fakeZ({ "GET /files/5": { current: { id: 5, title: "Sales" }, files: [], folders: [], total: 0 } })
+  /**
+   * @param {string|number=} limit
+   * @returns {Promise<unknown>}
+   */
+  async function count(limit) {
+    await run(listFolderContents.operation.perform, z, { inputData: { id: "5", limit } })
+    return z.calls[z.calls.length - 1].query.count
+  }
+  equal(await count(undefined), "100")
+  equal(await count(""), "100")
+  equal(await count("2.7"), "2")
+  equal(await count(900), "100")
+  const invalid = [
+    "0",
+    "-5",
+    "ten"
+  ]
+  for (const limit of invalid) {
+    const error = await caught(() => run(listFolderContents.operation.perform, z, { inputData: { id: "5", limit } }))
+    instance(error, ZapierError)
+  }
+})
+
 test("lists the contents of the folder instead of the room", async () => {
   const z = fakeZ({ "GET /files/8": { current: { id: 8, title: "Reports" }, files: [], folders: [], total: 0 } })
   const result = await run(listFolderContents.operation.perform, z, { inputData: { folderId: "8", id: "5" } })

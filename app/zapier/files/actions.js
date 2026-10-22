@@ -1979,6 +1979,24 @@ const convertFile = {
 const MAX_CONTENTS = 500
 
 /**
+ * Values from previous steps can be fractions, negative or not numbers at all,
+ * so check them before they get to the page size of a request.
+ * @param {ZObject} z
+ * @param {string|number=} value
+ * @returns {number}
+ */
+function contentsLimit(z, value) {
+  if (value === undefined || value === null || value === "") {
+    return PAGE_SIZE
+  }
+  const limit = Math.floor(Number(value))
+  if (!(limit >= 1)) {
+    throw new z.errors.Error(`The limit must be a number from 1 to ${MAX_CONTENTS}.`, "InvalidData", 400)
+  }
+  return Math.min(limit, MAX_CONTENTS)
+}
+
+/**
  * @typedef {Object} ListedFile
  * @property {string=} contentLength
  * @property {string} created
@@ -2060,7 +2078,7 @@ const listFolderContents = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const folderId = normalizeId(bundle.inputData.folderId || bundle.inputData.id)
-      const limit = Math.min(Number(bundle.inputData.limit) || PAGE_SIZE, MAX_CONTENTS)
+      const limit = contentsLimit(z, bundle.inputData.limit)
       /** @type {FileData[]} */
       const fileList = []
       /** @type {FolderData[]} */
