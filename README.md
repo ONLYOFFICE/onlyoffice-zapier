@@ -57,8 +57,10 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 
 | Actions | API method | Fields |
 | ------------- | ------------- | ------------- |
+| Unarchive Room | [PUT api/2.0/files/rooms/{id}/unarchive](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/unarchive-room) | Room id |
 | Archive Room | [PUT api/2.0/files/rooms/{id}/archive](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/archive-room) | Room id |
 | Create File | [POST api/2.0/files/{folderId}/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-file) | Room id, Folder id, Title |
+| Create File with Content | [POST api/2.0/files/{folderId}/text](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-text-file), [POST api/2.0/files/{folderId}/html](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-html-file) | Room id, Folder id, Title, Format, Content |
 | Create File in Files Section | [POST api/2.0/files/@my/file](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/create-file-in-my-documents) | Folder id, Title |
 | Create Folder | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/create-folder) | Room id, Folder id, Title |
 | Create Folder in Files Section | [POST api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/create-folder) | Folder id, Title |
@@ -66,13 +68,34 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Delete Folder from Files Section | [DELETE api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/delete-folder) | Folder id |
 | Download File | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-presigned-file-uri) | Room id, Folder id, File id |
 | Download File from Files Section | [GET api/2.0/files/file/{fileId}/presigned](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-presigned-file-uri) | Folder id, File id |
+| Lock File | [PUT api/2.0/files/file/{fileId}/lock](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/lock-file) | Room id, Folder id, File id |
+| Unlock File | [PUT api/2.0/files/file/{fileId}/lock](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/lock-file) | Room id, Folder id, File id |
+| Get File External Link | [GET api/2.0/files/file/{fileId}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-file-primary-external-link) | Room id, Folder id, File id |
+| Get Folder External Link | [GET api/2.0/files/folder/{folderId}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/get-folder-primary-external-link) | Room id, Folder id |
 | Get External Link | [GET api/2.0/files/rooms/{id}/link](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-primary-external-link) | Room id |
 | Create Room | [POST api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room) | Title, Type |
+| Create Room from Template | [POST api/2.0/files/rooms/fromtemplate](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/create-room-from-template) | Template id, Title |
 | Share Room | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room id, User id, Role |
 | Upload File | [POST api/2.0/files/{folderId}/session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/create-upload-session-in-folder) | Room id, Folder id, URL or File |
 | Upload File to Files Section | [POST api/2.0/files/{folderId}/session](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/create-upload-session-in-folder) | Folder id, URL or File |
 | Invite Guest | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room id, Email, Role |
+| Remove User from Room | [PUT api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/set-room-security) | Room id, User id |
+| Get Room Members | [GET api/2.0/files/rooms/{id}/share](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-room-security-info) | Room id |
+| Add Room Tags | [PUT api/2.0/files/rooms/{id}/tags](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/add-room-tags) | Room id, Tags |
+| Remove Room Tags | [DELETE api/2.0/files/rooms/{id}/tags](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/delete-room-tags) | Room id, Tags |
 | Invite User | [POST api/2.0/people/invite](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/profiles/invite-users) | Email, Role |
+| Change User Type | [PUT api/2.0/people/type/{type}](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/user-type/update-user-type), [POST api/2.0/people/type](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/user-type/start-user-type-update) | User id, User type |
+| Disable User | [PUT api/2.0/people/status/{status}](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/user-status/update-user-status) | User id |
+| Enable User | [PUT api/2.0/people/status/{status}](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/user-status/update-user-status) | User id |
+| Get File | [GET api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-file-info) | Room id, Folder id, File id |
+| List Folder Contents | [GET api/2.0/files/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/get-folder) | Room id, Folder id, Limit |
+| Get Room | [GET api/2.0/files/rooms/{id}](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-room-info) | Room id |
+| Delete File | [DELETE api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/delete-file) | Room id, Folder id, File id, Delete permanently |
+| Rename File | [PUT api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/update-file) | Room id, Folder id, File id, New title |
+| Convert File | [POST api/2.0/files/file/{fileId}/copyas](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/copy-file-as) | Room id, Folder id, File id, Format, New title |
+| Rename Folder | [PUT api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/rename-folder) | Room id, Folder id, New title |
+| Move File, Move Folder | [PUT api/2.0/files/fileops/move](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/move-batch-items) | Room id, Folder id, File id, Destination room, Destination folder, If the name is taken |
+| Copy File, Copy Folder | [PUT api/2.0/files/fileops/copy](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/copy-batch-items) | Room id, Folder id, File id, Destination room, Destination folder, If the name is taken |
 
 When creating a new Zap, we set up a chain of actions that follows the trigger. Zapier automatically performs these actions on new data when the trigger fires. You can manually start the Zap by clicking the **Run Zap** button.
 
@@ -92,6 +115,11 @@ At the moment, search for folders and files by name is available through the sec
 
 1. Open the *Custom* tab.
 2. Specify the room ID from the trigger.
+
+| Search | API method | Fields |
+| ------------- | ------------- | ------------- |
+| Find Room | [GET api/2.0/files/rooms](https://api.onlyoffice.com/docspace/api-backend/usage-api/rooms/get-rooms-folder) | Title |
+| Find User | [GET api/2.0/people/email](https://api.onlyoffice.com/docspace/api-backend/usage-api/people/profiles/get-profile-by-email) | Email |
 
 
 ## Contribution

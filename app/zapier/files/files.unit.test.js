@@ -9,14 +9,37 @@
 const { equal, instance, match } = require("uvu/assert")
 const { test } = require("uvu")
 const {
+  addRoomTags,
   archiveRoom,
+  convertFile,
+  copyFile,
+  copyFolder,
+  createFileWithContent,
+  createRoomFromTemplate,
+  deleteFile,
   downloadFile,
+  fileExternalLink,
+  folderExternalLink,
+  getFile,
+  getRoom,
+  getRoomMembers,
   inviteGuest,
+  listFolderContents,
+  lockFile,
+  moveFile,
+  moveFolder,
+  removeRoomTags,
+  removeUserFromRoom,
+  renameFile,
+  renameFolder,
   roomCreate,
-  shareRoom
+  shareRoom,
+  unarchiveRoom,
+  unlockFile
 } = require("./actions.js")
 const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
 const {
+  archivedRoomsList,
   fileCreated,
   fileMoved,
   fileUpdated,
@@ -27,12 +50,15 @@ const {
   formSubmitted,
   roomCreated,
   roomsFiltered,
+  roomTagsList,
+  roomTemplatesList,
   roomUpdated,
   shareRoles,
+  tagsList,
   userInvited
 } = require("./triggers.js")
 const { pageFilters } = require("../pagination.js")
-const { searchFile } = require("./searches.js")
+const { searchFile, searchRoom } = require("./searches.js")
 
 /**
  * @param {any} fn
@@ -466,6 +492,511 @@ test("form filled out trigger lists only filled out forms", async () => {
   equal(pluck(await run(performList, z, { inputData: { id: "3" } }), "id"), [5])
   equal(await run(performList, z, { inputData: { formId: "6", id: "3" } }), [])
   equal(await run(performList, z, { inputData: {} }), [])
+})
+
+test("finds the recently changed room first without sorting in the request", async () => {
+  const rooms = [
+    { id: 1, title: "Sales", updated: "2026-01-01T00:00:00Z" },
+    { id: 2, title: "Sales Q4", updated: "2026-02-01T00:00:00Z" }
+  ]
+  const z = fakeZ({ "GET /files/rooms": (call) => ({ folders: call.query.searchArea === "Forms" ? [] : rooms }) })
+  const found = await run(searchRoom.operation.perform, z, { inputData: { title: "sales" } })
+  equal(pluck(found, "id"), [
+    2,
+    1
+  ])
+  equal(z.calls[0].query.sortBy, undefined)
+})
+
+test("finds rooms by title, including form filling rooms", async () => {
+  const forms = [
+    { id: 2, roomType: 1, title: "Sales forms" },
+    { id: 1, roomType: 2, title: "Sales" }
+  ]
+  const active = [{ id: "1", roomType: 2, title: "Sales" }]
+  const z = fakeZ({
+    "GET /files/rooms": (call) => ({ folders: call.query.searchArea === "Forms" ? forms : active })
+  })
+  const rooms = await run(searchRoom.operation.perform, z, { inputData: { title: "sales" } })
+  const ids = pluck(rooms, "id")
+  equal(ids, [
+    1,
+    2
+  ])
+  equal(z.calls[0].query.filterValue, "sales")
+})
+
+test("gets a file by id without the extension in the title", async () => {
+  const z = fakeZ({ "GET /files/file/7": { fileExst: ".docx", id: "7", title: "Report.docx" } })
+  const file = await run(getFile.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(file.id, 7)
+  equal(file.title, "Report")
+  equal(file.fileExst, ".docx")
+})
+
+test("keeps the ids of a file and a room in third-party storage", async () => {
+  const z = fakeZ({
+    "GET /files/file/sbox-7": { id: "sbox-7", title: "Report.docx" },
+    "GET /files/rooms/sbox-5": { id: "sbox-5", title: "Box" }
+  })
+  equal((await run(getFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })).id, "sbox-7")
+  equal((await run(getRoom.operation.perform, z, { inputData: { id: "sbox-5" } })).id, "sbox-5")
+})
+
+test("gets a room by id", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: "5", roomType: 2, title: "Sales" } })
+  const room = await run(getRoom.operation.perform, z, { inputData: { id: "5" } })
+  equal(room.id, 5)
+  equal(room.title, "Sales")
+})
+
+test("deletes a file in third-party storage", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({ "DELETE /files/file/sbox-7": [operation], "GET /files/fileops": [operation] })
+  await run(deleteFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(z.calls[0].path, "/files/file/sbox-7")
+})
+
+test("deletes a file and waits for the operation", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/file/7": [operation],
+    "GET /files/fileops": [operation]
+  })
+  const result = await run(deleteFile.operation.perform, z, { inputData: { fileId: "7", immediately: "true" } })
+  equal(result.finished, true)
+  equal(z.calls[0].body, { deleteAfter: false, immediately: true })
+})
+
+test("fails deleting a file when the operation fails", async () => {
+  const operation = { error: "Access denied", finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/file/7": [operation],
+    "GET /files/fileops": [operation]
+  })
+  const error = await caught(() => run(deleteFile.operation.perform, z, { inputData: { fileId: "7" } }))
+  instance(error, HaltedError)
+  equal(z.calls[0].body.immediately, false)
+})
+
+test("renames a file in third-party storage", async () => {
+  const z = fakeZ({ "PUT /files/file/sbox-7": { id: "sbox-7", title: "Contract.docx" } })
+  const file = await run(renameFile.operation.perform, z, { inputData: { fileId: "sbox-7", title: "Contract" } })
+  equal(file.id, "sbox-7")
+})
+
+test("renames a file", async () => {
+  const z = fakeZ({ "PUT /files/file/7": (call) => ({ id: 7, title: `${call.body.title}.docx` }) })
+  const file = await run(renameFile.operation.perform, z, { inputData: { fileId: "7", title: "Contract" } })
+  equal(file.title, "Contract")
+  equal(z.calls[0].body, { title: "Contract" })
+})
+
+test("renames a folder in third-party storage", async () => {
+  const z = fakeZ({ "PUT /files/folder/sbox-8": { id: "sbox-8", title: "Reports" } })
+  const folder = await run(renameFolder.operation.perform, z, { inputData: { folderId: "sbox-8", title: "Reports" } })
+  equal(folder.id, "sbox-8")
+})
+
+test("renames a folder", async () => {
+  const z = fakeZ({ "PUT /files/folder/8": (call) => ({ id: "8", title: call.body.title }) })
+  const folder = await run(renameFolder.operation.perform, z, { inputData: { folderId: "8", title: "Reports" } })
+  equal(folder.id, 8)
+  equal(folder.title, "Reports")
+})
+
+test("copies a file in third-party storage", async () => {
+  const operation = { files: [{ id: "sbox-9", title: "Report.docx" }], finished: true, id: "op", progress: 100 }
+  const z = fakeZ({ "GET /files/fileops": [operation], "PUT /files/fileops/copy": [operation] })
+  const inputData = { destinationRoomId: "sbox-3", fileId: "sbox-7" }
+  const file = await run(copyFile.operation.perform, z, { inputData })
+  equal(file.id, "sbox-9")
+  equal(z.calls[0].body.fileIds, ["sbox-7"])
+  equal(z.calls[0].body.destFolderId, "sbox-3")
+})
+
+test("copies a file and returns the copy", async () => {
+  const operation = { files: [{ id: "9", title: "Report.docx" }], finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/copy": [operation]
+  })
+  const inputData = { destinationFolderId: "4", destinationRoomId: "3", fileId: "7" }
+  const file = await run(copyFile.operation.perform, z, { inputData })
+  equal(file.id, 9)
+  equal(file.title, "Report")
+  equal(z.calls[0].body, {
+    conflictResolveType: 2,
+    deleteAfter: false,
+    destFolderId: 4,
+    fileIds: [7],
+    folderIds: []
+  })
+})
+
+test("moves a folder to the top level of the destination room", async () => {
+  const operation = { finished: true, folders: [{ id: "8", title: "Reports" }], id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/move": [operation]
+  })
+  const inputData = { conflict: "1", destinationRoomId: "3", folderId: "8" }
+  const folder = await run(moveFolder.operation.perform, z, { inputData })
+  equal(folder.id, 8)
+  equal(z.calls[0].body.destFolderId, 3)
+  equal(z.calls[0].body.folderIds, [8])
+  equal(z.calls[0].body.conflictResolveType, 1)
+})
+
+test("copies a folder and returns the copy", async () => {
+  const folders = [
+    { id: 3, title: "Sales" },
+    { id: "10", title: "Reports" }
+  ]
+  const operation = { finished: true, folders, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/copy": [operation]
+  })
+  const inputData = { destinationRoomId: "3", folderId: "8" }
+  const folder = await run(copyFolder.operation.perform, z, { inputData })
+  equal(folder.id, 10)
+  equal(z.calls[0].body.folderIds, [8])
+})
+
+test("fails moving a file that was skipped", async () => {
+  const operation = { files: [], finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/move": [operation]
+  })
+  const inputData = { conflict: "0", destinationRoomId: "3", fileId: "7" }
+  instance(await caught(() => run(moveFile.operation.perform, z, { inputData })), HaltedError)
+})
+
+test("lists the archived rooms without sorting in the request", async () => {
+  const z = fakeZ({ "GET /files/rooms": { folders: [{ id: "5", title: "Sales" }] } })
+  const rooms = await run(archivedRoomsList.operation.perform, z, {})
+  equal(pluck(rooms, "id"), [5])
+  equal(z.calls[0].query.searchArea, "Archive")
+  equal(z.calls[0].query.sortBy, undefined)
+})
+
+test("unarchives a room and returns it", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "GET /files/rooms/5": { id: "5", rootFolderType: 14, title: "Sales" },
+    "PUT /files/rooms/5/unarchive": operation
+  })
+  const room = await run(unarchiveRoom.operation.perform, z, { inputData: { id: "5" } })
+  equal(room.id, 5)
+  equal(room.rootFolderType, 14)
+})
+
+test("removes a user from a room", async () => {
+  const z = fakeZ({
+    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "PUT /files/rooms/5/share": { error: 0, members: [] }
+  })
+  const result = await run(removeUserFromRoom.operation.perform, z, { inputData: { id: "5", userId: "u1" } })
+  equal(result, { roomId: 5, status: "Removed", userId: "u1" })
+  equal(z.calls[0].body.invitations, [{ access: 0, id: "u1" }])
+})
+
+test("fails removing a user who is still a member", async () => {
+  const z = fakeZ({
+    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "PUT /files/rooms/5/share": { error: 0, members: [] }
+  })
+  const inputData = { id: "5", userId: "owner" }
+  instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), HaltedError)
+})
+
+test("gets the members of a room page by page", async () => {
+  const owner = { access: 1, isOwner: true, sharedToUser: { displayName: "Owner", email: "o@e.com", id: "o" } }
+  const viewer = { access: 2, isOwner: false, sharedToUser: { displayName: "Viewer", email: "v@e.com", id: "v" } }
+  const group = { access: 10, isOwner: false, sharedToGroup: { id: "g", name: "Team" } }
+  const z = fakeZ({
+    "GET /files/rooms/5/share": (call) => {
+      if (call.query.startIndex === "0") {
+        return Array.from({ length: 100 }, () => viewer)
+      }
+      return [
+        owner,
+        group
+      ]
+    }
+  })
+  const result = await run(getRoomMembers.operation.perform, z, { inputData: { id: "5" } })
+  equal(result.roomId, 5)
+  equal(result.count, 102)
+  equal(z.calls.length, 2)
+  equal(result.members[0].role, "Viewer")
+  equal(result.members[100].role, "Owner")
+  equal(result.members[101], { access: 10, displayName: "Team", email: "", id: "g", role: "Editor", type: "Group" })
+})
+
+test("adds tags to a room", async () => {
+  const z = fakeZ({ "PUT /files/rooms/5/tags": (call) => ({ id: "5", tags: call.body.names }) })
+  const inputData = {
+    id: "5",
+    tags: [
+      " Sales ",
+      "",
+      "Q4"
+    ]
+  }
+  const room = await run(addRoomTags.operation.perform, z, { inputData })
+  equal(room.id, 5)
+  equal(z.calls[0].body.names, [
+    "Sales",
+    "Q4"
+  ])
+})
+
+test("removes a tag from a room", async () => {
+  const z = fakeZ({ "DELETE /files/rooms/5/tags": { id: "5", tags: [] } })
+  const room = await run(removeRoomTags.operation.perform, z, { inputData: { id: "5", tags: "Sales" } })
+  equal(room.tags, [])
+  equal(z.calls[0].body, { names: ["Sales"] })
+})
+
+test("fails adding no tags", async () => {
+  const z = fakeZ({})
+  const error = await caught(() => run(addRoomTags.operation.perform, z, { inputData: { id: "5", tags: [" "] } }))
+  match(String(error), "Enter at least one tag")
+  equal(z.calls.length, 0)
+})
+
+test("lists the tags of a room for a dropdown", async () => {
+  const z = fakeZ({ "GET /files/rooms/5": { id: "5", tags: ["Sales"] } })
+  const tags = await run(roomTagsList.operation.perform, z, { inputData: { id: "5" } })
+  equal(tags, [{ id: "Sales", name: "Sales" }])
+  equal(await run(roomTagsList.operation.perform, z, { inputData: {} }), [])
+})
+
+test("lists the tags for a dropdown", async () => {
+  const z = fakeZ({ "GET /files/tags": ["Sales"] })
+  const tags = await run(tagsList.operation.perform, z, {})
+  equal(tags, [{ id: "Sales", name: "Sales" }])
+  equal(z.calls[0].query.count, "100")
+})
+
+const convertSettings = {
+  extsConvertible: {
+    ".docx": [
+      ".odt",
+      ".pdf"
+    ]
+  }
+}
+
+test("converts a file in third-party storage", async () => {
+  const z = fakeZ({
+    "GET /files/file/sbox-7": { fileExst: ".docx", folderId: "sbox-3", id: "sbox-7", title: "Contract.docx" },
+    "GET /files/settings": { extsConvertible: { ".docx": [".pdf"] } },
+    "POST /files/file/sbox-7/copyas": { fileExst: ".pdf", id: "sbox-9", title: "Contract.pdf" }
+  })
+  const file = await run(convertFile.operation.perform, z, { inputData: { fileId: "sbox-7", format: "pdf" } })
+  equal(file.id, "sbox-9")
+  equal(z.calls[2].body.destFolderId, "sbox-3")
+})
+
+test("converts a file next to the original", async () => {
+  const z = fakeZ({
+    "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" },
+    "GET /files/settings": convertSettings,
+    "POST /files/file/7/copyas": (call) => ({ fileExst: ".pdf", id: "9", title: call.body.destTitle })
+  })
+  const file = await run(convertFile.operation.perform, z, { inputData: { fileId: "7", format: "PDF" } })
+  equal(file.id, 9)
+  equal(file.title, "Contract")
+  equal(z.calls[2].body, { destFolderId: 3, destTitle: "Contract.pdf" })
+})
+
+test("fails converting to a format that isn't available", async () => {
+  const z = fakeZ({
+    "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" },
+    "GET /files/settings": convertSettings
+  })
+  const inputData = { fileId: "7", format: "xlsx" }
+  const error = await caught(() => run(convertFile.operation.perform, z, { inputData }))
+  match(String(error), "Available formats: .odt, .pdf")
+})
+
+test("offers the formats the file can be converted to", async () => {
+  const z = fakeZ({
+    "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" },
+    "GET /files/settings": convertSettings
+  })
+  const field = /** @type {Function} */ (convertFile.operation.inputFields[3])
+  const [format] = await run(field, z, { inputData: { fileId: "7" } })
+  equal(format.choices, { odt: "ODT", pdf: "PDF" })
+  const [empty] = await run(field, z, { inputData: {} })
+  equal(empty.choices, undefined)
+})
+
+test("lists the contents of a folder page by page up to the limit", async () => {
+  const folder = { id: "3", title: "Reports" }
+  const file = { fileExst: ".docx", id: "2", title: "README.docx" }
+  const z = fakeZ({
+    "GET /files/5": (call) => {
+      if (call.query.startIndex === "0") {
+        return { current: { id: "5", title: "Sales" }, files: [], folders: Array(100).fill(folder), total: 300 }
+      }
+      return {
+        current: { id: "5", title: "Sales" },
+        files: Array(Number(call.query.count)).fill(file),
+        folders: [],
+        total: 300
+      }
+    }
+  })
+  const result = await run(listFolderContents.operation.perform, z, { inputData: { id: "5", limit: "150" } })
+  equal(result.count, 150)
+  equal(result.total, 300)
+  equal(result.folderId, 5)
+  equal(result.folders.length, 100)
+  equal(result.files[0].title, "README")
+  equal(result.files[0].id, 2)
+  equal(z.calls[1].query, { count: "50", startIndex: "100" })
+})
+
+test("lists the contents of a folder in third-party storage", async () => {
+  const folder = { current: { id: "sbox-8", title: "Box" }, files: [], folders: [], total: 0 }
+  const z = fakeZ({ "GET /files/sbox-8": folder })
+  const result = await run(listFolderContents.operation.perform, z, { inputData: { folderId: "sbox-8", id: "5" } })
+  equal(result.folderId, "sbox-8")
+})
+
+test("lists the contents of the folder instead of the room", async () => {
+  const z = fakeZ({ "GET /files/8": { current: { id: 8, title: "Reports" }, files: [], folders: [], total: 0 } })
+  const result = await run(listFolderContents.operation.perform, z, { inputData: { folderId: "8", id: "5" } })
+  equal(result.title, "Reports")
+  equal(result.count, 0)
+  equal(z.calls[0].query.count, "100")
+})
+
+test("creates a text file in third-party storage", async () => {
+  const z = fakeZ({ "POST /files/sbox-8/text": { id: "sbox-9", title: "Notes.txt" } })
+  const inputData = { content: "Hello", folderId: "sbox-8", id: "5", title: "Notes" }
+  const file = await run(createFileWithContent.operation.perform, z, { inputData })
+  equal(file.id, "sbox-9")
+})
+
+test("creates a text file with content", async () => {
+  const z = fakeZ({ "POST /files/5/text": (call) => ({ id: "7", title: `${call.body.title}.txt` }) })
+  const inputData = { content: "Hello", id: "5", title: "Notes.TXT" }
+  const file = await run(createFileWithContent.operation.perform, z, { inputData })
+  equal(file.id, 7)
+  equal(file.title, "Notes")
+  equal(z.calls[0].body, { content: "Hello", title: "Notes" })
+})
+
+test("creates an html file in a folder", async () => {
+  const z = fakeZ({ "POST /files/8/html": (call) => ({ id: 9, title: `${call.body.title}.html` }) })
+  const inputData = { content: "<p>Hi</p>", folderId: "8", format: "html", id: "5", title: "Page" }
+  const file = await run(createFileWithContent.operation.perform, z, { inputData })
+  equal(file.title, "Page")
+  equal(z.calls[0].path, "/files/8/html")
+})
+
+test("gets the external link of a file in third-party storage", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/1" } }
+  const z = fakeZ({ "GET /files/file/sbox-7/links": [link] })
+  equal(await run(fileExternalLink.operation.perform, z, { inputData: { fileId: "sbox-7" } }), link)
+})
+
+test("gets the existing external link of a file without creating one", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/1" } }
+  const z = fakeZ({ "GET /files/file/7/links": [link] })
+  const result = await run(fileExternalLink.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(result, link)
+  const none = fakeZ({ "GET /files/file/7/links": [] })
+  const error = await caught(() => run(fileExternalLink.operation.perform, none, { inputData: { fileId: "7" } }))
+  instance(error, HaltedError)
+})
+
+test("gets the external link of a file", async () => {
+  const link = { access: 2, sharedLink: { shareLink: "https://example.com/s/1" } }
+  const z = fakeZ({ "GET /files/file/7/link": link })
+  const result = await run(fileExternalLink.operation.perform, z, { inputData: { create: "true", fileId: "7" } })
+  equal(result, link)
+})
+
+test("locks a file in third-party storage", async () => {
+  const z = fakeZ({ "PUT /files/file/sbox-7/lock": { id: "sbox-7", locked: true, title: "Contract.docx" } })
+  const file = await run(lockFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(file.id, "sbox-7")
+})
+
+test("locks and unlocks a file", async () => {
+  const z = fakeZ({
+    "PUT /files/file/7/lock": (call) => {
+      if (call.body.lockFile) {
+        return { id: "7", locked: true, title: "Contract.docx" }
+      }
+      // DocSpace omits the field for unlocked files.
+      return { id: "7", title: "Contract.docx" }
+    }
+  })
+  const locked = await run(lockFile.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(locked.locked, true)
+  equal(locked.title, "Contract")
+  const unlocked = await run(unlockFile.operation.perform, z, { inputData: { fileId: "7" } })
+  equal(unlocked.locked, false)
+  equal(z.calls[1].body, { lockFile: false })
+})
+
+test("gets the external link of a folder in third-party storage", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/2" } }
+  const z = fakeZ({ "GET /files/folder/sbox-8/links": [link] })
+  equal(await run(folderExternalLink.operation.perform, z, { inputData: { folderId: "sbox-8" } }), link)
+})
+
+test("gets the existing external link of a folder without creating one", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/2" } }
+  const z = fakeZ({ "GET /files/folder/8/links": [link] })
+  const result = await run(folderExternalLink.operation.perform, z, { inputData: { folderId: "8" } })
+  equal(result, link)
+})
+
+test("gets the external link of a folder", async () => {
+  const link = { access: 2, sharedLink: { shareLink: "https://example.com/s/2" } }
+  const z = fakeZ({ "GET /files/folder/8/link": link })
+  const inputData = { create: true, folderId: "8" }
+  const result = await run(folderExternalLink.operation.perform, z, { inputData })
+  equal(result, link)
+})
+
+test("creates a room from a template", async () => {
+  const z = fakeZ({
+    "GET /files/rooms/9": { id: "9", title: "Sales Q4" },
+    "GET /files/rooms/fromtemplate/status": { error: "", isCompleted: true, progress: 100, roomId: 9 },
+    "POST /files/rooms/fromtemplate": { error: "", isCompleted: false, progress: 0, roomId: -1 }
+  })
+  const inputData = { templateId: "4", title: "Sales Q4" }
+  const room = await run(createRoomFromTemplate.operation.perform, z, { inputData })
+  equal(room.id, 9)
+  equal(z.calls[0].body, { templateId: 4, title: "Sales Q4" })
+})
+
+test("fails creating a room from a template with an error", async () => {
+  const z = fakeZ({
+    "POST /files/rooms/fromtemplate": { error: "Access denied", isCompleted: true, progress: 100, roomId: -1 }
+  })
+  const inputData = { templateId: "4", title: "Sales Q4" }
+  const error = await caught(() => run(createRoomFromTemplate.operation.perform, z, { inputData }))
+  instance(error, HaltedError)
+  equal(z.calls.length, 1)
+})
+
+test("lists the room templates", async () => {
+  const z = fakeZ({ "GET /files/rooms": { folders: [{ id: "4", title: "Sales" }] } })
+  const templates = await run(roomTemplatesList.operation.perform, z, {})
+  equal(templates[0].id, 4)
+  equal(z.calls[0].query.searchArea, "Templates")
 })
 
 test.run()

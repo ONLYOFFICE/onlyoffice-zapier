@@ -8,9 +8,18 @@ const { createAppTester } = require("zapier-platform-core")
 const { equal, not } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
-const { inviteUser } = require("./actions.js")
+const {
+  changeUserType,
+  disableUser,
+  enableUser,
+  inviteUser
+} = require("./actions.js")
+const { searchUser } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
-const { userAdded } = require("./triggers.js")
+const {
+  disabledUsersList,
+  userAdded
+} = require("./triggers.js")
 
 /**
  * @typedef {import("./actions.js").InviteUserFields} InviteUserFields
@@ -58,6 +67,46 @@ People("returns an invited user without inviting them again", async (context) =>
   }
   const user = await tester(perform, bundle)
   equal(user.id, context.inputData.userId)
+})
+
+People("finds the invited user by email", async (context) => {
+  const { perform } = searchUser.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      email: "whatever@onlyoffice.io"
+    }
+  }
+  const users = await tester(perform, bundle)
+  equal(users[0].id, context.inputData.userId)
+})
+
+People("changes the type of the invited user and back", async (context) => {
+  const { perform } = changeUserType.operation
+  const roomAdmin = await tester(perform, {
+    authData: context.authData,
+    inputData: { type: "RoomAdmin", userId: context.inputData.userId }
+  })
+  equal(roomAdmin.isRoomAdmin, true)
+  const user = await tester(perform, {
+    authData: context.authData,
+    inputData: { type: "User", userId: context.inputData.userId }
+  })
+  equal(user.isRoomAdmin, false)
+  equal(user.isCollaborator, true)
+})
+
+People("disables the invited user and enables them again", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: { userId: context.inputData.userId }
+  }
+  const disabled = await tester(disableUser.operation.perform, bundle)
+  equal(disabled.status, 2)
+  const users = await tester(disabledUsersList.operation.perform, { authData: context.authData })
+  equal(users.some((user) => user.id === context.inputData.userId), true)
+  const enabled = await tester(enableUser.operation.perform, bundle)
+  not.equal(enabled.status, 2)
 })
 
 People("triggers when a user is added", async (context) => {

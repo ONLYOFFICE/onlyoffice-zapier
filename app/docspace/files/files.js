@@ -88,11 +88,24 @@ const { Service } = require("../client/client.js")
  * @property {number=} originId
  * @property {string=} originTitle
  * @property {number=} formFillingStatus 4 if all roles have filled out the form.
+ * @property {boolean=} locked DocSpace omits it for unlocked files.
  */
 
 /**
  * @typedef {Object} FilesList
  * @property {FileData[]} files
+ */
+
+/**
+ * @typedef {Object} FilesSettings
+ * @property {Record<string, string[]>} extsConvertible For each format, the
+ * formats that it can be converted to.
+ */
+
+/**
+ * @typedef {Object} CopyAsBody
+ * @property {string} destTitle
+ * @property {number|string} destFolderId
  */
 
 /**
@@ -139,6 +152,31 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} PathParts
  * @property {number} id
  * @property {string} title
+ */
+
+/**
+ * @typedef {Object} MoveBody
+ * @property {number|string} destFolderId
+ * @property {(number|string)[]} fileIds
+ * @property {(number|string)[]} folderIds
+ * @property {number} conflictResolveType 0 skips the entry, 1 replaces the
+ * existing one, 2 keeps both.
+ */
+
+/**
+ * @typedef {Object} RoomFromTemplateStatus
+ * @property {number} roomId -1 until the room is created.
+ * @property {number} progress
+ * @property {string} error
+ * @property {boolean} isCompleted
+ */
+
+/**
+ * @typedef {Object} RoomTemplateStatus
+ * @property {number} templateId -1 until the template is created.
+ * @property {number} progress
+ * @property {string} error
+ * @property {boolean} isCompleted
  */
 
 /**
@@ -256,7 +294,7 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} ShareRoomBody
  * @property {Invitations[]} invitations
  * @property {boolean} notify
- * @property {string} message
+ * @property {string=} message
  */
 
 /**
@@ -265,6 +303,14 @@ const { Service } = require("../client/client.js")
  * @property {FolderData[]} folders
  * @property {FolderData} current
  * @property {PathParts[]} pathParts
+ */
+
+/**
+ * @typedef {Object} FolderContents
+ * @property {FileData[]} files
+ * @property {FolderData[]} folders
+ * @property {FolderData} current
+ * @property {number} total All files and folders, not only this page.
  */
 
 /**
@@ -302,6 +348,7 @@ const { Service } = require("../client/client.js")
  * @property {boolean} isOwner
  * @property {User} sharedTo Obsolete, use `sharedToUser`.
  * @property {User=} sharedToUser
+ * @property {{id: string, name: string}=} sharedToGroup
  */
 
 /**
@@ -319,6 +366,114 @@ class FilesService extends Service {
   archiveRoom(id) {
     const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/archive`)
     return this.client.request("PUT", url)
+  }
+
+  /**
+   * ```http
+   * PUT /files/rooms/{{id}}/tags
+   * ```
+   * @param {number|string} id
+   * @param {string[]} names
+   * @returns {Promise<RoomData>}
+   */
+  addRoomTags(id, names) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/tags`)
+    return this.client.request("PUT", url, { names })
+  }
+
+  /**
+   * ```http
+   * DELETE /files/rooms/{{id}}/tags
+   * ```
+   * @param {number|string} id
+   * @param {string[]} names
+   * @returns {Promise<RoomData>}
+   */
+  removeRoomTags(id, names) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/tags`)
+    return this.client.request("DELETE", url, { names })
+  }
+
+  /**
+   * ```http
+   * GET /files/tags
+   * ```
+   * @param {Filters} filters
+   * @returns {Promise<string[]>}
+   */
+  listTags(filters) {
+    const url = this.client.url("/files/tags", filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/rooms/fromtemplate
+   * ```
+   * @param {{templateId: number, title: string}} body
+   * @returns {Promise<RoomFromTemplateStatus>}
+   */
+  createRoomFromTemplate(body) {
+    const url = this.client.url("/files/rooms/fromtemplate")
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/rooms/fromtemplate/status
+   * ```
+   * @returns {Promise<RoomFromTemplateStatus>}
+   */
+  roomFromTemplateStatus() {
+    const url = this.client.url("/files/rooms/fromtemplate/status")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/roomtemplate
+   * ```
+   * @param {{roomId: number, title: string}} body
+   * @returns {Promise<RoomTemplateStatus>}
+   */
+  createRoomTemplate(body) {
+    const url = this.client.url("/files/roomtemplate")
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/roomtemplate/status
+   * ```
+   * @returns {Promise<RoomTemplateStatus>}
+   */
+  roomTemplateStatus() {
+    const url = this.client.url("/files/roomtemplate/status")
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * DELETE /files/rooms/{{id}}
+   * ```
+   * @param {number|string} id A room or a room template.
+   * @returns {Promise<ProgressData>}
+   */
+  deleteRoom(id) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}`)
+    return this.client.request("DELETE", url, { deleteAfter: false })
+  }
+
+  /**
+   * ```http
+   * PUT /files/rooms/{{id}}/unarchive
+   * ```
+   * @param {number|string} id
+   * @returns {Promise<ProgressData>}
+   */
+  unarchiveRoom(id) {
+    const url = this.client.url(`/files/rooms/${encodeURIComponent(id)}/unarchive`)
+    return this.client.request("PUT", url, { deleteAfter: false })
   }
 
   /**
@@ -386,6 +541,58 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * DELETE /files/file/{{fileId}}
+   * ```
+   * @param {number|string} fileId
+   * @param {boolean} immediately Don't move the file to Trash.
+   * @returns {Promise<ProgressData[]>}
+   */
+  deleteFile(fileId, immediately) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}`)
+    return this.client.request("DELETE", url, { deleteAfter: false, immediately })
+  }
+
+  /**
+   * ```http
+   * PUT /files/file/{{fileId}}
+   * ```
+   * @param {number|string} fileId
+   * @param {string} title
+   * @returns {Promise<FileData>}
+   */
+  renameFile(fileId, title) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}`)
+    return this.client.request("PUT", url, { title })
+  }
+
+  /**
+   * ```http
+   * PUT /files/folder/{{folderId}}
+   * ```
+   * @param {number|string} folderId
+   * @param {string} title
+   * @returns {Promise<FolderData>}
+   */
+  renameFolder(folderId, title) {
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
+    return this.client.request("PUT", url, { title })
+  }
+
+  /**
+   * ```http
+   * PUT /files/fileops/{{operation}}
+   * ```
+   * @param {"move"|"copy"} operation
+   * @param {MoveBody} body
+   * @returns {Promise<ProgressData[]>}
+   */
+  moveOrCopy(operation, body) {
+    const url = this.client.url(`/files/fileops/${operation}`)
+    return this.client.request("PUT", url, { ...body, deleteAfter: false })
+  }
+
+  /**
+   * ```http
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId
@@ -405,6 +612,45 @@ class FilesService extends Service {
    */
   downloadLink(fileId) {
     const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/presigned`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * POST /files/{{folderId}}/text
+   * POST /files/{{folderId}}/html
+   * ```
+   * @param {number|string} folderId
+   * @param {"text"|"html"} format The text format creates a .txt file.
+   * @param {{title: string, content: string}} body
+   * @returns {Promise<FileData>}
+   */
+  createFileWithContent(folderId, format, body) {
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}/${format}`)
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * POST /files/file/{{fileId}}/copyas
+   * ```
+   * @param {number|string} fileId
+   * @param {CopyAsBody} body
+   * @returns {Promise<FileData>}
+   */
+  copyFileAs(fileId, body) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/copyas`)
+    return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * GET /files/settings
+   * ```
+   * @returns {Promise<FilesSettings>}
+   */
+  settings() {
+    const url = this.client.url("/files/settings")
     return this.client.request("GET", url)
   }
 
@@ -434,6 +680,43 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * PUT /files/file/{{fileId}}/lock
+   * ```
+   * @param {number|string} fileId
+   * @param {boolean} lockFile
+   * @returns {Promise<FileData>}
+   */
+  lockFile(fileId, lockFile) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/lock`)
+    return this.client.request("PUT", url, { lockFile })
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{fileId}}/link
+   * ```
+   * @param {number|string} fileId
+   * @returns {Promise<ExternalLinkData>}
+   */
+  fileExternalLink(fileId) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/link`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/folder/{{folderId}}/link
+   * ```
+   * @param {number|string} folderId
+   * @returns {Promise<ExternalLinkData>}
+   */
+  folderExternalLink(folderId) {
+    const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}/link`)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/rooms/{{id}}/link
    * ```
    * @param {number} id
@@ -448,7 +731,7 @@ class FilesService extends Service {
    * ```http
    * PUT /files/rooms/{{id}}/share
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @param {ShareRoomBody} data
    * @returns {Promise<ShareList>}
    */
@@ -472,9 +755,22 @@ class FilesService extends Service {
 
   /**
    * ```http
+   * GET /files/{{folderId}}
+   * ```
+   * @param {number|string} folderId
+   * @param {Filters} filters
+   * @returns {Promise<FolderContents>}
+   */
+  folderContents(folderId, filters) {
+    const url = this.client.url(`/files/${encodeURIComponent(folderId)}`, filters)
+    return this.client.request("GET", url)
+  }
+
+  /**
+   * ```http
    * GET /files/{{id}}
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @param {Filters} filters
    * @returns {Promise<FoldersList>}
    */
@@ -533,7 +829,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms/{{id}}/share
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @param {Filters} filters
    * @returns {Promise<UsersList>}
    */
@@ -557,7 +853,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms/{{folderId}}
    * ```
-   * @param {number} folderId
+   * @param {number|string} folderId
    * @returns {Promise<RoomData>}
    */
   roomInfo(folderId) {
@@ -576,6 +872,22 @@ class FilesService extends Service {
   uploadChunk(sessionId, chunkData) {
     const url = `${this.client.baseUrl}/ChunkedUploader.ashx?uid=${encodeURIComponent(sessionId)}`
     return this.client.request("POST", url, chunkData.body, chunkData.headers)
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{id}}/links
+   * GET /files/folder/{{id}}/links
+   * GET /files/rooms/{{id}}/links
+   * ```
+   * Unlike `GET .../link`, it doesn't create a link.
+   * @param {"file"|"folder"|"rooms"} entry
+   * @param {number|string} id
+   * @returns {Promise<ExternalLinkData[]>}
+   */
+  listLinks(entry, id) {
+    const url = this.client.url(`/files/${entry}/${encodeURIComponent(id)}/links`)
+    return this.client.request("GET", url)
   }
 }
 

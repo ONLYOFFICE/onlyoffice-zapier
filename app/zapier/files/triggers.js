@@ -90,7 +90,7 @@ const {
 
 /**
  * @typedef {Object} FolderCreatedFields
- * @property {number=} id
+ * @property {(number|string)=} id
  * @property {number=} folderId
  */
 
@@ -970,6 +970,94 @@ const foldersList = {
   }
 }
 
+/**
+ * @param {string[]} names
+ * @returns {{id: string, name: string}[]}
+ */
+function tagChoices(names) {
+  return names.map((name) => ({ id: name, name }))
+}
+
+const tagsList = {
+  display: {
+    description: "Hidden trigger to get a list of tags.",
+    hidden: true,
+    label: "List of Tags"
+  },
+  key: "tagsList",
+  noun: "Tag",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<{id: string, name: string}[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const names = await files.listTags(pageFilters(bundle))
+      return tagChoices(names)
+    },
+    sample: samples.tag
+  }
+}
+
+const roomTagsList = {
+  display: {
+    description: "Hidden trigger to get a list of tags of a room.",
+    hidden: true,
+    label: "List of Room Tags"
+  },
+  key: "roomTagsList",
+  noun: "Tag",
+  operation: {
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, {id?: string}>} bundle
+     * @returns {Promise<{id: string, name: string}[]>}
+     */
+    async perform(z, bundle) {
+      // The dropdown is empty until a room is selected.
+      if (!bundle.inputData.id) {
+        return []
+      }
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const room = await files.roomInfo(normalizeId(bundle.inputData.id))
+      return tagChoices(room.tags || [])
+    },
+    sample: samples.tag
+  }
+}
+
+const destinationFoldersList = {
+  display: {
+    description: "Hidden trigger to get a list of folders of the destination room.",
+    hidden: true,
+    label: "List of Destination Folders"
+  },
+  key: "destinationFoldersList",
+  noun: "Folder",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, {destinationRoomId?: string}>} bundle
+     * @returns {Promise<FolderData[]>}
+     */
+    async perform(z, bundle) {
+      // The dropdown is empty until a destination room is selected.
+      if (!bundle.inputData.destinationRoomId) {
+        return []
+      }
+      const inputData = { id: normalizeId(bundle.inputData.destinationRoomId) }
+      return performFolderCreated(z, { ...bundle, inputData })
+    },
+    sample: samples.folder
+  }
+}
+
 const foldersInMyDocumentsList = {
   display: {
     description: "Hidden trigger to get a list of folders from the Files section.",
@@ -1069,6 +1157,66 @@ async function performRoomArchived(z, bundle) {
     room.id = normalizeId(room.id)
   })
   return rooms.folders
+}
+
+const roomTemplatesList = {
+  display: {
+    description: "Hidden trigger to get a list of room templates.",
+    hidden: true,
+    label: "List of Room Templates"
+  },
+  key: "roomTemplatesList",
+  noun: "Template",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const templates = await files.listRooms({ ...pageFilters(bundle), searchArea: "Templates" })
+      templates.folders.forEach((template) => {
+        template.id = normalizeId(template.id)
+      })
+      return templates.folders
+    },
+    sample: samples.room
+  }
+}
+
+const archivedRoomsList = {
+  display: {
+    description: "Hidden trigger to get a list of archived rooms.",
+    hidden: true,
+    label: "List of Archived Rooms"
+  },
+  key: "archivedRoomsList",
+  noun: "Room",
+  operation: {
+    canPaginate: true,
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData>} bundle
+     * @returns {Promise<RoomData[]>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const filters = {
+        ...pageFilters(bundle),
+        searchArea: "Archive"
+      }
+      const rooms = await files.listRooms(filters)
+      rooms.folders.forEach((room) => {
+        room.id = normalizeId(room.id)
+      })
+      return rooms.folders
+    },
+    sample: samples.room
+  }
 }
 
 const roomArchived = createWebhookTrigger(
@@ -1292,6 +1440,8 @@ const userInvited = {
 }
 
 module.exports = {
+  archivedRoomsList,
+  destinationFoldersList,
   fileCreated,
   fileCreatedInMyDocuments,
   fileDeleted,
@@ -1313,8 +1463,11 @@ module.exports = {
   formSubmitted,
   roomArchived,
   roomCreated,
+  roomTagsList,
+  roomTemplatesList,
   roomUpdated,
   roomsFiltered,
   shareRoles,
+  tagsList,
   userInvited
 }

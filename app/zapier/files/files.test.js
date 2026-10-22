@@ -9,19 +9,41 @@ const { equal, match, not } = require("uvu/assert")
 const { suite } = require("uvu")
 const { App } = require("../../app.js")
 const {
+  addRoomTags,
   archiveRoom,
+  convertFile,
+  copyFile,
+  copyFolder,
   createFile,
   createFileInMyDocuments,
+  createFileWithContent,
   createFolder,
   createFolderInMyDocuments,
+  createRoomFromTemplate,
+  deleteFile,
   deleteFolder,
   deleteFolderInMyDocuments,
   downloadFile,
   downloadFileFromMyDocuments,
   externalLink,
+  fileExternalLink,
+  folderExternalLink,
+  getFile,
+  getRoom,
+  getRoomMembers,
   inviteGuest,
+  listFolderContents,
+  lockFile,
+  moveFile,
+  moveFolder,
+  removeRoomTags,
+  removeUserFromRoom,
+  renameFile,
+  renameFolder,
   roomCreate,
   shareRoom,
+  unarchiveRoom,
+  unlockFile,
   uploadFile,
   uploadFileToMyDocuments
 } = require("./actions.js")
@@ -48,17 +70,22 @@ const {
   roomArchived,
   roomCreated,
   roomsFiltered,
+  roomTagsList,
+  roomTemplatesList,
   roomUpdated,
   shareRoles,
+  tagsList,
   userInvited
 } = require("./triggers.js")
 const { invitedUser } = require("../people/people.fixture.js")
 const {
   searchFile,
-  searchFolder
+  searchFolder,
+  searchRoom
 } = require("./searches.js")
 const { sessionAuthContext, sessionAuthPerform } = require("../auth/auth.fixture.js")
-const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
+const { Client, CONTENT_CREATOR } = require("../../docspace/client/client.js")
+const { FilesService } = require("../../docspace/files/files.js")
 
 /**
  * @typedef {import("./actions.js").ArchiveRoomFields} ArchiveRoomFields
@@ -278,6 +305,102 @@ Files("triggers when a user invited to room", async (context) => {
   const users = await tester(perform, bundle)
   const user = users[1] // first user - me
   equal(user.id, context.inputData.user)
+})
+
+Files("removes the invited user from the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId),
+      userId: context.inputData.user
+    }
+  }
+  const result = await tester(removeUserFromRoom.operation.perform, bundle)
+  equal(result.status, "Removed")
+})
+
+Files("creates a room from a template", async (context) => {
+  const roomId = context.inputData.rooms.roomId
+  const templateId = await tester(async (/** @type {any} */ z, /** @type {any} */ bundle) => {
+    const files = new FilesService(new Client(bundle.authData.baseUrl, z.request))
+    let status = await files.createRoomTemplate({ roomId, title: "Test template" })
+    for (let i = 0; i < 40 && !status.isCompleted; i = i + 1) {
+      await new Promise((resolve) => setTimeout(resolve, 500))
+      status = await files.roomTemplateStatus()
+    }
+    return status.templateId
+  }, { authData: context.authData })
+  const templates = await tester(roomTemplatesList.operation.perform, { authData: context.authData })
+  equal(templates.some((template) => template.id === templateId), true)
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      templateId: String(templateId),
+      title: "Room from template"
+    }
+  }
+  const room = await tester(createRoomFromTemplate.operation.perform, bundle)
+  equal(room.title, "Room from template")
+  // Archive the room, because active rooms count toward the room limit.
+  await tester(archiveRoom.operation.perform, { authData: context.authData, inputData: { id: room.id } })
+  await tester(async (/** @type {any} */ z, /** @type {any} */ bundle) => {
+    const files = new FilesService(new Client(bundle.authData.baseUrl, z.request))
+    return files.deleteRoom(templateId)
+  }, { authData: context.authData })
+})
+
+Files("gets the members of the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const result = await tester(getRoomMembers.operation.perform, bundle)
+  equal(result.roomId, context.inputData.rooms.roomId)
+  equal(result.members.some((member) => member.role === "Owner"), true)
+})
+
+Files("adds tags to the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId),
+      tags: [
+        "zapier-test-a",
+        "zapier-test-b"
+      ]
+    }
+  }
+  const room = await tester(addRoomTags.operation.perform, bundle)
+  equal(room.tags?.includes("zapier-test-a"), true)
+  equal(room.tags?.includes("zapier-test-b"), true)
+})
+
+Files("hidden tags list triggers return the tags", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const roomTags = await tester(roomTagsList.operation.perform, bundle)
+  equal(roomTags.some((item) => item.id === "zapier-test-a"), true)
+  const tags = await tester(tagsList.operation.perform, { authData: context.authData })
+  equal(tags.some((item) => item.id === "zapier-test-a"), true)
+})
+
+Files("removes a tag from the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId),
+      tags: ["zapier-test-a"]
+    }
+  }
+  const room = await tester(removeRoomTags.operation.perform, bundle)
+  equal(room.tags?.includes("zapier-test-a"), false)
+  equal(room.tags?.includes("zapier-test-b"), true)
 })
 
 Files("returns the links of a room", async (context) => {
@@ -505,6 +628,31 @@ Files("hidden files list trigger returned file via folder id", async (context) =
   equal(file.title, "Test File")
 })
 
+Files("gets the file by id", async (context) => {
+  const { perform } = getFile.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  }
+  const file = await tester(perform, bundle)
+  equal(file.id, context.inputData.rooms.fileId)
+  equal(file.title, "Test File")
+})
+
+Files("gets the room by id", async (context) => {
+  const { perform } = getRoom.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const room = await tester(perform, bundle)
+  equal(room.id, context.inputData.rooms.roomId)
+})
+
 Files("downloads file from folder that is in room", async (context) => {
   const { perform } = downloadFile.operation
   /** @type {DownloadFileFields} */
@@ -534,6 +682,19 @@ Files("upload a file", async (context) => {
   const result = await tester(perform, bundle)
   equal(result.uploaded, true)
   not.equal(result.id, 0)
+})
+
+Files("finds the room by title", async (context) => {
+  const { perform } = searchRoom.operation
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      title: "test ROOM"
+    }
+  }
+  const rooms = await tester(perform, bundle)
+  const ids = rooms.map((room) => room.id)
+  equal(ids.includes(context.inputData.rooms.roomId), true)
 })
 
 Files("search a file in room", async (context) => {
@@ -567,6 +728,193 @@ Files("search a file ignoring the case of the title", async (context) => {
   not.equal(files.length, 0)
 })
 
+Files("renames a file", async (context) => {
+  const file = await tester(createFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId,
+      title: "File to rename"
+    }
+  })
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(file.id),
+      title: "Renamed file"
+    }
+  }
+  const renamed = await tester(renameFile.operation.perform, bundle)
+  equal(renamed.title, "Renamed file")
+  equal(renamed.fileExst, ".docx")
+})
+
+Files("creates a text file with content", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      content: "Hello from Zapier",
+      format: "txt",
+      id: String(context.inputData.rooms.roomId),
+      title: "Text file"
+    }
+  }
+  const file = await tester(createFileWithContent.operation.perform, bundle)
+  equal(file.title, "Text file")
+  equal(file.fileExst, ".txt")
+  equal(file.folderId, context.inputData.rooms.roomId)
+})
+
+Files("converts a file to pdf", async (context) => {
+  const file = await tester(createFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId,
+      title: "File to convert"
+    }
+  })
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(file.id),
+      format: "pdf",
+      title: "Converted file"
+    }
+  }
+  const converted = await tester(convertFile.operation.perform, bundle)
+  equal(converted.title, "Converted file")
+  equal(converted.fileExst, ".pdf")
+  equal(converted.folderId, context.inputData.rooms.roomId)
+})
+
+Files("locks and unlocks a file", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  }
+  const locked = await tester(lockFile.operation.perform, bundle)
+  equal(locked.locked, true)
+  const unlocked = await tester(unlockFile.operation.perform, bundle)
+  equal(unlocked.locked, false)
+})
+
+Files("gets the external link of a file", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      create: "true",
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  }
+  const link = await tester(fileExternalLink.operation.perform, bundle)
+  equal(link.sharedLink?.primary, true)
+  equal(typeof link.sharedLink?.shareLink, "string")
+  // The link exists now, so the action finds it without creating one.
+  const found = await tester(fileExternalLink.operation.perform, {
+    authData: context.authData,
+    inputData: { fileId: String(context.inputData.rooms.fileId) }
+  })
+  equal(found.sharedLink?.id, link.sharedLink?.id)
+})
+
+Files("deletes a file permanently", async (context) => {
+  const file = await tester(createFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId,
+      title: "File to delete"
+    }
+  })
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      fileId: String(file.id),
+      immediately: true
+    }
+  }
+  const result = await tester(deleteFile.operation.perform, bundle)
+  equal(result.finished, true)
+})
+
+Files("lists the contents of the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const result = await tester(listFolderContents.operation.perform, bundle)
+  equal(result.folderId, context.inputData.rooms.roomId)
+  equal(result.folders.some((folder) => folder.id === context.inputData.rooms.folderId), true)
+})
+
+Files("gets the external link of a folder", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      create: "true",
+      folderId: String(context.inputData.rooms.folderId)
+    }
+  }
+  const link = await tester(folderExternalLink.operation.perform, bundle)
+  equal(link.sharedLink?.primary, true)
+  equal(typeof link.sharedLink?.shareLink, "string")
+})
+
+Files("renames the folder of the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      folderId: String(context.inputData.rooms.folderId),
+      title: "Test Folder renamed"
+    }
+  }
+  const folder = await tester(renameFolder.operation.perform, bundle)
+  equal(folder.title, "Test Folder renamed")
+})
+
+Files("copies the file to the top level of the room and moves the copy back", async (context) => {
+  const copy = await tester(copyFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      fileId: String(context.inputData.rooms.fileId)
+    }
+  })
+  equal(copy.folderId, context.inputData.rooms.roomId)
+  const moved = await tester(moveFile.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationFolderId: String(context.inputData.rooms.folderId),
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      fileId: String(copy.id)
+    }
+  })
+  equal(moved.id, copy.id)
+  equal(moved.folderId, context.inputData.rooms.folderId)
+})
+
+Files("copies the folder and moves the copy into it", async (context) => {
+  const copy = await tester(copyFolder.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      folderId: String(context.inputData.rooms.folderId)
+    }
+  })
+  const moved = await tester(moveFolder.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      destinationFolderId: String(context.inputData.rooms.folderId),
+      destinationRoomId: String(context.inputData.rooms.roomId),
+      folderId: String(copy.id)
+    }
+  })
+  equal(moved.id, copy.id)
+  equal(moved.parentId, context.inputData.rooms.folderId)
+})
+
 Files("delete a folder from room", async (context) => {
   const { perform } = deleteFolder.operation
   /** @type {DeleteFolderFields} */
@@ -581,7 +929,7 @@ Files("delete a folder from room", async (context) => {
   equal(result.finished, true)
 })
 
-// TODO: Add test for delete file action and trigger
+// TODO: Add test for the file deleted trigger
 
 Files("triggers when a folder is deleted", async (context) => {
   const { performList } = folderDeleted.operation
@@ -625,6 +973,26 @@ Files("triggers when a room is archived", async (context) => {
   const folders = await tester(performList, bundle)
   const room = folders[0]
   equal(room.id, context.inputData.rooms.roomId)
+})
+
+Files("unarchives the room", async (context) => {
+  const bundle = {
+    authData: context.authData,
+    inputData: {
+      id: String(context.inputData.rooms.roomId)
+    }
+  }
+  const room = await tester(unarchiveRoom.operation.perform, bundle)
+  equal(room.id, context.inputData.rooms.roomId)
+  equal(room.rootFolderType, 14)
+  // Archive the room again, because active rooms count toward the room
+  // limit.
+  await tester(archiveRoom.operation.perform, {
+    authData: context.authData,
+    inputData: {
+      id: context.inputData.rooms.roomId
+    }
+  })
 })
 
 Files("creates a file in the my documents", async (context) => {

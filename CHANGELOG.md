@@ -7,6 +7,26 @@
 - new Room Updated trigger
 - new Form Submitted trigger
 - new Form Filled Out trigger
+- new Find Room search
+- new Find User search
+- new Get File and Get Room actions
+- new Delete File action
+- new Rename File action
+- new Rename Folder action
+- new Move File, Copy File, Move Folder and Copy Folder actions
+- new Unarchive Room action
+- new Remove User from Room action
+- new Get Room Members action
+- new Add Room Tags and Remove Room Tags actions
+- new Convert File action
+- new List Folder Contents action
+- new Create File with Content action
+- new Get File External Link action
+- new Lock File and Unlock File actions
+- new Get Folder External Link action
+- new Create Room from Template action
+- new Change User Type action
+- new Disable User and Enable User actions
 
 ## 1.1.0
 - new inviteGuest action

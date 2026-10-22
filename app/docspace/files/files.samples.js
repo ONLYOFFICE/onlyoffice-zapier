@@ -121,6 +121,56 @@ const externalLink = {
   subjectType: 4
 }
 
+const folderContents = {
+  count: 2,
+  files: [
+    {
+      contentLength: "7.54 KB",
+      created: CREATED,
+      fileExst: ".docx",
+      id: 2,
+      title: "README",
+      updated: CREATED,
+      viewUrl: "https://example.onlyoffice.com/filehandler.ashx?action=download&fileid=2",
+      webUrl: "https://example.onlyoffice.com/doceditor?fileid=2&version=1"
+    }
+  ],
+  folderId: 5,
+  folders: [
+    {
+      created: CREATED,
+      filesCount: 0,
+      foldersCount: 0,
+      id: 3,
+      title: "Reports",
+      updated: CREATED
+    }
+  ],
+  title: "Sales",
+  total: 2
+}
+
+const roomMembers = {
+  count: 1,
+  members: [
+    {
+      access: 2,
+      displayName: "John Doe",
+      email: "john.doe@example.com",
+      id: "11111111-2222-3333-4444-555555555555",
+      role: "Viewer",
+      type: "User"
+    }
+  ],
+  roomId: 5
+}
+
+const removedMember = {
+  roomId: 5,
+  status: "Removed",
+  userId: "11111111-2222-3333-4444-555555555555"
+}
+
 /** @type {InviteGuestData} */
 const inviteGuest = {
   status: "Invited"
@@ -148,6 +198,12 @@ const progress = {
 const role = {
   id: 2,
   name: "Viewer"
+}
+
+// Dropdowns need objects, so the tag lists return tags as objects.
+const tag = {
+  id: "Sales",
+  name: "Sales"
 }
 
 /** @type {RoomData} */
@@ -219,14 +275,18 @@ module.exports = {
   externalLink,
   file,
   folder,
+  folderContents,
   foundFile,
   hydratedFile,
   inviteGuest,
   pathParts,
   progress,
+  removedMember,
   role,
   room,
+  roomMembers,
   share,
   submittedForm,
+  tag,
   upload
 }
