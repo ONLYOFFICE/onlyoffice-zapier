@@ -140,7 +140,20 @@ class Uploader {
         redirect: "error",
         url
       })
-      zapierUrl = await this.z.stashFile(filePromise)
+      try {
+        zapierUrl = await this.z.stashFile(filePromise)
+      } catch (error) {
+        // Zapier takes any 401 for an expired session of the workspace and asks
+        // to reconnect the account. Here, the 401 comes from the file URL.
+        if (error instanceof this.z.errors.RefreshAuthError) {
+          throw new this.z.errors.Error(
+            "The server of the file URL refused access. Use a public URL or a file from a previous step.",
+            "InvalidData",
+            400
+          )
+        }
+        throw error
+      }
     }
     return zapierUrl
   }
@@ -170,7 +183,7 @@ class Uploader {
   async upload(bodyUpload, uploadChunk) {
     let result
     if (bodyUpload.fileSize <= 0) {
-      throw new this.z.errors.HaltedError("The file is empty")
+      throw new this.z.errors.Error("The file is empty.", "InvalidData", 400)
     }
     const chunkSize = 10 * 1024 * 1024
     const chunks = Math.ceil(bodyUpload.fileSize / chunkSize)
@@ -186,7 +199,7 @@ class Uploader {
       result = await uploadChunk(chunk)
     }
     if (!result) {
-      throw new this.z.errors.HaltedError("Failed to upload the file.")
+      throw new this.z.errors.Error("Failed to upload the file.", "UploadFailed")
     }
     return result
   }

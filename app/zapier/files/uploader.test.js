@@ -4,9 +4,10 @@
 
 // @ts-check
 
-const { equal } = require("uvu/assert")
+const { equal, instance } = require("uvu/assert")
 const { test } = require("uvu")
 const { fileName, isZapierUrl, Uploader } = require("./uploader.js")
+const { RefreshAuthError, ZapierError } = require("../z.fixture.js")
 
 test("recognizes zapier urls by the host", () => {
   equal(isZapierUrl("https://zapier.com/engine/hydrate/1/abc/"), true)
@@ -56,6 +57,22 @@ function mockFetch(status, body) {
   }
   return state
 }
+
+test("doesn't ask to reconnect the account when the file URL refuses access", async () => {
+  const z = {
+    errors: { Error: ZapierError, RefreshAuthError },
+    request: () => Promise.reject(new RefreshAuthError()),
+    stashFile: (/** @type {Promise<unknown>} */ promise) => promise
+  }
+  // @ts-ignore: a fake z object is enough.
+  const uploader = new Uploader(z)
+  try {
+    await uploader.stash("https://example.com/private.docx")
+    throw new Error("Expected an error")
+  } catch (error) {
+    instance(error, ZapierError)
+  }
+})
 
 test("reads chunks with range requests", async () => {
   const state = mockFetch(206, "abcd")

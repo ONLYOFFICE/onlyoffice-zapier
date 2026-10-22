@@ -21,12 +21,6 @@
 
 const { account } = require("../people/people.samples.js")
 
-/** @type {DownloadFileData} */
-const hydratedFile = {
-  file: "hydrate||| |||hydrate",
-  id: 1
-}
-
 const CREATED = "2026-01-01T09:00:00.0000000+00:00"
 
 /** @type {FileData} */
@@ -55,10 +49,16 @@ const file = {
   webUrl: "https://example.onlyoffice.com/doceditor?fileid=4&version=1"
 }
 
-/** @type {FileData} */
-const foundFile = {
-  ...file,
-  title: "Report.docx"
+/** @type {DownloadFileData} */
+const hydratedFile = {
+  contentLength: file.contentLength,
+  file: "hydrate||| |||hydrate",
+  fileExst: file.fileExst,
+  folderId: file.folderId,
+  id: file.id,
+  title: file.title,
+  viewUrl: file.viewUrl,
+  webUrl: file.webUrl
 }
 
 // The Form Submitted trigger returns the filled copy of the form with the
@@ -173,7 +173,12 @@ const removedMember = {
 
 /** @type {InviteGuestData} */
 const inviteGuest = {
-  status: "Invited"
+  access: 11,
+  email: "john.doe@example.com",
+  role: "Content creator",
+  roomId: 5,
+  status: "Invited",
+  userId: "11111111-2222-3333-4444-555555555555"
 }
 
 /** @type {PathParts} */
@@ -230,6 +235,12 @@ const room = {
   usedSpace: 7726
 }
 
+/** @type {RoomData} */
+const archivedRoom = {
+  ...room,
+  rootFolderType: 20
+}
+
 /** @type {_ShareData} */
 const share = {
   activationStatus: 1,
@@ -265,18 +276,18 @@ const upload = {
   file,
   folderId: 3,
   id: 2,
-  title: "README.docx",
+  title: "README",
   uploaded: true,
   version: 1
 }
 
 module.exports = {
   account,
+  archivedRoom,
   externalLink,
   file,
   folder,
   folderContents,
-  foundFile,
   hydratedFile,
   inviteGuest,
   pathParts,

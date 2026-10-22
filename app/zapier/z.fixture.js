@@ -107,6 +107,7 @@ function webhookBundle(trigger, payload, inputData = {}) {
 module.exports = {
   HaltedError,
   RefreshAuthError,
+  ZapierError,
   authData,
   fakeZ,
   webhookBundle

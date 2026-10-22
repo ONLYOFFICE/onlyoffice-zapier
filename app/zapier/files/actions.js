@@ -18,6 +18,7 @@ const { PeopleService } = require("../../docspace/people/people.js")
 const { downloadFile: downloadFileHydrator } = require("./hydrators.js")
 const { shareRoles } = require("./triggers.js")
 const { PAGE_SIZE } = require("../pagination.js")
+const { noRightsField } = require("../fields.js")
 const { Uploader } = require("./uploader.js")
 const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 
@@ -72,11 +73,13 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {Object} DeleteFolderFields
  * @property {number} folderId
  * @property {number=} id
+ * @property {boolean|string=} immediately
  */
 
 /**
  * @typedef {Object} DeleteFolderInMyDocumentsFields
  * @property {number} folderId
+ * @property {boolean|string=} immediately
  */
 
 /**
@@ -92,14 +95,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 /**
  * @typedef {Object} ExternalLinkFields
  * @property {number} id
- */
-
-/**
- * @typedef {Object} InvitedRole
- * @property {Record<number, string>} choices
- * @property {string} key
- * @property {string} label
- * @property {boolean} required
+ * @property {boolean|string=} create
  */
 
 /**
@@ -107,12 +103,15 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @property {number} roomId
  * @property {string} email
  * @property {number} access
+ * @property {boolean|string=} notify
+ * @property {string=} message
  */
 
 /**
  * @typedef {Object} RoomCreateFields
  * @property {string} title
  * @property {string} roomType
+ * @property {string[]|string=} tags
  */
 
 /**
@@ -120,6 +119,8 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @property {number} roomId
  * @property {string} userId
  * @property {number} access
+ * @property {boolean|string=} notify
+ * @property {string=} message
  */
 
 /**
@@ -136,8 +137,8 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  */
 
 /**
- * Waits for an operation and fails the action if the operation fails. If the
- * operation is still running after the wait, its current state is returned.
+ * Waits for the operation. Fails if the operation fails or doesn't finish in
+ * time.
  * @param {ZObject} z
  * @param {Progress} progress
  * @returns {Promise<ProgressData>}
@@ -145,7 +146,14 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
 async function completeOperation(z, progress) {
   const result = await progress.complete()
   if (result.error) {
-    throw new z.errors.HaltedError(result.error)
+    throw new z.errors.Error(result.error, "OperationFailed")
+  }
+  if (!result.finished) {
+    throw new z.errors.Error(
+      "The workspace is still processing the operation. It will finish in the background, check the result later.",
+      "OperationTimeout",
+      504
+    )
   }
   return result
 }
@@ -164,22 +172,27 @@ const archiveRoom = {
         key: "id",
         label: "Room",
         required: true,
+        search: "searchRoom.id",
         type: "string"
       }
     ],
     /**
      * @param {ZObject} z
      * @param {Bundle<SessionAuthenticationData, ArchiveRoomFields>} bundle
-     * @returns {Promise<ProgressData>}
+     * @returns {Promise<RoomData>}
      */
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const operation = await files.archiveRoom(bundle.inputData.id)
+      const id = normalizeId(bundle.inputData.id)
+      const operation = await files.archiveRoom(id)
       const progress = new Progress(files.listOperations.bind(files), operation)
-      return completeOperation(z, progress)
+      await completeOperation(z, progress)
+      const room = await files.roomInfo(id)
+      room.id = normalizeId(room.id)
+      return room
     },
-    sample: samples.progress
+    sample: samples.archivedRoom
   }
 }
 
@@ -197,6 +210,7 @@ const createFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -235,7 +249,7 @@ const createFile = {
         createdFile.title = stripExtension(createdFile.title)
         return createdFile
       }
-      throw new z.errors.HaltedError("Select a room or a folder.")
+      throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
     sample: samples.file
   }
@@ -299,10 +313,12 @@ const createFolder = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to create the folder at the top level of the room.",
         key: "folderId",
         label: "Folder",
         search: "searchFolder.id",
@@ -333,7 +349,7 @@ const createFolder = {
         }
         return await files.createFolder(bundle.inputData.folderId, body)
       }
-      throw new z.errors.HaltedError("Select a room or a folder.")
+      throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
     sample: samples.folder
   }
@@ -384,7 +400,7 @@ const createFolderInMyDocuments = {
 
 const deleteFolder = {
   display: {
-    description: "Moves a folder in a room to Trash.",
+    description: "Deletes a folder in a room with everything in it. Rooms have no Trash, so it can't be restored.",
     label: "Delete Folder"
   },
   key: "deleteFolder",
@@ -394,8 +410,10 @@ const deleteFolder = {
       {
         altersDynamicFields: true,
         dynamic: "roomCreated.id.title",
+        helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -415,7 +433,9 @@ const deleteFolder = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const operation = await files.deleteFolder(bundle.inputData.folderId)
+      // Boolean fields may come from Zapier as strings.
+      const immediately = String(bundle.inputData.immediately) === "true"
+      const operation = await files.deleteFolder(normalizeId(bundle.inputData.folderId), immediately)
       const progress = new Progress(files.listOperations.bind(files), operation[0])
       return completeOperation(z, progress)
     },
@@ -425,7 +445,7 @@ const deleteFolder = {
 
 const deleteFolderInMyDocuments = {
   display: {
-    description: "Moves a folder in the Files section to Trash.",
+    description: "Moves a folder in the Files section to Trash or deletes it permanently.",
     label: "Delete Folder from Files Section"
   },
   key: "deleteFolderInMyDocuments",
@@ -439,6 +459,14 @@ const deleteFolderInMyDocuments = {
         required: true,
         search: "searchFolder.id",
         type: "string"
+      },
+      {
+        default: "false",
+        helpText: "Delete the folder and everything in it at once instead of moving it to Trash. " +
+          "It can't be restored.",
+        key: "immediately",
+        label: "Delete permanently",
+        type: "boolean"
       }
     ],
     /**
@@ -467,6 +495,7 @@ const downloadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -493,10 +522,19 @@ const downloadFile = {
      * @returns {Promise<DownloadFileData>}
      */
     async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const file = await files.fileInfo(normalizeId(bundle.inputData.fileId))
       const hydrate = z.dehydrateFile(downloadFileHydrator, { fileId: bundle.inputData.fileId })
       return {
+        contentLength: file.contentLength,
         file: hydrate,
-        id: bundle.inputData.fileId
+        fileExst: file.fileExst,
+        folderId: file.folderId,
+        id: normalizeId(file.id),
+        title: stripExtension(file.title),
+        viewUrl: file.viewUrl,
+        webUrl: file.webUrl
       }
     },
     sample: samples.hydratedFile
@@ -544,8 +582,8 @@ const downloadFileFromMyDocuments = {
 
 const externalLink = {
   display: {
-    description: "Gets the primary external link of a room. If the room doesn't have one, creates it.",
-    label: "Get External Link"
+    description: "Gets the primary external link of a room. Can create it if the room doesn't have one.",
+    label: "Get Room External Link"
   },
   key: "externalLink",
   noun: "Link",
@@ -557,7 +595,8 @@ const externalLink = {
         label: "Room",
         required: true,
         type: "string"
-      }
+      },
+      createLinkField("room")
     ],
     /**
      * @param {ZObject} z
@@ -567,17 +606,33 @@ const externalLink = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      return await files.externalLink(bundle.inputData.id)
+      const id = normalizeId(bundle.inputData.id)
+      // Old Zaps don't have this field, so they keep creating the link.
+      const { create } = bundle.inputData
+      const createLink = create === undefined || String(create) === "true"
+      return await primaryLink(z, files, "rooms", id, createLink ? () => files.externalLink(id) : undefined)
     },
     sample: samples.externalLink
   }
+}
+
+/** @type {Record<number, string>} */
+const ROLE_NAMES = {
+  1: "Full access",
+  10: "Editor",
+  11: "Content creator",
+  2: "Viewer",
+  5: "Reviewer",
+  6: "Commenter",
+  7: "Form filler",
+  9: "Room manager"
 }
 
 /**
  * Finds a room member by the exact email. The API searches by a part of the
  * name or email and also returns groups.
  * @param {FilesService} files
- * @param {number} roomId
+ * @param {number|string} roomId
  * @param {string} email
  * @returns {Promise<UserData | undefined>}
  */
@@ -588,6 +643,56 @@ async function findMember(files, roomId, email) {
     const user = item.sharedToUser
     return !!user && typeof user.email === "string" && user.email.toLowerCase() === expected
   })
+}
+
+const INVITATION_MESSAGE = "Invitation from Zapier"
+
+const INVITATION_FIELDS = [
+  {
+    default: "true",
+    helpText: "Send an email about the invitation.",
+    key: "notify",
+    label: "Notify",
+    type: "boolean"
+  },
+  {
+    default: INVITATION_MESSAGE,
+    helpText: "The message in the email about the invitation.",
+    key: "message",
+    label: "Message",
+    type: "text"
+  }
+]
+
+/**
+ * @param {{notify?: boolean|string, message?: string}} inputData
+ * @returns {{message: string, notify: boolean}}
+ */
+function invitationEmail(inputData) {
+  return {
+    message: inputData.message || INVITATION_MESSAGE,
+    // Zapier may send booleans as strings. Old Zaps don't have this field, so
+    // they keep sending emails.
+    notify: String(inputData.notify) !== "false"
+  }
+}
+
+/**
+ * @param {number|string} roomId
+ * @param {string} email
+ * @param {UserData} member
+ * @param {string} status
+ * @returns {InviteGuestData}
+ */
+function guestData(roomId, email, member, status) {
+  return {
+    access: member.access,
+    email,
+    role: ROLE_NAMES[member.access] || "",
+    roomId,
+    status,
+    userId: member.sharedToUser ? member.sharedToUser.id : ""
+  }
 }
 
 const inviteGuest = {
@@ -605,6 +710,7 @@ const inviteGuest = {
         key: "roomId",
         label: "Room",
         required: true,
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -615,7 +721,7 @@ const inviteGuest = {
       /**
        * @param {ZObject} z
        * @param {Bundle<SessionAuthenticationData, ShareRolesFields>} bundle
-       * @returns {Promise<InvitedRole[]>}
+       * @returns {Promise<Object[]>}
        */
       async function (z, bundle) {
         const client = new Client(bundle.authData.baseUrl, z.request)
@@ -633,14 +739,16 @@ const inviteGuest = {
             member.access === CONTENT_CREATOR
           )
         }
+        const roles = canInvite ? await shareRoles.operation.perform(z, bundle) : []
+        if (roles.length === 0) {
+          const notice = "Your account can't invite guests to this room. Check its user type and its role in the room."
+          return noRightsField(notice)
+        }
         /** @type {Record<number, string>} */
         const choices = {}
-        if (canInvite) {
-          const roles = await shareRoles.operation.perform(z, bundle)
-          for (let i = 0; i < roles.length; i = i + 1) {
-            const role = roles[i]
-            choices[role.id] = role.name
-          }
+        for (let i = 0; i < roles.length; i = i + 1) {
+          const role = roles[i]
+          choices[role.id] = role.name
         }
         return [{
           choices: choices,
@@ -648,7 +756,8 @@ const inviteGuest = {
           label: "Role",
           required: true
         }]
-      }
+      },
+      ...INVITATION_FIELDS
     ],
     /**
      * @param {ZObject} z
@@ -658,28 +767,28 @@ const inviteGuest = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const member = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      const roomId = normalizeId(bundle.inputData.roomId)
+      const { email } = bundle.inputData
+      const member = await findMember(files, roomId, email)
       if (member) {
-        return {
-          status: "User is already a member"
-        }
+        return guestData(roomId, email, member, "User is already a member")
       }
       const body = {
         invitations: [{
           access: bundle.inputData.access,
-          email: bundle.inputData.email
+          email
         }],
-        message: "Invitation from Zapier",
-        notify: true
+        ...invitationEmail(bundle.inputData)
       }
-      await files.shareRoom(bundle.inputData.roomId, body)
-      const guest = await findMember(files, bundle.inputData.roomId, bundle.inputData.email)
+      await files.shareRoom(roomId, body)
+      const guest = await findMember(files, roomId, email)
       if (guest) {
-        return {
-          status: "Invited"
-        }
+        return guestData(roomId, email, guest, "Invited")
       }
-      throw new z.errors.HaltedError("Failed to invite the guest. Check that the workspace allows guest invitations.")
+      throw new z.errors.Error(
+        "Failed to invite the guest. Check that the workspace allows guest invitations.",
+        "OperationFailed"
+      )
     },
     sample: samples.inviteGuest
   }
@@ -709,9 +818,18 @@ const roomCreate = {
           "6": "Public room",
           "8": "Virtual Data Room"
         },
+        helpText: "A Public room can't be created if external sharing is turned off in the workspace.",
         key: "roomType",
         label: "Room type",
         required: true
+      },
+      {
+        dynamic: "tagsList.id.name",
+        helpText: "Choose existing tags or enter new ones.",
+        key: "tags",
+        label: "Tags",
+        list: true,
+        type: "string"
       }
     ],
     /**
@@ -722,9 +840,14 @@ const roomCreate = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
+      /** @type {import("../../docspace/files/files.js").RoomCreateBody} */
       const body = {
         roomType: Number(bundle.inputData.roomType),
         title: bundle.inputData.title
+      }
+      const tags = bundle.inputData.tags ? tagNames(bundle.inputData.tags) : []
+      if (tags.length > 0) {
+        body.tags = tags
       }
       return await files.createRoom(body)
     },
@@ -735,7 +858,7 @@ const roomCreate = {
 const shareRoom = {
   display: {
     description: "Adds a workspace user to a room with the selected role.",
-    label: "Share Room"
+    label: "Add User to Room"
   },
   key: "shareRoom",
   noun: "Room",
@@ -747,6 +870,7 @@ const shareRoom = {
         key: "roomId",
         label: "Room",
         required: true,
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -754,15 +878,30 @@ const shareRoom = {
         key: "userId",
         label: "User",
         required: true,
+        search: "searchUser.id",
         type: "string"
       },
-      {
-        dynamic: "shareRoles.id.name",
-        key: "access",
-        label: "Role",
-        required: true,
-        type: "integer"
-      }
+      /**
+       * @param {ZObject} z
+       * @param {Bundle<SessionAuthenticationData>} bundle
+       * @returns {Promise<Object[]>}
+       */
+      async function (z, bundle) {
+        const client = new Client(bundle.authData.baseUrl, z.request)
+        const people = new PeopleService(client)
+        const user = await people.self()
+        if (!user?.isOwner && !user?.isAdmin && !user?.isRoomAdmin) {
+          return noRightsField("Only Room admins and Full admins can add users to rooms.")
+        }
+        return [{
+          dynamic: "shareRoles.id.name",
+          key: "access",
+          label: "Role",
+          required: true,
+          type: "integer"
+        }]
+      },
+      ...INVITATION_FIELDS
     ],
     /**
      * @param {ZObject} z
@@ -777,13 +916,12 @@ const shareRoom = {
           access: bundle.inputData.access,
           id: bundle.inputData.userId
         }],
-        message: "Invitation from Zapier",
-        notify: true
+        ...invitationEmail(bundle.inputData)
       }
       const response = await files.shareRoom(bundle.inputData.roomId, body)
       const member = response.members.length > 0 && response.members[0].sharedToUser
       if (!member) {
-        throw new z.errors.HaltedError("Failed to add the user to the room.")
+        throw new z.errors.Error("Failed to add the user to the room.", "OperationFailed")
       }
       return member
     },
@@ -805,10 +943,12 @@ const uploadFile = {
         dynamic: "roomCreated.id.title",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "A folder in the room. Leave empty to upload the file to the top level of the room.",
         key: "folderId",
         label: "Folder",
         search: "searchFolder.id",
@@ -835,34 +975,31 @@ const uploadFile = {
         const client = new Client(bundle.authData.baseUrl, z.request)
         const files = new FilesService(client)
         const uploader = new Uploader(z)
-        try {
-          const fileStash = await uploader.stash(bundle.inputData.url)
-          const headers = await uploader.headers(fileStash)
-          const bodySession = {
-            createOn: new Date().toISOString(),
-            fileName: headers.fileName,
-            fileSize: headers.fileSize
-          }
-          const session = await files.createSession(bundle.inputData.folderId, bodySession)
-          const bodyUpload = {
-            data: headers.data,
-            fileName: headers.fileName,
-            fileSize: headers.fileSize,
-            fileStash
-          }
-          return await uploader.upload(
-            bodyUpload,
-            (chunkData) => files.uploadChunk(session.id, chunkData)
-          )
-        } catch (error) {
-          let message = "Unknown error"
-          if (error instanceof Error) {
-            message = error.message
-          }
-          throw new z.errors.HaltedError(message)
+        const fileStash = await uploader.stash(bundle.inputData.url)
+        const headers = await uploader.headers(fileStash)
+        const bodySession = {
+          createOn: new Date().toISOString(),
+          fileName: headers.fileName,
+          fileSize: headers.fileSize
         }
+        const session = await files.createSession(bundle.inputData.folderId, bodySession)
+        const bodyUpload = {
+          data: headers.data,
+          fileName: headers.fileName,
+          fileSize: headers.fileSize,
+          fileStash
+        }
+        const uploaded = await uploader.upload(
+          bodyUpload,
+          (chunkData) => files.uploadChunk(session.id, chunkData)
+        )
+        uploaded.title = stripExtension(uploaded.title)
+        if (uploaded.file) {
+          uploaded.file.title = stripExtension(uploaded.file.title)
+        }
+        return uploaded
       }
-      throw new z.errors.HaltedError("Select a room or a folder.")
+      throw new z.errors.Error("Select a room or a folder.", "InvalidData", 400)
     },
     sample: samples.upload
   }
@@ -933,6 +1070,7 @@ const getFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -945,6 +1083,7 @@ const getFile = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1018,7 +1157,7 @@ const getRoom = {
 
 const deleteFile = {
   display: {
-    description: "Moves a file to Trash or deletes it permanently.",
+    description: "Deletes a file. Files in the Files section go to Trash unless deleted permanently.",
     label: "Delete File"
   },
   key: "deleteFile",
@@ -1031,6 +1170,7 @@ const deleteFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1043,6 +1183,7 @@ const deleteFile = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1051,7 +1192,8 @@ const deleteFile = {
       },
       {
         default: "false",
-        helpText: "Delete the file at once instead of moving it to Trash. It can't be restored.",
+        helpText: "For files in the Files section: delete the file at once instead of moving it to Trash. " +
+          "Rooms have no Trash, so files in rooms are always deleted permanently.",
         key: "immediately",
         label: "Delete permanently",
         type: "boolean"
@@ -1098,6 +1240,7 @@ const renameFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1110,6 +1253,7 @@ const renameFile = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1163,10 +1307,12 @@ const renameFolder = {
         helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "To use a folder from the Files section, enter its ID or find it with Find Folder.",
         key: "folderId",
         label: "Folder",
         required: true,
@@ -1213,6 +1359,7 @@ const MOVE_FILE_FIELDS = [
     helpText: "The room with the file. Use it to choose the file from the list.",
     key: "id",
     label: "Room",
+    search: "searchRoom.id",
     type: "string"
   },
   {
@@ -1225,6 +1372,7 @@ const MOVE_FILE_FIELDS = [
   },
   {
     dynamic: "filesList.id.title",
+    helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
     key: "fileId",
     label: "File",
     required: true,
@@ -1240,10 +1388,12 @@ const MOVE_FOLDER_FIELDS = [
     helpText: "The room with the folder. Use it to choose the folder from the list.",
     key: "id",
     label: "Room",
+    search: "searchRoom.id",
     type: "string"
   },
   {
     dynamic: "foldersList.id.title",
+    helpText: "To use a folder from the Files section, enter its ID or find it with Find Folder.",
     key: "folderId",
     label: "Folder",
     required: true,
@@ -1266,6 +1416,7 @@ function moveFields(isFile) {
       key: "destinationRoomId",
       label: "Destination room",
       required: true,
+      search: "searchRoom.id",
       type: "string"
     },
     {
@@ -1501,27 +1652,20 @@ const removeUserFromRoom = {
         notify: false
       })
       // DocSpace gives the same answer when it ignores the removal, for example,
-      // of the room owner. So check the members.
-      const members = await files.listUsers(roomId, {})
-      if (members.some((item) => item.sharedToUser && item.sharedToUser.id === userId)) {
-        throw new z.errors.HaltedError("The user is still a member of the room. The room owner can't be removed.")
+      // of the room owner. So check the members. The list of members has pages,
+      // so search for the user by email.
+      const people = new PeopleService(client)
+      const user = await people.user(userId)
+      if (await findMember(files, roomId, user.email)) {
+        throw new z.errors.Error(
+          "The user is still a member of the room. The room owner can't be removed.",
+          "OperationFailed"
+        )
       }
       return { roomId, status: "Removed", userId }
     },
     sample: samples.removedMember
   }
-}
-
-/** @type {Record<number, string>} */
-const ROLE_NAMES = {
-  1: "Full access",
-  10: "Editor",
-  11: "Content creator",
-  2: "Viewer",
-  5: "Reviewer",
-  6: "Commenter",
-  7: "Form filler",
-  9: "Room manager"
 }
 
 /**
@@ -1741,6 +1885,7 @@ const convertFile = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -1754,6 +1899,7 @@ const convertFile = {
       {
         altersDynamicFields: true,
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -1780,8 +1926,13 @@ const convertFile = {
         }
         const client = new Client(bundle.authData.baseUrl, z.request)
         const files = new FilesService(client)
-        const file = await files.fileInfo(fileId)
-        const settings = await files.settings()
+        const [
+          file,
+          settings
+        ] = await Promise.all([
+          files.fileInfo(fileId),
+          files.settings()
+        ])
         const formats = settings.extsConvertible[file.fileExst] || []
         /** @type {Record<string, string>} */
         const choices = {}
@@ -1805,8 +1956,13 @@ const convertFile = {
     async perform(z, bundle) {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
-      const file = await files.fileInfo(normalizeId(bundle.inputData.fileId))
-      const settings = await files.settings()
+      const [
+        file,
+        settings
+      ] = await Promise.all([
+        files.fileInfo(normalizeId(bundle.inputData.fileId)),
+        files.settings()
+      ])
       const format = extension(bundle.inputData.format)
       const formats = settings.extsConvertible[file.fileExst] || []
       if (!formats.includes(format)) {
@@ -1831,6 +1987,24 @@ const convertFile = {
 }
 
 const MAX_CONTENTS = 500
+
+/**
+ * Values from previous steps can be fractions, negative or not numbers at all,
+ * so check them before they get to the page size of a request.
+ * @param {ZObject} z
+ * @param {string|number=} value
+ * @returns {number}
+ */
+function contentsLimit(z, value) {
+  if (value === undefined || value === null || value === "") {
+    return PAGE_SIZE
+  }
+  const limit = Math.floor(Number(value))
+  if (!(limit >= 1)) {
+    throw new z.errors.Error(`The limit must be a number from 1 to ${MAX_CONTENTS}.`, "InvalidData", 400)
+  }
+  return Math.min(limit, MAX_CONTENTS)
+}
 
 /**
  * @typedef {Object} ListedFile
@@ -1914,7 +2088,7 @@ const listFolderContents = {
       const client = new Client(bundle.authData.baseUrl, z.request)
       const files = new FilesService(client)
       const folderId = normalizeId(bundle.inputData.folderId || bundle.inputData.id)
-      const limit = Math.min(Number(bundle.inputData.limit) || PAGE_SIZE, MAX_CONTENTS)
+      const limit = contentsLimit(z, bundle.inputData.limit)
       /** @type {FileData[]} */
       const fileList = []
       /** @type {FolderData[]} */
@@ -2094,7 +2268,8 @@ function createLinkField(entry) {
 
 const fileExternalLink = {
   display: {
-    description: "Gets the primary external link of a file. If the file doesn't have one, creates it.",
+    description: "Gets the primary external link of a file. Can create it if the file doesn't have one, " +
+      "with the default access of the room, for example, only for workspace users in Virtual Data Rooms.",
     label: "Get File External Link"
   },
   key: "fileExternalLink",
@@ -2107,6 +2282,7 @@ const fileExternalLink = {
         helpText: "The room with the file. Use it to choose the file from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
@@ -2119,6 +2295,7 @@ const fileExternalLink = {
       },
       {
         dynamic: "filesList.id.title",
+        helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
         key: "fileId",
         label: "File",
         required: true,
@@ -2151,6 +2328,7 @@ const LOCK_FILE_FIELDS = [
     helpText: "The room with the file. Use it to choose the file from the list.",
     key: "id",
     label: "Room",
+    search: "searchRoom.id",
     type: "string"
   },
   {
@@ -2163,6 +2341,7 @@ const LOCK_FILE_FIELDS = [
   },
   {
     dynamic: "filesList.id.title",
+    helpText: "To use a file from the Files section, enter its ID or find it with Find File.",
     key: "fileId",
     label: "File",
     required: true,
@@ -2245,7 +2424,8 @@ const unlockFile = {
 
 const folderExternalLink = {
   display: {
-    description: "Gets the primary external link of a folder. If the folder doesn't have one, creates it.",
+    description: "Gets the primary external link of a folder. Can create it if the folder doesn't have one, " +
+      "with the default access of the room, for example, only for workspace users in Virtual Data Rooms.",
     label: "Get Folder External Link"
   },
   key: "folderExternalLink",
@@ -2258,10 +2438,12 @@ const folderExternalLink = {
         helpText: "The room with the folder. Use it to choose the folder from the list.",
         key: "id",
         label: "Room",
+        search: "searchRoom.id",
         type: "string"
       },
       {
         dynamic: "foldersList.id.title",
+        helpText: "To use a folder from the Files section, enter its ID or find it with Find Folder.",
         key: "folderId",
         label: "Folder",
         required: true,
@@ -2341,7 +2523,7 @@ const createRoomFromTemplate = {
         checks = checks + 1
       }
       if (status.error) {
-        throw new z.errors.HaltedError(status.error)
+        throw new z.errors.Error(status.error, "OperationFailed")
       }
       if (!status.isCompleted) {
         throw new z.errors.Error("The room is still being created. Check the Rooms section later.", "Timeout", 408)

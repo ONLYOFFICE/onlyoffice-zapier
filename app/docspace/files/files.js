@@ -36,8 +36,14 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} DownloadFileData
- * @property {number} id
+ * @property {string=} contentLength
  * @property {string} file
+ * @property {string} fileExst
+ * @property {number} folderId
+ * @property {number} id
+ * @property {string} title Without the extension.
+ * @property {string} viewUrl
+ * @property {string} webUrl
  */
 
 /**
@@ -145,7 +151,12 @@ const { Service } = require("../client/client.js")
 
 /**
  * @typedef {Object} InviteGuestData
+ * @property {number} access
+ * @property {string} email
+ * @property {string} role
+ * @property {number|string} roomId
  * @property {string} status
+ * @property {string} userId
  */
 
 /**
@@ -196,6 +207,7 @@ const { Service } = require("../client/client.js")
  * @typedef {Object} RoomCreateBody
  * @property {string} title
  * @property {number} roomType
+ * @property {string[]=} tags DocSpace creates the tags that don't exist.
  */
 
 /**
@@ -360,7 +372,7 @@ class FilesService extends Service {
    * ```http
    * PUT /files/rooms/{{id}}/archive
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @returns {Promise<ProgressData>}
    */
   archiveRoom(id) {
@@ -544,7 +556,8 @@ class FilesService extends Service {
    * DELETE /files/file/{{fileId}}
    * ```
    * @param {number|string} fileId
-   * @param {boolean} immediately Don't move the file to Trash.
+   * @param {boolean} immediately Don't move the file to Trash. Rooms have no
+   * Trash, so files in rooms are always deleted for good.
    * @returns {Promise<ProgressData[]>}
    */
   deleteFile(fileId, immediately) {
@@ -596,11 +609,13 @@ class FilesService extends Service {
    * DELETE /files/folder/{{folderId}}
    * ```
    * @param {number} folderId
+   * @param {boolean} immediately Don't move the folder to Trash. Rooms have no
+   * Trash, so folders in rooms are always deleted for good.
    * @returns {Promise<ProgressData[]>}
    */
-  deleteFolder(folderId) {
+  deleteFolder(folderId, immediately) {
     const url = this.client.url(`/files/folder/${encodeURIComponent(folderId)}`)
-    return this.client.request("DELETE", url)
+    return this.client.request("DELETE", url, { deleteAfter: false, immediately })
   }
 
   /**
@@ -719,7 +734,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/rooms/{{id}}/link
    * ```
-   * @param {number} id
+   * @param {number|string} id
    * @returns {Promise<ExternalLinkData>}
    */
   externalLink(id) {
@@ -744,7 +759,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/{{folderId}}
    * ```
-   * @param {number} folderId
+   * @param {number|string} folderId
    * @param {Filters} filters
    * @returns {Promise<FilesList>}
    */

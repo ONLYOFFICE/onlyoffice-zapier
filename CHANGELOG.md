@@ -27,6 +27,18 @@
 - new Create Room from Template action
 - new Change User Type action
 - new Disable User and Enable User actions
+- actions wait up to 20 seconds for long DocSpace operations
+- failed actions show as errors, not as halted; errors about missing rights or tariff limits are clear; Upload File doesn't ask to reconnect the account when the server of the file URL refuses access
+- Archive Room returns the room; Invite Guest and Download File return more data; Upload File and Find File return titles without the extension, like other actions
+- Delete Folder from Files Section can delete a folder for good; the delete actions say that rooms have no Trash
+- fix Remove User from Room in rooms with more than 100 members
+- Get External Link is now Get Room External Link and Share Room is now Add User to Room; Get Room External Link can get the link without creating it; room and user fields can use Find Room and Find User; clearer help texts
+- Add User to Room and Invite Guest can turn off the email or change its text
+- Create Room can add tags
+- Invite User and Change User Type show only the user types you can set, and clear errors; Add User to Room and Invite Guest explain when your account can't add people to the room
+- fix Room Updated, Form Submitted and Form Filled Out with rooms and folders in third-party storage
+- List Folder Contents shows an error when the limit isn't a number from 1 to 500
+- Find Room and Convert File send their requests at once and work faster
 
 ## 1.1.0
 - new inviteGuest action

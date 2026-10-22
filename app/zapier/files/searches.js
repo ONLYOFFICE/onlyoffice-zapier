@@ -4,7 +4,7 @@
 
 // @ts-check
 
-const { Client, normalizeId } = require("../../docspace/client/client.js")
+const { Client, normalizeId, stripExtension } = require("../../docspace/client/client.js")
 const { FilesService } = require("../../docspace/files/files.js")
 const samples = require("../../docspace/files/files.samples.js")
 
@@ -99,10 +99,11 @@ const searchFile = {
       )
       results.forEach((file) => {
         file.id = normalizeId(file.id)
+        file.title = stripExtension(file.title)
       })
       return results
     },
-    sample: samples.foundFile
+    sample: samples.file
   }
 }
 
@@ -178,9 +179,14 @@ const searchRoom = {
       // DocSpace saves the sort order of a request as the default order of
       // the user, so sort the rooms here.
       const filters = { filterValue: bundle.inputData.title }
-      const rooms = await files.listRooms(filters)
       // Form filling rooms are in the separate Forms section.
-      const forms = await files.listRooms({ ...filters, searchArea: "Forms" })
+      const [
+        rooms,
+        forms
+      ] = await Promise.all([
+        files.listRooms(filters),
+        files.listRooms({ ...filters, searchArea: "Forms" })
+      ])
       const ids = new Set(rooms.folders.map((room) => String(room.id)))
       const results = rooms.folders.concat(forms.folders.filter((room) => !ids.has(String(room.id))))
       results.sort((a, b) => (Date.parse(b.updated) || 0) - (Date.parse(a.updated) || 0))

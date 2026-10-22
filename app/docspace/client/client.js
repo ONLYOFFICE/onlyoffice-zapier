@@ -268,6 +268,11 @@ class Client {
   }
 }
 
+// Zapier stops a step after 30 seconds. Wait less, so that the step has time
+// to finish.
+const OPERATION_DELAY = 500
+const OPERATION_TIMEOUT = 20000
+
 class Progress {
   /**
    * @param {() => Promise<ProgressData[]>} endpoint
@@ -278,12 +283,19 @@ class Progress {
     this.operation = operation
   }
 
-  async complete(delay = 100, limit = 20) {
-    if (limit <= 0) {
-      throw new Error("The limit of status checks must be greater than zero")
+  /**
+   * When the time is up, returns the last state, which isn't finished.
+   * @param {number} delay The pause between the checks, in milliseconds.
+   * @param {number} timeout How long to wait, in milliseconds.
+   * @returns {Promise<ProgressData>}
+   */
+  async complete(delay = OPERATION_DELAY, timeout = OPERATION_TIMEOUT) {
+    if (timeout <= 0) {
+      throw new Error("The timeout of the operation must be greater than zero")
     }
+    const deadline = this.now() + timeout
     let progress = this.operation
-    while (limit > 0) {
+    for (;;) {
       const operations = await this.endpoint()
       const operation = operations.find((item) => item.id === this.operation.id)
       if (operation) {
@@ -292,10 +304,18 @@ class Progress {
           return progress
         }
       }
+      if (this.now() + delay > deadline) {
+        return progress
+      }
       await this.wait(delay)
-      limit = limit - 1
     }
-    return progress
+  }
+
+  /**
+   * @returns {number}
+   */
+  now() {
+    return Date.now()
   }
 
   /**

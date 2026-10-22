@@ -77,15 +77,43 @@ test("progress initializes with the endpoint and it's operation", async () => {
   equal(progress.operation, operation)
 })
 
-test("progress completes with a default delay", async () => {
-  // todo: find a way to test this case.
+/**
+ * Uses a fake clock, so that the tests don't wait.
+ * @param {Progress} progress
+ * @returns {number[]} The pauses between the checks.
+ */
+function fakeClock(progress) {
+  /** @type {number[]} */
+  const pauses = []
+  let time = 0
+  progress.now = () => time
+  progress.wait = async (delay) => {
+    pauses.push(delay)
+    time = time + delay
+  }
+  return pauses
+}
+
+test("progress checks the operation every half a second", async () => {
+  let i = 0
+  async function endpoint() {
+    i += 1
+    return [{ ...operation, finished: i === 3, progress: i === 3 ? 100 : 50 }]
+  }
+
+  const progress = new Progress(endpoint, operation)
+  const pauses = fakeClock(progress)
+  const response = await progress.complete()
+
+  equal(i, 3)
+  equal(pauses, [
+    500,
+    500
+  ])
+  equal(response.finished, true)
 })
 
-test("progress completes with the custom delay", async () => {
-  // todo: find a way to test this case.
-})
-
-test("progress completes with a default limit", async () => {
+test("progress gives up after 20 seconds", async () => {
   let i = 0
   async function endpoint() {
     i += 1
@@ -93,12 +121,15 @@ test("progress completes with a default limit", async () => {
   }
 
   const progress = new Progress(endpoint, operation)
-  await progress.complete()
+  fakeClock(progress)
+  const response = await progress.complete()
 
-  equal(i, 20)
+  // It checks at 0, 0.5, ..., 20 seconds.
+  equal(i, 41)
+  equal(response.finished, false)
 })
 
-test("progress completes with the custom limit", async () => {
+test("progress waits with the custom delay and timeout", async () => {
   let i = 0
   async function endpoint() {
     i += 1
@@ -106,12 +137,14 @@ test("progress completes with the custom limit", async () => {
   }
 
   const progress = new Progress(endpoint, operation)
-  await progress.complete(100, 10)
+  const pauses = fakeClock(progress)
+  await progress.complete(100, 300)
 
-  equal(i, 10)
+  equal(i, 4)
+  equal(pauses.every((pause) => pause === 100), true)
 })
 
-test("progress throws an error if the limit is negative or zero", async () => {
+test("progress throws an error if the timeout is negative or zero", async () => {
   async function endpoint() {
     return [operation]
   }
@@ -179,6 +212,7 @@ test("progress completes when the response contains 100 progress", async () => {
   }
 
   const progress = new Progress(endpoint, operation)
+  fakeClock(progress)
   const response = await progress.complete()
 
   equal(i, 2)

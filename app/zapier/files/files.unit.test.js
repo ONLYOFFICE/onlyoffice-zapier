@@ -14,10 +14,14 @@ const {
   convertFile,
   copyFile,
   copyFolder,
+  createFile,
   createFileWithContent,
   createRoomFromTemplate,
   deleteFile,
+  deleteFolder,
+  deleteFolderInMyDocuments,
   downloadFile,
+  externalLink,
   fileExternalLink,
   folderExternalLink,
   getFile,
@@ -35,9 +39,10 @@ const {
   roomCreate,
   shareRoom,
   unarchiveRoom,
-  unlockFile
+  unlockFile,
+  uploadFile
 } = require("./actions.js")
-const { authData, fakeZ, HaltedError, webhookBundle } = require("../z.fixture.js")
+const { authData, fakeZ, HaltedError, webhookBundle, ZapierError } = require("../z.fixture.js")
 const {
   archivedRoomsList,
   fileCreated,
@@ -58,6 +63,7 @@ const {
   userInvited
 } = require("./triggers.js")
 const { pageFilters } = require("../pagination.js")
+const { Progress } = require("../../docspace/client/client.js")
 const { searchFile, searchRoom } = require("./searches.js")
 
 /**
@@ -115,14 +121,44 @@ test("fails archiving when the operation fails", async () => {
     "PUT /files/rooms/1/archive": { error: "", finished: false, id: "op", progress: 0 }
   })
   const error = await caught(() => run(archiveRoom.operation.perform, z, { inputData: { id: 1 } }))
-  instance(error, HaltedError)
+  instance(error, ZapierError)
   equal(/** @type {Error} */ (error).message, "Access denied")
+})
+
+test("fails copying a file when the operation is still running", async () => {
+  const operation = { error: "", finished: false, id: "op", progress: 40 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "PUT /files/fileops/copy": [operation]
+  })
+  // Use a fake clock, so that the test doesn't wait for the timeout.
+  const { now, wait } = Progress.prototype
+  let time = 0
+  Progress.prototype.now = () => time
+  Progress.prototype.wait = async (/** @type {number} */ delay) => {
+    time = time + delay
+  }
+  try {
+    const inputData = { destinationRoomId: "3", fileId: "7" }
+    const error = await caught(() => run(copyFile.operation.perform, z, { inputData }))
+    instance(error, ZapierError)
+    match(String(error), "still processing the operation")
+  } finally {
+    Progress.prototype.now = now
+    Progress.prototype.wait = wait
+  }
 })
 
 test("creates a room with a numeric type", async () => {
   const z = fakeZ({ "POST /files/rooms": { id: 1 } })
   await run(roomCreate.operation.perform, z, { inputData: { roomType: "8", title: "VDR" } })
   equal(z.calls[0].body, { roomType: 8, title: "VDR" })
+})
+
+test("creates a room with tags", async () => {
+  const z = fakeZ({ "POST /files/rooms": { id: 1 } })
+  await run(roomCreate.operation.perform, z, { inputData: { roomType: "5", tags: " Sales ", title: "Deals" } })
+  equal(z.calls[0].body, { roomType: 5, tags: ["Sales"], title: "Deals" })
 })
 
 test("returns the user of the shared room", async () => {
@@ -132,13 +168,34 @@ test("returns the user of the shared room", async () => {
   const inputData = { access: 10, roomId: 1, userId: "u1" }
   const result = await run(shareRoom.operation.perform, z, { inputData })
   equal(result, user)
+  // Old Zaps without the email fields keep sending the email.
+  equal(z.calls[0].body.notify, true)
+  equal(z.calls[0].body.message, "Invitation from Zapier")
 })
 
-test("dehydrates the downloaded file by its id", async () => {
-  const z = fakeZ({})
+test("adds a user to a room without an email", async () => {
+  const member = { sharedToUser: { id: "u1" } }
+  const z = fakeZ({ "PUT /files/rooms/1/share": { members: [member] } })
+  const inputData = { access: 10, message: "Hello", notify: "false", roomId: 1, userId: "u1" }
+  await run(shareRoom.operation.perform, z, { inputData })
+  equal(z.calls[0].body.notify, false)
+  equal(z.calls[0].body.message, "Hello")
+})
+
+test("downloads a file in third-party storage", async () => {
+  const z = fakeZ({ "GET /files/file/sbox-7": { fileExst: ".docx", id: "sbox-7", title: "Contract.docx" } })
+  const result = await run(downloadFile.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(result.id, "sbox-7")
+})
+
+test("dehydrates the downloaded file by its id and returns its data", async () => {
+  const z = fakeZ({ "GET /files/file/7": { fileExst: ".docx", folderId: 3, id: 7, title: "Contract.docx" } })
   const result = await run(downloadFile.operation.perform, z, { inputData: { fileId: 7 } })
   match(result.file, "\"fileId\":7")
-  equal(z.calls.length, 0)
+  equal(result.id, 7)
+  equal(result.title, "Contract")
+  equal(result.fileExst, ".docx")
+  equal(result.folderId, 3)
 })
 
 test("invites a guest whose email is a substring of a member email", async () => {
@@ -158,14 +215,36 @@ test("invites a guest whose email is a substring of a member email", async () =>
   const inputData = { access: 11, email: "A@example.com", roomId: 1 }
   const result = await run(inviteGuest.operation.perform, z, { inputData })
   equal(result.status, "Invited")
+  equal(result.email, "A@example.com")
+  equal(result.roomId, 1)
 })
 
 test("doesn't invite a guest who is already a member", async () => {
-  const z = fakeZ({ "GET /files/rooms/1/share": [{ sharedToUser: { email: "a@example.com" } }] })
-  const inputData = { access: 11, email: "a@example.com", roomId: 1 }
+  const member = { access: 11, sharedToUser: { email: "a@example.com", id: "u1" } }
+  const z = fakeZ({ "GET /files/rooms/1/share": [member] })
+  const inputData = { access: 11, email: "a@example.com", roomId: "1" }
   const result = await run(inviteGuest.operation.perform, z, { inputData })
-  equal(result.status, "User is already a member")
+  equal(result, {
+    access: 11,
+    email: "a@example.com",
+    role: "Content creator",
+    roomId: 1,
+    status: "User is already a member",
+    userId: "u1"
+  })
   equal(z.calls.length, 1)
+})
+
+test("archives a room and returns it", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "GET /files/fileops": [operation],
+    "GET /files/rooms/5": { id: "5", rootFolderType: 20, title: "Sales" },
+    "PUT /files/rooms/5/archive": operation
+  })
+  const room = await run(archiveRoom.operation.perform, z, { inputData: { id: "5" } })
+  equal(room.id, 5)
+  equal(room.rootFolderType, 20)
 })
 
 test("keeps titles of files without an extension", async () => {
@@ -258,6 +337,12 @@ test("returns room members without groups", async () => {
   ])
   const active = await run(userInvited.operation.perform, z, { inputData: { active: "true", id: 5 } })
   equal(pluck(active, "id"), ["u1"])
+})
+
+test("lists the next page of room members", async () => {
+  const z = fakeZ({ "GET /files/rooms/5/share": [{ sharedToUser: { email: "a@example.com", id: "u1" } }] })
+  await run(userInvited.operation.perform, z, { inputData: { id: "5" }, meta: { page: 1 } })
+  equal(z.calls[0].query, { count: "100", startIndex: "100" })
 })
 
 test("offers the room manager role to the workspace owner", async () => {
@@ -399,6 +484,12 @@ test("room updated trigger returns the selected room for samples", async () => {
   equal(pluck(await run(performList, z, { inputData: { roomId: "5" } }), "id"), [5])
 })
 
+test("room updated trigger returns a room in third-party storage for samples", async () => {
+  const z = fakeZ({ "GET /files/rooms/sbox-5": { id: "sbox-5", title: "Box" } })
+  const performList = /** @type {any} */ (roomUpdated.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { roomId: "sbox-5" } }), "id"), ["sbox-5"])
+})
+
 test("form submitted trigger subscribes to the form.submit event", async () => {
   await checkSubscription(formSubmitted, 268435456)
 })
@@ -465,6 +556,13 @@ test("form submitted trigger lists the filled forms with their original forms", 
   equal(await run(performList, z, { inputData: {} }), [])
 })
 
+test("form submitted trigger lists the forms of a room in third-party storage", async () => {
+  const z = fakeZ({ "GET /files/sbox-3": { folders: [] } })
+  const performList = /** @type {any} */ (formSubmitted.operation.performList)
+  equal(await run(performList, z, { inputData: { id: "sbox-3" } }), [])
+  equal(z.calls[0].path, "/files/sbox-3")
+})
+
 test("form filled out trigger subscribes to the form.filled.out event", async () => {
   await checkSubscription(formFilledOut, 536870912)
 })
@@ -492,6 +590,12 @@ test("form filled out trigger lists only filled out forms", async () => {
   equal(pluck(await run(performList, z, { inputData: { id: "3" } }), "id"), [5])
   equal(await run(performList, z, { inputData: { formId: "6", id: "3" } }), [])
   equal(await run(performList, z, { inputData: {} }), [])
+})
+
+test("form filled out trigger lists the forms of a folder in third-party storage", async () => {
+  const z = fakeZ({ "GET /files/sbox-8": { files: [{ formFillingStatus: 4, id: "sbox-9", title: "Contract.pdf" }] } })
+  const performList = /** @type {any} */ (formFilledOut.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { folderId: "sbox-8", id: "3" } }), "id"), ["sbox-9"])
 })
 
 test("finds the recently changed room first without sorting in the request", async () => {
@@ -543,6 +647,34 @@ test("keeps the ids of a file and a room in third-party storage", async () => {
   equal((await run(getRoom.operation.perform, z, { inputData: { id: "sbox-5" } })).id, "sbox-5")
 })
 
+test("explains that the account can't add users to rooms", async () => {
+  const field = /** @type {Function} */ (shareRoom.operation.inputFields[2])
+  const [notice] = await run(field, fakeZ({ "GET /people/@self": { isVisitor: true } }), { inputData: { roomId: "5" } })
+  equal(notice.type, "copy")
+  const [role] = await run(field, fakeZ({ "GET /people/@self": { isRoomAdmin: true } }), { inputData: { roomId: "5" } })
+  equal(role.dynamic, "shareRoles.id.name")
+})
+
+test("explains that the account can't invite guests to the room", async () => {
+  const field = /** @type {Function} */ (inviteGuest.operation.inputFields[2])
+  /**
+   * @param {number} access
+   * @returns {Promise<any>}
+   */
+  async function notice(access) {
+    const z = fakeZ({
+      "GET /files/rooms/5/share": [{ access, sharedToUser: { email: "a@example.com" } }],
+      "GET /people/@self": { email: "a@example.com" }
+    })
+    const [field0] = await run(field, z, { inputData: { roomId: "5" } })
+    return field0
+  }
+  // A form filler can't invite anyone.
+  equal((await notice(7)).type, "copy")
+  // A content creator with the User type gets no roles from DocSpace.
+  equal((await notice(11)).type, "copy")
+})
+
 test("gets a room by id", async () => {
   const z = fakeZ({ "GET /files/rooms/5": { id: "5", roomType: 2, title: "Sales" } })
   const room = await run(getRoom.operation.perform, z, { inputData: { id: "5" } })
@@ -575,7 +707,7 @@ test("fails deleting a file when the operation fails", async () => {
     "GET /files/fileops": [operation]
   })
   const error = await caught(() => run(deleteFile.operation.perform, z, { inputData: { fileId: "7" } }))
-  instance(error, HaltedError)
+  instance(error, ZapierError)
   equal(z.calls[0].body.immediately, false)
 })
 
@@ -696,7 +828,11 @@ test("unarchives a room and returns it", async () => {
 
 test("removes a user from a room", async () => {
   const z = fakeZ({
-    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "GET /files/rooms/5/share": (call) => {
+      equal(call.query.filterValue, "u1@example.com")
+      return [{ sharedToUser: { email: "owner@example.com", id: "owner" } }]
+    },
+    "GET /people/u1": { email: "u1@example.com", id: "u1" },
     "PUT /files/rooms/5/share": { error: 0, members: [] }
   })
   const result = await run(removeUserFromRoom.operation.perform, z, { inputData: { id: "5", userId: "u1" } })
@@ -706,11 +842,12 @@ test("removes a user from a room", async () => {
 
 test("fails removing a user who is still a member", async () => {
   const z = fakeZ({
-    "GET /files/rooms/5/share": [{ sharedToUser: { id: "owner" } }],
+    "GET /files/rooms/5/share": [{ sharedToUser: { email: "owner@example.com", id: "owner" } }],
+    "GET /people/owner": { email: "owner@example.com", id: "owner" },
     "PUT /files/rooms/5/share": { error: 0, members: [] }
   })
   const inputData = { id: "5", userId: "owner" }
-  instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), HaltedError)
+  instance(await caught(() => run(removeUserFromRoom.operation.perform, z, { inputData })), ZapierError)
 })
 
 test("gets the members of a room page by page", async () => {
@@ -870,6 +1007,31 @@ test("lists the contents of a folder in third-party storage", async () => {
   equal(result.folderId, "sbox-8")
 })
 
+test("checks the limit of the folder contents", async () => {
+  const z = fakeZ({ "GET /files/5": { current: { id: 5, title: "Sales" }, files: [], folders: [], total: 0 } })
+  /**
+   * @param {string|number=} limit
+   * @returns {Promise<unknown>}
+   */
+  async function count(limit) {
+    await run(listFolderContents.operation.perform, z, { inputData: { id: "5", limit } })
+    return z.calls[z.calls.length - 1].query.count
+  }
+  equal(await count(undefined), "100")
+  equal(await count(""), "100")
+  equal(await count("2.7"), "2")
+  equal(await count(900), "100")
+  const invalid = [
+    "0",
+    "-5",
+    "ten"
+  ]
+  for (const limit of invalid) {
+    const error = await caught(() => run(listFolderContents.operation.perform, z, { inputData: { id: "5", limit } }))
+    instance(error, ZapierError)
+  }
+})
+
 test("lists the contents of the folder instead of the room", async () => {
   const z = fakeZ({ "GET /files/8": { current: { id: 8, title: "Reports" }, files: [], folders: [], total: 0 } })
   const result = await run(listFolderContents.operation.perform, z, { inputData: { folderId: "8", id: "5" } })
@@ -970,6 +1132,14 @@ test("gets the external link of a folder", async () => {
   equal(result, link)
 })
 
+test("creates the external link of a room in the Zaps made before the field", async () => {
+  const link = { access: 2, sharedLink: { primary: true, shareLink: "https://example.com/s/3" } }
+  const z = fakeZ({ "GET /files/rooms/5/link": link, "GET /files/rooms/5/links": [] })
+  equal(await run(externalLink.operation.perform, z, { inputData: { id: "5" } }), link)
+  const error = await caught(() => run(externalLink.operation.perform, z, { inputData: { create: false, id: "5" } }))
+  instance(error, HaltedError)
+})
+
 test("creates a room from a template", async () => {
   const z = fakeZ({
     "GET /files/rooms/9": { id: "9", title: "Sales Q4" },
@@ -988,7 +1158,7 @@ test("fails creating a room from a template with an error", async () => {
   })
   const inputData = { templateId: "4", title: "Sales Q4" }
   const error = await caught(() => run(createRoomFromTemplate.operation.perform, z, { inputData }))
-  instance(error, HaltedError)
+  instance(error, ZapierError)
   equal(z.calls.length, 1)
 })
 
@@ -997,6 +1167,65 @@ test("lists the room templates", async () => {
   const templates = await run(roomTemplatesList.operation.perform, z, {})
   equal(templates[0].id, 4)
   equal(z.calls[0].query.searchArea, "Templates")
+})
+
+test("passes the errors of the workspace through when uploading a file", async () => {
+  // The fake workspace answers 404 when the upload session is created.
+  const z = fakeZ({})
+  const { fetch } = globalThis
+  const headers = new Map()
+  headers.set("content-length", "3")
+  // @ts-ignore: only the headers are read.
+  globalThis.fetch = async () => ({ headers })
+  try {
+    const inputData = { id: "5", url: "https://zapier.com/engine/hydrate/1/abc/" }
+    const error = await caught(() => run(uploadFile.operation.perform, z, { inputData }))
+    equal(error instanceof HaltedError, false)
+    match(String(error), "404")
+  } finally {
+    globalThis.fetch = fetch
+  }
+})
+
+test("fails creating a file without a room or a folder", async () => {
+  const error = await caught(() => run(createFile.operation.perform, fakeZ({}), { inputData: { title: "Report" } }))
+  instance(error, ZapierError)
+})
+
+test("finds files and returns their titles without the extension", async () => {
+  const z = fakeZ({ "GET /files/9": { files: [{ fileExst: ".pdf", id: "1", title: "Report.pdf" }] } })
+  const result = await run(searchFile.operation.perform, z, { inputData: { folderId: 9, title: ".pdf" } })
+  equal(result[0].title, "Report")
+  equal(result[0].fileExst, ".pdf")
+})
+
+test("deletes a folder from the Files section permanently", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/folder/8": [operation],
+    "GET /files/fileops": [operation]
+  })
+  const inputData = { folderId: "8", immediately: "true" }
+  const result = await run(deleteFolderInMyDocuments.operation.perform, z, { inputData })
+  equal(result.finished, true)
+  equal(z.calls[0].body, { deleteAfter: false, immediately: true })
+})
+
+test("deletes a folder in third-party storage", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({ "DELETE /files/folder/sbox-8": [operation], "GET /files/fileops": [operation] })
+  await run(deleteFolder.operation.perform, z, { inputData: { folderId: "sbox-8" } })
+  equal(z.calls[0].path, "/files/folder/sbox-8")
+})
+
+test("deletes a folder from a room", async () => {
+  const operation = { finished: true, id: "op", progress: 100 }
+  const z = fakeZ({
+    "DELETE /files/folder/8": [operation],
+    "GET /files/fileops": [operation]
+  })
+  await run(deleteFolder.operation.perform, z, { inputData: { folderId: "8" } })
+  equal(z.calls[0].body, { deleteAfter: false, immediately: false })
 })
 
 test.run()
