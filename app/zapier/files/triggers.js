@@ -798,7 +798,7 @@ async function performFormSubmitted(z, bundle) {
   }
   const client = new Client(bundle.authData.baseUrl, z.request)
   const files = new FilesService(client)
-  const room = await files.listFolders(Number(bundle.inputData.id), { filterType: "FoldersOnly" })
+  const room = await files.listFolders(normalizeId(bundle.inputData.id), { filterType: "FoldersOnly" })
   const complete = room.folders.find((folder) => Number(folder.type) === COMPLETE_FOLDER_TYPE)
   if (!complete) {
     return []
@@ -896,7 +896,7 @@ async function performFormFilledOut(z, bundle) {
     sortBy: "DateAndTime",
     sortOrder: "descending"
   }
-  const forms = await files.listFiles(Number(folderId), filters)
+  const forms = await files.listFiles(normalizeId(folderId), filters)
   const { formId } = bundle.inputData
   return forms.files
     .filter((form) => form.formFillingStatus === COMPLETE_FORM_STATUS)
@@ -1249,7 +1249,7 @@ async function performRoomUpdated(z, bundle) {
   /** @type {RoomData[]} */
   let rooms
   if (bundle.inputData.roomId) {
-    rooms = [await files.roomInfo(Number(bundle.inputData.roomId))]
+    rooms = [await files.roomInfo(normalizeId(bundle.inputData.roomId))]
   } else {
     const filters = {
       ...pageFilters(bundle),

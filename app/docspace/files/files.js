@@ -759,7 +759,7 @@ class FilesService extends Service {
    * ```http
    * GET /files/{{folderId}}
    * ```
-   * @param {number} folderId
+   * @param {number|string} folderId
    * @param {Filters} filters
    * @returns {Promise<FilesList>}
    */

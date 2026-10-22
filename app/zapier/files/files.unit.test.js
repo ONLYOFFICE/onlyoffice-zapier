@@ -484,6 +484,12 @@ test("room updated trigger returns the selected room for samples", async () => {
   equal(pluck(await run(performList, z, { inputData: { roomId: "5" } }), "id"), [5])
 })
 
+test("room updated trigger returns a room in third-party storage for samples", async () => {
+  const z = fakeZ({ "GET /files/rooms/sbox-5": { id: "sbox-5", title: "Box" } })
+  const performList = /** @type {any} */ (roomUpdated.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { roomId: "sbox-5" } }), "id"), ["sbox-5"])
+})
+
 test("form submitted trigger subscribes to the form.submit event", async () => {
   await checkSubscription(formSubmitted, 268435456)
 })
@@ -550,6 +556,13 @@ test("form submitted trigger lists the filled forms with their original forms", 
   equal(await run(performList, z, { inputData: {} }), [])
 })
 
+test("form submitted trigger lists the forms of a room in third-party storage", async () => {
+  const z = fakeZ({ "GET /files/sbox-3": { folders: [] } })
+  const performList = /** @type {any} */ (formSubmitted.operation.performList)
+  equal(await run(performList, z, { inputData: { id: "sbox-3" } }), [])
+  equal(z.calls[0].path, "/files/sbox-3")
+})
+
 test("form filled out trigger subscribes to the form.filled.out event", async () => {
   await checkSubscription(formFilledOut, 536870912)
 })
@@ -577,6 +590,12 @@ test("form filled out trigger lists only filled out forms", async () => {
   equal(pluck(await run(performList, z, { inputData: { id: "3" } }), "id"), [5])
   equal(await run(performList, z, { inputData: { formId: "6", id: "3" } }), [])
   equal(await run(performList, z, { inputData: {} }), [])
+})
+
+test("form filled out trigger lists the forms of a folder in third-party storage", async () => {
+  const z = fakeZ({ "GET /files/sbox-8": { files: [{ formFillingStatus: 4, id: "sbox-9", title: "Contract.pdf" }] } })
+  const performList = /** @type {any} */ (formFilledOut.operation.performList)
+  equal(pluck(await run(performList, z, { inputData: { folderId: "sbox-8", id: "3" } }), "id"), ["sbox-9"])
 })
 
 test("finds the recently changed room first without sorting in the request", async () => {

@@ -36,6 +36,7 @@
 - Add User to Room and Invite Guest can turn off the email or change its text
 - Create Room can add tags
 - Invite User and Change User Type show only the user types you can set, and clear errors; Add User to Room and Invite Guest explain when your account can't add people to the room
+- fix Room Updated, Form Submitted and Form Filled Out with rooms and folders in third-party storage
 
 ## 1.1.0
 - new inviteGuest action
