@@ -93,6 +93,7 @@ At the moment, the following actions are available for ONLYOFFICE Apps:
 | Delete File | [DELETE api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/delete-file) | Room, Folder, File, Delete permanently |
 | Rename File | [PUT api/2.0/files/file/{fileId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/update-file) | Room, Folder, File, New title |
 | Convert File | [POST api/2.0/files/file/{fileId}/copyas](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/copy-file-as) | Room, Folder, File, Format, New title |
+| Generate Form Report | [POST api/2.0/files/file/{fileId}/xlsx](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/generate-xlsx), [GET api/2.0/files/file/{fileId}/xlsx](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/files/get-xlsx) | Room, Folder, Form |
 | Rename Folder | [PUT api/2.0/files/folder/{folderId}](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/folders/rename-folder) | Room, Folder, New title |
 | Move File, Move Folder | [PUT api/2.0/files/fileops/move](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/move-batch-items) | Room, Folder, File, Destination room, Destination folder, If the name is taken |
 | Copy File, Copy Folder | [PUT api/2.0/files/fileops/copy](https://api.onlyoffice.com/docspace/api-backend/usage-api/files/operations/copy-batch-items) | Room, Folder, File, Destination room, Destination folder, If the name is taken |

@@ -28,6 +28,7 @@ const { CONTENT_CREATOR } = require("../../docspace/client/client.js")
  * @typedef {import("../../docspace/files/files.js").FileData} FileData
  * @typedef {import("../../docspace/files/files.js").FolderContents} FolderContents
  * @typedef {import("../../docspace/files/files.js").FolderData} FolderData
+ * @typedef {import("../../docspace/files/files.js").FormReportTaskData} FormReportTaskData
  * @typedef {import("../../docspace/files/files.js").InviteGuestData} InviteGuestData
  * @typedef {import("../../docspace/files/files.js").ProgressData} ProgressData
  * @typedef {import("../../docspace/files/files.js").RoomData} RoomData
@@ -1986,6 +1987,106 @@ const convertFile = {
   }
 }
 
+/**
+ * @typedef {Object} GenerateFormReportFields
+ * @property {string=} id
+ * @property {string=} folderId
+ * @property {string} fileId
+ */
+
+// The status of a form report task when the spreadsheet is ready.
+const REPORT_COMPLETED = 2
+
+/**
+ * DocSpace builds a form report as a task of its own. Shape its state like a
+ * file operation, so that it is waited for like the other operations.
+ * @param {FormReportTaskData} task
+ * @returns {ProgressData}
+ */
+function reportOperation(task) {
+  // A canceled task is completed without an error.
+  const failed = task.isCompleted && task.status !== REPORT_COMPLETED
+  return {
+    Operation: 0,
+    error: task.error || (failed ? "The workspace didn't create the report." : ""),
+    finished: task.isCompleted,
+    id: task.id,
+    processed: "",
+    progress: task.isCompleted ? 100 : task.percentage
+  }
+}
+
+const generateFormReport = {
+  display: {
+    description: "Generates the spreadsheet with all answers to a form in a form filling room, " +
+      "or updates the existing one, and returns it.",
+    label: "Generate Form Report"
+  },
+  key: "generateFormReport",
+  noun: "File",
+  operation: {
+    inputFields: [
+      {
+        altersDynamicFields: true,
+        dynamic: "roomCreated.id.title",
+        helpText: "The form filling room with the form. Use it to choose the form from the list.",
+        key: "id",
+        label: "Room",
+        search: "searchRoom.id",
+        type: "string"
+      },
+      {
+        altersDynamicFields: true,
+        dynamic: "foldersList.id.title",
+        helpText: "A folder to choose the form from. Leave empty to list the files at the top level of the room.",
+        key: "folderId",
+        label: "Folder",
+        type: "string"
+      },
+      {
+        dynamic: "filesList.id.title",
+        helpText: "A PDF form that is open for filling, or the spreadsheet with its answers from the Complete folder.",
+        key: "fileId",
+        label: "Form",
+        required: true,
+        search: "searchFile.id",
+        type: "string"
+      }
+    ],
+    /**
+     * @param {ZObject} z
+     * @param {Bundle<SessionAuthenticationData, GenerateFormReportFields>} bundle
+     * @returns {Promise<FileData>}
+     */
+    async perform(z, bundle) {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      const files = new FilesService(client)
+      const report = await files.generateFormReport(normalizeId(bundle.inputData.fileId))
+      if (!report || !report.form || !report.task) {
+        throw new z.errors.Error("The workspace didn't start the report.", "OperationFailed")
+      }
+      // DocSpace keeps the status for the original form, also when the report
+      // is asked for with the id of its spreadsheet.
+      const formId = normalizeId(report.form.id)
+      let task = report.task
+      const progress = new Progress(async () => {
+        task = (await files.formReportStatus(formId)) || task
+        return [reportOperation(task)]
+      }, reportOperation(task))
+      await completeOperation(z, progress)
+      // Until the spreadsheet is ready, the id is 0.
+      if (!task.resultFileId) {
+        throw new z.errors.Error("The workspace didn't return the report.", "OperationFailed")
+      }
+      const file = await files.fileInfo(normalizeId(task.resultFileId))
+      file.id = normalizeId(file.id)
+      file.title = stripExtension(file.title)
+      return file
+    },
+    sample: samples.file
+  }
+}
+
 const MAX_CONTENTS = 500
 
 /**
@@ -2556,6 +2657,7 @@ module.exports = {
   externalLink,
   fileExternalLink,
   folderExternalLink,
+  generateFormReport,
   getFile,
   getRoom,
   getRoomMembers,

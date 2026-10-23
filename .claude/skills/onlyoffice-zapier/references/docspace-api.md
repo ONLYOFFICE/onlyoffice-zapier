@@ -43,6 +43,12 @@ marked "unchecked" come from the sources or the docs only. Docs: `https://api.on
 - Convert: `POST /files/file/{id}/copyas` with `destTitle` and `destFolderId`; the target formats are in
   `GET /files/settings` → `extsConvertible[".docx"]`.
 - Text files: `POST /files/{folderId}/text` (.txt) and `…/html`.
+- Forms: `PUT /files/file/{id}/startfilling` opens a PDF form of a form filling room for filling (creating a file
+  with a `.pdf` title in such a room creates a PDF form). `POST /files/file/{id}/xlsx` (the form, or a spreadsheet of
+  its answers from the Complete folder) queues the spreadsheet of answers and returns `{ form, task, isNewFile }`;
+  poll `GET /files/file/{formId}/xlsx` with the id of the original form. The task has `isCompleted`, `percentage`,
+  `status` (2 ready, 3 canceled, 4 failed), `error` and `resultFileId`, which is 0 until the spreadsheet is ready.
+  Runs are kept per caller and form; a new run updates the same spreadsheet. It works without answers too.
 - Upload: `POST /files/{folderId}/session` creates a session, then the chunks go to
   `{baseUrl}/ChunkedUploader.ashx?uid={sessionId}`. `…/upload/create_session` is obsolete.
 - Download: `GET /files/file/{id}/presigned` returns a temporary URL for the Document Server host. On self-hosted

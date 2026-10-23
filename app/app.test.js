@@ -29,6 +29,7 @@ const {
   externalLink,
   fileExternalLink,
   folderExternalLink,
+  generateFormReport,
   getFile,
   getRoom,
   getRoomMembers,
@@ -417,6 +418,11 @@ test("has the `fileExternalLink` creation", () => {
 
 test("has the `folderExternalLink` creation", () => {
   const has = App.creates[folderExternalLink.key] === folderExternalLink
+  equal(has, true)
+})
+
+test("has the `generateFormReport` creation", () => {
+  const has = App.creates[generateFormReport.key] === generateFormReport
   equal(has, true)
 })
 
