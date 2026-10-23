@@ -40,7 +40,8 @@ for f in $(grep -rL --include='*.test.js' createAppTester app); do node "$f" || 
 
 - Never rename the `key` of a trigger, action, search or input field, and never change what a field value means:
   existing Zaps break.
-- All files use LF line endings; `.gitattributes` keeps them. Don't add files with CRLF.
+- Keep the line endings of each file. Most files use LF, some use CRLF (`git ls-files --eol`); don't rewrite a CRLF
+  file with a tool that changes endings, for example `sed -i`. New files use LF.
 - Don't print, paste or commit `.env`: it has the test workspace password and the Zapier deploy key. Don't commit
   local changes of `.zapierapprc`.
 - Every change that users can see gets a line in `CHANGELOG.md` (the section of the current version) and an update of

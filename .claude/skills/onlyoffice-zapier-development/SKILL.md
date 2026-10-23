@@ -62,10 +62,9 @@ warnings.
 
 ### Line endings
 
-All files use LF; `.gitattributes` (`* text=auto eol=lf`) keeps them so on every platform. After an edit,
-`git diff --stat` must show only the changed lines, not the whole file. `.git-blame-ignore-revs` lists the commit
-that converted the files from CRLF; run `git config blame.ignoreRevsFile .git-blame-ignore-revs` once so that
-`git blame` skips it.
+Most files use LF; some files in `app/zapier/` and `eslint.config.js` use CRLF, and there is no `.gitattributes`.
+Keep each file's endings: check with `git ls-files --eol <file>`, edit with tools that keep them, never `sed -i` a
+CRLF file. New files use LF. After an edit, `git diff --stat` must show only the changed lines, not the whole file.
 
 ## Tests
 
@@ -169,7 +168,7 @@ Write facts that stay true; leave out counts and lists that change with every ne
    with `redirect: "error"`; no secrets in errors or logs.
 8. **Lists:** `count` ≤ 100, dropdowns page with `canPaginate`; no `sortBy` where the order doesn't matter.
 9. **Tests and docs:** a registration test for every new key, unit tests for every branch, an integration test for
-   the main path; CHANGELOG and README updated; checks pass; LF line endings.
+   the main path; CHANGELOG and README updated; checks pass; line endings of the files kept.
 10. **Agent docs:** `AGENTS.md` and the skills match the change (see "Keeping agent docs current").
 
 Report format:
