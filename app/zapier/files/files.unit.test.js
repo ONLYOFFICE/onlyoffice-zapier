@@ -24,6 +24,7 @@ const {
   externalLink,
   fileExternalLink,
   folderExternalLink,
+  generateFormReport,
   getFile,
   getRoom,
   getRoomMembers,
@@ -972,6 +973,99 @@ test("offers the formats the file can be converted to", async () => {
   equal(format.choices, { odt: "ODT", pdf: "PDF" })
   const [empty] = await run(field, z, { inputData: {} })
   equal(empty.choices, undefined)
+})
+
+/**
+ * @param {Object} task
+ * @returns {Object}
+ */
+function reportTask(task) {
+  return { error: "", id: "task", isCompleted: false, percentage: 0, resultFileId: 0, status: 1, ...task }
+}
+
+test("generates a form report and returns the spreadsheet", async () => {
+  const z = fakeZ({
+    "GET /files/file/12": { fileExst: ".xlsx", folderId: 30, id: "12", title: "Application.xlsx" },
+    "GET /files/file/7/xlsx": reportTask({ isCompleted: true, percentage: 100, resultFileId: 12, status: 2 }),
+    "POST /files/file/7/xlsx": { form: { id: "7" }, isNewFile: true, task: reportTask({}) }
+  })
+  const file = await run(generateFormReport.operation.perform, z, { inputData: { fileId: "7", id: "5" } })
+  equal(file.id, 12)
+  equal(file.title, "Application")
+  equal(file.fileExst, ".xlsx")
+  equal(pluck(z.calls, "path"), [
+    "/files/file/7/xlsx",
+    "/files/file/7/xlsx",
+    "/files/file/12"
+  ])
+  equal(z.calls[0].method, "POST")
+})
+
+test("waits for the form report of the original form when the spreadsheet is given", async () => {
+  const z = fakeZ({
+    "GET /files/file/12": { fileExst: ".xlsx", id: 12, title: "Application.xlsx" },
+    "GET /files/file/7/xlsx": reportTask({ isCompleted: true, percentage: 100, resultFileId: 12, status: 2 }),
+    "POST /files/file/12/xlsx": { form: { id: 7 }, isNewFile: false, task: reportTask({}) }
+  })
+  const file = await run(generateFormReport.operation.perform, z, { inputData: { fileId: "12" } })
+  equal(file.id, 12)
+  equal(z.calls[1].path, "/files/file/7/xlsx")
+})
+
+test("generates a form report in third-party storage", async () => {
+  const z = fakeZ({
+    "GET /files/file/sbox-12": { fileExst: ".xlsx", id: "sbox-12", title: "Application.xlsx" },
+    "GET /files/file/sbox-7/xlsx": reportTask({ isCompleted: true, resultFileId: "sbox-12", status: 2 }),
+    "POST /files/file/sbox-7/xlsx": { form: { id: "sbox-7" }, task: reportTask({}) }
+  })
+  const file = await run(generateFormReport.operation.perform, z, { inputData: { fileId: "sbox-7" } })
+  equal(file.id, "sbox-12")
+})
+
+test("fails the form report when DocSpace fails or cancels it", async () => {
+  const cases = [
+    { message: "The form has no answers", task: { error: "The form has no answers", isCompleted: true, status: 4 } },
+    { message: "didn't create the report", task: { isCompleted: true, status: 3 } },
+    { message: "didn't return the report", task: { isCompleted: true, percentage: 100, status: 2 } }
+  ]
+  for (const { message, task } of cases) {
+    const z = fakeZ({
+      "GET /files/file/7/xlsx": reportTask(task),
+      "POST /files/file/7/xlsx": { form: { id: 7 }, task: reportTask({}) }
+    })
+    const error = await caught(() => run(generateFormReport.operation.perform, z, { inputData: { fileId: "7" } }))
+    instance(error, ZapierError)
+    match(String(error), message)
+  }
+})
+
+test("fails the form report when DocSpace doesn't start it", async () => {
+  const z = fakeZ({ "POST /files/file/7/xlsx": {} })
+  const error = await caught(() => run(generateFormReport.operation.perform, z, { inputData: { fileId: "7" } }))
+  instance(error, ZapierError)
+  match(String(error), "didn't start the report")
+})
+
+test("fails the form report when it is still being generated", async () => {
+  const z = fakeZ({
+    "GET /files/file/7/xlsx": reportTask({ percentage: 50 }),
+    "POST /files/file/7/xlsx": { form: { id: 7 }, task: reportTask({}) }
+  })
+  // Use a fake clock, so that the test doesn't wait for the timeout.
+  const { now, wait } = Progress.prototype
+  let time = 0
+  Progress.prototype.now = () => time
+  Progress.prototype.wait = async (/** @type {number} */ delay) => {
+    time = time + delay
+  }
+  try {
+    const error = await caught(() => run(generateFormReport.operation.perform, z, { inputData: { fileId: "7" } }))
+    instance(error, ZapierError)
+    match(String(error), "still processing the operation")
+  } finally {
+    Progress.prototype.now = now
+    Progress.prototype.wait = wait
+  }
 })
 
 test("lists the contents of a folder page by page up to the limit", async () => {

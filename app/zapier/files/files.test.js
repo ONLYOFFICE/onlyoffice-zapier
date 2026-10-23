@@ -28,6 +28,7 @@ const {
   externalLink,
   fileExternalLink,
   folderExternalLink,
+  generateFormReport,
   getFile,
   getRoom,
   getRoomMembers,
@@ -349,6 +350,40 @@ Files("creates a room from a template", async (context) => {
     const files = new FilesService(new Client(bundle.authData.baseUrl, z.request))
     return files.deleteRoom(templateId)
   }, { authData: context.authData })
+})
+
+Files("generates the report of a form", async (context) => {
+  const room = await tester(roomCreate.operation.perform, {
+    authData: context.authData,
+    inputData: { roomType: "1", title: "Form report room" }
+  })
+  try {
+    const form = await tester(createFile.operation.perform, {
+      authData: context.authData,
+      inputData: { id: room.id, title: "Application.pdf" }
+    })
+    await tester(async (/** @type {any} */ z, /** @type {any} */ bundle) => {
+      const client = new Client(bundle.authData.baseUrl, z.request)
+      return client.request("PUT", client.url(`/files/file/${form.id}/startfilling`))
+    }, { authData: context.authData })
+    const bundle = {
+      authData: context.authData,
+      inputData: { fileId: String(form.id), id: String(room.id) }
+    }
+    const report = await tester(generateFormReport.operation.perform, bundle)
+    equal(report.title, "Application")
+    equal(report.fileExst, ".xlsx")
+    // A new run updates the same spreadsheet.
+    const again = await tester(generateFormReport.operation.perform, bundle)
+    equal(again.id, report.id)
+  } finally {
+    // Active rooms count toward the room limit.
+    await tester(archiveRoom.operation.perform, { authData: context.authData, inputData: { id: room.id } })
+    await tester(async (/** @type {any} */ z, /** @type {any} */ bundle) => {
+      const files = new FilesService(new Client(bundle.authData.baseUrl, z.request))
+      return files.deleteRoom(room.id)
+    }, { authData: context.authData })
+  }
 })
 
 Files("gets the members of the room", async (context) => {

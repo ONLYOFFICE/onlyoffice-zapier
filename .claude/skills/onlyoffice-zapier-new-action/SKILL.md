@@ -113,7 +113,9 @@ Room, folder and file fields only choose an entry; the action uses the most spec
   ```
 
   Some endpoints return an array of operations; pass the first one. Then fetch and return the entry if it still
-  exists (a delete returns the finished operation).
+  exists (a delete returns the finished operation). A task with its own status endpoint (the form report) gets an
+  endpoint function that maps its state to an operation (`reportOperation` in `actions.js`), so that it waits and
+  fails the same way.
 - Return the entry the action worked on, shaped like similar actions: `id` through `normalizeId`, file titles
   through `stripExtension`. Return small objects with clear fields when there is no entry
   (`{ roomId, status: "Removed", userId }`).

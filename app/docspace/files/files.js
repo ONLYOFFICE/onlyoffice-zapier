@@ -204,6 +204,25 @@ const { Service } = require("../client/client.js")
  */
 
 /**
+ * @typedef {Object} FormReportTaskData
+ * @property {string} id
+ * @property {string=} error
+ * @property {number} percentage
+ * @property {boolean} isCompleted
+ * @property {number} status 2 when the report is ready, 3 when canceled, 4 when failed.
+ * @property {number|string|null} resultFileId 0 until the spreadsheet is ready.
+ * @property {string=} resultFileName
+ */
+
+/**
+ * @typedef {Object} FormReportData
+ * @property {FileData=} form The original form, also when the report was asked
+ * for with the id of its spreadsheet.
+ * @property {FormReportTaskData=} task
+ * @property {boolean=} isNewFile
+ */
+
+/**
  * @typedef {Object} RoomCreateBody
  * @property {string} title
  * @property {number} roomType
@@ -656,6 +675,30 @@ class FilesService extends Service {
   copyFileAs(fileId, body) {
     const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/copyas`)
     return this.client.request("POST", url, body)
+  }
+
+  /**
+   * ```http
+   * POST /files/file/{{fileId}}/xlsx
+   * ```
+   * @param {number|string} fileId A form, or the spreadsheet of its answers.
+   * @returns {Promise<FormReportData>}
+   */
+  generateFormReport(fileId) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(fileId)}/xlsx`)
+    return this.client.request("POST", url)
+  }
+
+  /**
+   * ```http
+   * GET /files/file/{{fileId}}/xlsx
+   * ```
+   * @param {number|string} formId
+   * @returns {Promise<FormReportTaskData|undefined>}
+   */
+  formReportStatus(formId) {
+    const url = this.client.url(`/files/file/${encodeURIComponent(formId)}/xlsx`)
+    return this.client.request("GET", url)
   }
 
   /**
