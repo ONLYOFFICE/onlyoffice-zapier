@@ -102,7 +102,7 @@ const {
 } = require("./zapier/people/triggers.js")
 
 test("has the actual version", () => {
-  const version = "1.1.2"
+  const version = "1.1.3"
   equal(App.version, version)
   equal(pack.version, version)
 })
