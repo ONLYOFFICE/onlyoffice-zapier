@@ -114,8 +114,9 @@ zapier-platform validate --without-style
 for f in $(grep -rL --include='*.test.js' createAppTester app); do node "$f" || exit 1; done
 ```
 
-After the user confirms: `pnpm tt` (integration tests on the test workspace), then `CI=true pnpm build` and
-`pnpm upload` to try the change in the Zap editor. The user signs in to Zapier and DocSpace themselves; never enter
+After the user confirms: `pnpm tt` (integration tests on the test workspace), then `CI=true pnpm build`,
+`pnpm smoke` (the bundle in `dist/` loads and matches the source) and `pnpm upload` to try the change in the Zap
+editor. The user signs in to Zapier and DocSpace themselves; never enter
 credentials. A live check covers the step test in the editor and, for triggers, a turned-on Zap that gets a real
 event; turn the test Zaps off afterwards.
 
@@ -132,7 +133,8 @@ event; turn the test Zaps off afterwards.
 - `README.md`: the tables of triggers (Trigger | Fields), actions (Actions | API method | Fields) and searches. Field
   names exactly as the labels in Zapier; API methods with links to api.onlyoffice.com.
 - Release: a push to `main` creates a tag from the changelog version (`create-tag.yml`); the tag runs `release.yml`
-  (build, upload, promote, GitHub release). Don't change `version` in `package.json` unless the user asks.
+  (build, smoke check, upload, promote, GitHub release). Steps and manual parts: the `release` skill. Don't change
+  `version` in `package.json` unless the user asks.
 - CI (`audit.yml`, pull requests to `develop` and `main`): `pnpm check`, `pnpm lint`, `pnpm tt` against the test
   workspace. `licenses.yml` checks dependency licenses (`.check-licenses.yml`).
 
@@ -146,7 +148,9 @@ update them in the same branch, in the commit of the change or in a separate `ch
 | New files, modules, shared helpers, kinds of triggers; the architecture or the auth | `onlyoffice-zapier/SKILL.md` (repo map and sections) |
 | Facts about the DocSpace API: endpoints, enums, rights, events, limits | `onlyoffice-zapier/references/docspace-api.md` |
 | Behavior of Zapier Platform, a new platform version | `onlyoffice-zapier/references/zapier-platform.md` |
-| Commands, tests, fixtures, checks, CI, release, git rules, style | `onlyoffice-zapier-development/SKILL.md` and `AGENTS.md` |
+| Commands, tests, fixtures, checks, CI, git rules, style | `onlyoffice-zapier-development/SKILL.md` and `AGENTS.md` |
+| Release steps, workflows, Zapier versions and publication | `release/SKILL.md` |
+| Background, decisions, the manual check list | `HANDOVER.md` |
 | Typical fields, steps or patterns of actions and searches | `onlyoffice-zapier-new-action/SKILL.md` |
 | Typical fields, steps or patterns of triggers and dropdowns | `onlyoffice-zapier-new-trigger/SKILL.md` |
 | A new skill | Its row in the skills table of `AGENTS.md` |
