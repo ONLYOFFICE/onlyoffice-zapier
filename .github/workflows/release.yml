@@ -29,6 +29,9 @@ jobs:
     - name: Build Application
       run: pnpm build
 
+    - name: Check the Build
+      run: pnpm smoke
+
     - name: Upload Application
       env:
         ZAPIER_DEPLOY_KEY: ${{ secrets.ZAPIER_DEPLOY_KEY }}

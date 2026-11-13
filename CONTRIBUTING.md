@@ -44,6 +44,7 @@ $ cat ./package.json | jq .scripts
   "promote": "node ./makefile.js promote",
   "release": "node ./makefile.js release",
   "setup-env": "node ./makefile.js setup-env",
+  "smoke": "node ./makefile.js smoke",
   "test": "uvu app ^.*\\.test\\.js$",
   "tt": "node ./makefile.js tt",
   "upload": "node ./makefile.js upload"
@@ -66,6 +67,7 @@ $ ./makefile.js --help
     promote             Promote the current version of the app
     release             Release the current version of the app
     setup-env           Setup environment dot file
+    smoke               Check that the built app loads and has the same definition as the source
     tt                  Run validation with tests
     upload              Upload the current version of the app
 
@@ -140,6 +142,8 @@ First of all, it's recommended to run the [`audit`](./.github/workflows/audit.ym
 ```sh
 $ gh workflow run audit.yml --ref develop
 ```
+
+The `stage` and `release` actions run `pnpm smoke` after the build: it loads the bundle from `dist` and stops the action if its definition differs from the source.
 
 If everything is okay, we'll be able to [`stage`](./.github/workflows/stage.yml) the current version of the application. It'll build and upload the application to Zapier servers in private mode, allowing you to start manual testing, for example. If it's discovered that the current version of the application has already been uploaded and made public, an error will be thrown.
 

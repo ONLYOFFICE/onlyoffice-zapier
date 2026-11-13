@@ -171,6 +171,30 @@ async function copyMeta(input, output) {
 }
 
 /**
+ * @param {unknown} value
+ * @returns {unknown}
+ */
+function definitionShape(value) {
+  // The bundle is minified, so only the presence of functions can be compared.
+  if (typeof value === "function") {
+    return "[function]"
+  }
+  if (Array.isArray(value)) {
+    return value.map(definitionShape)
+  }
+  if (value && typeof value === "object") {
+    const object = /** @type {Record<string, unknown>} */ (value)
+    /** @type {Record<string, unknown>} */
+    const shape = {}
+    Object.keys(object).sort().forEach((key) => {
+      shape[key] = definitionShape(object[key])
+    })
+    return shape
+  }
+  return value
+}
+
+/**
  * @param {string} directory
  * @returns {Promise<void>}
  */
@@ -188,6 +212,7 @@ app
     exec("pnpm lint")
     exec("pnpm tt")
     exec("pnpm build")
+    exec("pnpm smoke")
   })
 
 app
@@ -279,6 +304,38 @@ app
       `DOC_SPACE_PASSWORD=${DOC_SPACE_PASSWORD}\n` +
       `ZAPIER_DEPLOY_KEY=${ZAPIER_DEPLOY_KEY}`
     await writeFile(file, content)
+  })
+
+app
+  .command("smoke")
+  .describe("Check that the built app loads and has the same definition as the source")
+  .action(() => {
+    const entry = join(dist, "index.js")
+    const archive = join(dist, "build/build.zip")
+    if (!existsSync(entry) || !existsSync(archive)) {
+      error("error: the build is missing, run `pnpm build` first")
+      exit(1)
+    }
+
+    const source = /** @type {Record<string, unknown>} */ (definitionShape(require(join(root, "index.js"))))
+    const built = /** @type {Record<string, unknown>} */ (definitionShape(require(entry)))
+    const keys = [...new Set([
+      ...Object.keys(source),
+      ...Object.keys(built)
+    ])]
+    const differences = keys.filter((key) => (
+      JSON.stringify(source[key]) !== JSON.stringify(built[key])
+    ))
+    if (differences.length > 0) {
+      error(`error: the built app differs from the source in: ${differences.join(", ")}`)
+      exit(1)
+    }
+
+    const count = (/** @type {unknown} */ group) => Object.keys(Object(group)).length
+    const summary =
+      `info: the built app ${built.version} loads with ${count(built.triggers)} triggers, ` +
+      `${count(built.creates)} actions and ${count(built.searches)} searches`
+    log(summary)
   })
 
 app

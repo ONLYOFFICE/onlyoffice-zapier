@@ -37,7 +37,7 @@ the API still say DocSpace.
 | `app/zapier/fields.js` | `noRightsField(text)`: an explanation instead of an empty list |
 | `app/zapier/z.fixture.js`, `*/*.fixture.js` | Test fixtures: fake `z`, webhook bundles, test sign-in |
 | `vendor/*.d.ts` | Types for `tsc` |
-| `makefile.js` | `all`, `build`, `tt`, `upload`, `promote`, `release`, `setup-env`, `install-zapier`, `install-lefthook` |
+| `makefile.js` | `all`, `build`, `smoke`, `tt`, `upload`, `promote`, `release`, `setup-env`, `install-zapier`, `install-lefthook` |
 
 ## Two layers
 
